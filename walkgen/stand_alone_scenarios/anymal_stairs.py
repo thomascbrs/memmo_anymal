@@ -31,14 +31,14 @@ import numpy as np
 import pinocchio as pin
 import pickle
 import os
-from SurfacePlanner import SurfacePlanner
+import walkgen.SurfacePlanner as SurfacePlanner
 import sl1m.tools.plot_tools as plot
 from time import perf_counter as clock
 import matplotlib.pyplot as plt
-from tools.plot_tools import plot_marker_surface
+from walkgen.tools.plot_tools import plot_marker_surface
 
 # Load Marker array class example from ROS simulation
-fileObject = os.getcwd() + "/stand_alone_scenarios/data/example_marker_array.pickle"
+fileObject = os.getcwd() + "/data/example_marker_array.pickle"
 
 with open(fileObject, 'rb') as file2:
     array_markers = pickle.load(file2)

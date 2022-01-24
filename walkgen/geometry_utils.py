@@ -33,9 +33,9 @@ import rospy
 from visualization_msgs.msg import MarkerArray
 from visualization_msgs.msg import Marker
 import visvalingamwyatt as vw
-from tools.SurfaceData import SurfaceData
+from walkgen.tools.SurfaceData import SurfaceData
 from scipy.spatial import ConvexHull
-import tools.Tess2 as Tess2
+import walkgen.tools.Tess2 as Tess2
 from shapely.geometry import Polygon
 
 
