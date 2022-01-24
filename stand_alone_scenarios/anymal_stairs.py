@@ -61,6 +61,8 @@ gait = np.array([[0.,1.,1.,1.],
                  [1.,0.,1.,1.],
                  [1.,1.,0.,1.],
                  [1.,1.,1.,0.]])
+# gait = np.array([[0.,1.,0.,1.],
+#                  [1.,0.,1.,0.]])
 bvref = np.array([0.15,0.,0.]) # Reference velocity
 initial_config = np.array([0.,0.3,0.,0.,0.,0.,1.]) # Initial config
 h_init = -0.06
