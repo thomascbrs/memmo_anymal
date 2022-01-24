@@ -1,0 +1,53 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
+
+# Project properties
+SET(PROJECT_ORG memmo_anymal)
+SET(PROJECT_NAME walkgen)
+SET(PROJECT_DESCRIPTION "Implementation of reactive footstepplanner with Mixed-integer for surface choices.")
+SET(PROJECT_URL "https://github.com/${PROJECT_ORG}/${PROJECT_NAME}")
+
+# Project configuration
+SET(PROJECT_USE_CMAKE_EXPORT TRUE)
+
+# JRL-cmakemodule setup
+INCLUDE(cmake/base.cmake)
+INCLUDE(cmake/python.cmake)
+
+# Project definition
+COMPUTE_PROJECT_ARGS(PROJECT_ARGS LANGUAGES CXX)
+PROJECT(${PROJECT_NAME} ${PROJECT_ARGS})
+
+FINDPYTHON()
+
+SET(${PROJECT_NAME}_SOURCES
+  __init__.py
+  SurfacePlanner.py
+  geometry_utils.py
+  )
+
+SET(${PROJECT_NAME}_STANDALONE_SCENARIOS_SOURCES
+  __init__.py
+  anymal_stairs.py
+  )
+
+SET(${PROJECT_NAME}_TOOLS_SOURCES
+  __init__.py
+  plot_tools.py
+  SurfaceData.py
+  Tess2.py
+  )
+
+FOREACH(src ${${PROJECT_NAME}_SOURCES})
+  PYTHON_INSTALL_ON_SITE(${PROJECT_NAME} ${src})
+ENDFOREACH(src ${PROJECT_NAME}_SOURCES)
+
+FOREACH(src ${${PROJECT_NAME}_STANDALONE_SURFACES_SOURCES})
+  PYTHON_INSTALL_ON_SITE(${PROJECT_NAME}/stand_alone_scenarios/surfaces ${src})
+ENDFOREACH(src ${PROJECT_NAME}_STANDALONE_SURFACES_SOURCES)
+
+FOREACH(src ${${PROJECT_NAME}_TOOLS_SOURCES})
+  PYTHON_INSTALL_ON_SITE(${PROJECT_NAME}/tools ${src})
+ENDFOREACH(src ${PROJECT_NAME}_TOOLS_SOURCES)
+
+ADD_LIBRARY(${PROJECT_NAME} INTERFACE)
+INSTALL(TARGETS ${PROJECT_NAME} EXPORT ${TARGETS_EXPORT_NAME} DESTINATION lib)
