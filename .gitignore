@@ -116,3 +116,6 @@ Ogre.log
 .vscode/
 cmake-build-debug/
 .idea/
+
+# Notebooks
+.ipynb_checkpoints
