@@ -22,7 +22,6 @@ FINDPYTHON()
 SET(${PROJECT_NAME}_SOURCES
   __init__.py
   SurfacePlanner.py
-  geometry_utils.py
   )
 
 SET(${PROJECT_NAME}_STANDALONE_SCENARIOS_SOURCES
@@ -35,6 +34,9 @@ SET(${PROJECT_NAME}_TOOLS_SOURCES
   plot_tools.py
   SurfaceData.py
   Tess2.py
+  geometry_utils.py
+  heightmap.py
+  heightmap_generator.py
   )
 
 FOREACH(src ${${PROJECT_NAME}_SOURCES})

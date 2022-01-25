@@ -6,7 +6,7 @@ Workspace containing the works related to memmo project and the anymal demo.
 
 --> Caracal and SL1M integration.
 
-Dependencies:
+## Dependencies
 - visualization_msgs: ```sudo apt-get install ros-noetic-visualization-msgs```
 - rospy : ```pip3 install rospy```
 - visvalingamwyatt algorithm : ```pip3 install visvalingamwyatt```
@@ -28,7 +28,7 @@ sudo apt install robotpkg-hpp
 sudo apt install robotpkg-py38-hpp-rbprm
 sudo apt install robotpkg-py38-hpp-rbprm-corba
 ```
-
+## Walkgen
 Install cmake submodule:
 ```
 git submodule init
@@ -46,3 +46,15 @@ Launch an exemple of PlaneSeg-->SL1M, from memmo_anymal folder:
 ```
 python3 walkgen/stand_alone_scenarios/anymal_stairs.py
 ```
+## Heightmap
+Create an heightmap from the URDF environment. Usefull to use the SurfacePlanner with the guide path RBPRM (SurfacePlannerURDF), for the simulations.
+- Setup the ROS_PACKAGE_PATH variable environment in your /.bashrc file, for hpp. This allow to define in the urdf the paths as "package://meshes/lab_scene.stl"  :
+
+```export ROS_PACKAGE_PATH=your_path/memmo_anymal/data:$ROS_PACKAGE_PATH ```
+
+An example of environment (URDF and STL files) has been put in the data folder. The binary file will be created in the data folder. Run from the main folder:
+```
+python3 walkgen/tools/heightmap_generator.py
+```
+
+For now, the location of the heightmap needs to be updated directly in the SurfacePlannerURDF file.
