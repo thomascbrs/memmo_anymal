@@ -31,7 +31,7 @@ import numpy as np
 import hppfcl
 import pickle
 import ctypes
-import quadprog
+from walkgen.tools.optimisation import quadprog_solve_qp
 
 class MapHeader(ctypes.Structure):
     _fields_ = [
@@ -271,38 +271,6 @@ def get_point_intersect_line_triangle(segment, triangle):
             return np.zeros(3)
     else:
         return np.zeros(3)
-
-def quadprog_solve_qp(P, q, G=None, h=None, C=None, d=None, verbose=False):
-    """
-    min (1/2)x' P x + q' x
-    subject to  G x <= h
-    subject to  C x  = d
-    """
-    # qp_G = .5 * (P + P.T)   # make sure P is symmetric
-    qp_G = .5 * (P + P.T)  # make sure P is symmetric
-    qp_a = -q
-    qp_C = None
-    qp_b = None
-    meq = 0
-    if C is not None:
-        if G is not None:
-            qp_C = -np.vstack([C, G]).T
-            qp_b = -np.hstack([d, h])
-        else:
-            qp_C = -C.transpose()
-            qp_b = -d
-        meq = C.shape[0]
-    elif G is not None:  # no equality constraint
-        qp_C = -G.T
-        qp_b = -h
-    # t_init = clock()
-    res = quadprog.solve_qp(qp_G, qp_a, qp_C, qp_b, meq)
-    # t_end = clock()  - t_init
-    # print("time optim coeff Bezier : " , t_end*1000 , " [ms]")
-    if verbose:
-        return res
-
-    return res[0]
 
 def load_heightmap(heightmap_path):
     """ Returns Heightmap class from path.
