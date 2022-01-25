@@ -7,6 +7,7 @@ Workspace containing the works related to memmo project and the anymal demo.
 --> Caracal and SL1M integration.
 
 ## Dependencies
+- Caracal: Access needed, on branch feature-walkgen.
 - visualization_msgs: ```sudo apt-get install ros-noetic-visualization-msgs```
 - rospy : ```pip3 install rospy```
 - visvalingamwyatt algorithm : ```pip3 install visvalingamwyatt```
@@ -51,10 +52,22 @@ Create an heightmap from the URDF environment. Usefull to use the SurfacePlanner
 - Setup the ROS_PACKAGE_PATH variable environment in your /.bashrc file, for hpp. This allow to define in the urdf the paths as "package://meshes/lab_scene.stl"  :
 
 ```export ROS_PACKAGE_PATH=your_path/memmo_anymal/data:$ROS_PACKAGE_PATH ```
+An example of environment (URDF and STL files) has been put in the data folder. The binary file will be created in the data folder. Open a terminal and run :
+```
+hpp-rbprm-server
+```
 
-An example of environment (URDF and STL files) has been put in the data folder. The binary file will be created in the data folder. Run from the main folder:
+In another terminal, from the main folder, run :
 ```
 python3 walkgen/tools/heightmap_generator.py
 ```
 
 For now, the location of the heightmap needs to be updated directly in the SurfacePlannerURDF file.
+
+## TODO
+
+- Generate a heightmap from the ros msg MarkerArray for SL1M in order to rotate the inequalities.
+- To work in pybullet environment, a SurfacePlannerURDF is used which is different from the SurfacePLanner that will be used to work with Planeseg. Create an equivalent URDF --> ros msg MarkerArray so that we work with the same SurfacePLanner.
+-  Bezier curves.
+- Check the QP for Footstepplanner.
+- Check the initial position for SurfacePLanner, it should be the incoming footstep because of the delay, and check the delay, +1 or +2 in the timeline horizon.
