@@ -33,7 +33,7 @@ import os
 import pinocchio as pin
 from example_robot_data.robots_loader import ANYmalLoader
 import numpy as np
-from walkgen.geometry_utils import reduce_surfaces, remove_overlap_surfaces
+from walkgen.tools.geometry_utils import reduce_surfaces, remove_overlap_surfaces
 
 # -----Problem definition-----
 paths = [

@@ -434,6 +434,30 @@ def compute_inner_vertices(vertices, ineq_inner, ineq_vect_inner):
     vertices_inner = np.array(S_inner)
     return vertices_inner
 
+def getAllSurfacesDict_inner(all_surfaces, margin):
+    '''
+    Computes the inner vertices of the given convex surface, with a margin.
+    Args :
+    - all_surfaces : Dictionary containing the surface vertices, normal and name.
+    - margin : (float) margin in m
+    Returns :
+    - New dictionnary with inner vertices
+    '''
+
+    all_names = []
+    surfaces = []
+    for name_surface in all_surfaces:
+        vertices = order(np.array(all_surfaces.get(name_surface)[0]))
+        ineq_inner, ineq_inner_vect, normal = compute_inner_inequalities(vertices, margin)
+        vertices_inner = compute_inner_vertices(vertices, ineq_inner, ineq_inner_vect)
+
+        # Save inner vertices
+        all_names.append(name_surface)
+        surfaces.append((vertices_inner.tolist(), normal.tolist()))
+
+    surfaces_dict = dict(zip(all_names, surfaces))
+    return surfaces_dict
+
 
 ## TODO, from stackoverflow, find reference
 def order(vertices, method="convexHull"):

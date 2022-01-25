@@ -27,13 +27,12 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-
-
 import rospy
 from visualization_msgs.msg import MarkerArray
 from visualization_msgs.msg import Marker
 import matplotlib.pyplot as plt
 import numpy as np
+
 
 def plot_marker_surface(array_markers, ax=None):
     """ PLot the edges and vertices from arrayMarker data type.
