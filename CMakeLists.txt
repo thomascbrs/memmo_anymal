@@ -22,7 +22,6 @@ FINDPYTHON()
 SET(${PROJECT_NAME}_SOURCES
   __init__.py
   SurfacePlanner.py
-  SurfacePlannerURDF.py
   FootStepPlanner.py
   FootStepTrajectory.py
   GaitManager.py
