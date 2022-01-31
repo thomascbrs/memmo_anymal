@@ -109,6 +109,8 @@ class GaitManager:
         self.gait_generator = QuadrupedalGaitGenerator()
         self._default_cs = copy.deepcopy(
             self.gait_generator.trot(contacts=[cs0, cs1], N_ds=0, N_ss=30, N_uss=0, N_uds=0, endPhase=False))
+        # self._default_cs = copy.deepcopy(
+        #     self.gait_generator.walk(contacts=[cs0, cs1], N_ds=2, N_ss=25, N_uss=0, N_uds=0, endPhase=False))
 
         # Define the MPC horizon
         self._horizon = copy.deepcopy(self._default_cs.T)
@@ -118,6 +120,50 @@ class GaitManager:
         self._queue_cs[-1].updateSwitches()
         # Create data structure
         self._queue_cs_data = [self._create_cs_data(self._queue_cs[-1])]
+        # Contact name order for SL1M
+
+        lf = "LF_FOOT"
+        lh = "LH_FOOT"
+        rf = "RF_FOOT"
+        rh = "RH_FOOT"
+        self._contact_names_SL1M = [lf, rf, lh, rh]
+
+        # Initialize switches list
+        self.initialize_switches(self._default_cs)
+
+    def initialize_switches(self, cs):
+        """ Compute the switches that occur in the gait to trigger SL1M at the
+        beginning of each new footstep.
+        """
+        switches = dict()
+        for c in range(cs.C):
+            phases = cs.phases[c]
+            N_phase = len(phases)
+            phase_index = 0.
+            for p in range(0, N_phase, 2):
+                T_active = phases[p].T
+                T_inactive = 0
+                if p + 1 < N_phase:
+                    T_inactive = phases[p + 1].T
+                    switch_inactive = phase_index + T_active - 1
+                    switch_active = phase_index + T_active + T_inactive - 1
+                    if switch_active > 0.:
+                        if not switch_active in switches:
+                            if (T_active + T_inactive - 1) == cs.T - 1:
+                                switches[switch_active] = self._evaluate_config(cs, 0)
+                            else:
+                                switches[switch_active] = self._evaluate_config(cs, T_active + T_inactive - 1)
+                    if switch_inactive > 0.:
+                        if not switch_inactive in switches:
+                            switches[switch_inactive] = self._evaluate_config(cs, T_active - 1)
+                phase_index += T_active + T_inactive
+
+        s_list = np.sort([t for t in switches])
+        for t in s_list:
+            if switches[t] == [1.,1.,1.,1.]: # Remove 4 feet on the ground, useless for SL1M.
+                switches.pop(t)
+
+        self.switches = switches
 
     def update(self, n_step=1):
         """ Update the queue of contact schedule.
@@ -204,6 +250,98 @@ class GaitManager:
                 Ay[:] = cs.phases[c][1].trajectory.Ay
                 Az[:] = cs.phases[c][1].trajectory.Az
 
+    def get_current_gait(self):
+        """ Compute the current gait matrix on the format : [[1,0,0,1],
+                                                              0,1,1,0]]
+        Usefull for the SurfacePlanner.
+        """
+
+        # Current gait :
+        gait = []
+        # gait_tmp = np.zeros(4)
+        if self._timeline < self._queue_cs[-1].T - 1:
+            timeline = self._timeline
+            cs = self._queue_cs[-1]
+        else:
+            timeline = 0
+            cs = self._queue_cs[-2]
+
+        init_gait = self._evaluate_config(cs, timeline)
+        if init_gait != [1,1,1,1]:
+            gait.append(init_gait)
+
+        switches = dict()
+        index_cs = 0
+        for cs in reversed(self._queue_cs):
+            for c in range(cs.C):
+                phases = cs.phases[c]
+                N_phase = len(phases)
+                phase_index = index_cs*cs.T
+                for p in range(0, N_phase, 2):
+                    T_active = phases[p].T
+                    T_inactive = 0
+                    if p + 1 < N_phase:
+                        T_inactive = phases[p + 1].T
+                        switch_inactive = phase_index + T_active - 1
+                        switch_active = phase_index + T_active + T_inactive - 1
+                        if switch_active > self._timeline:
+                            if not switch_active in switches:
+                                if (T_active + T_inactive - 1) == cs.T - 1:
+                                    switches[switch_active] = self._evaluate_config(cs, 0)
+                                else:
+                                    switches[switch_active] = self._evaluate_config(cs, T_active + T_inactive - 1)
+                        if switch_inactive > self._timeline:
+                            if not switch_inactive in switches:
+                                switches[switch_inactive] = self._evaluate_config(cs, T_active - 1)
+                    phase_index += T_active + T_inactive
+            index_cs += 1
+
+        s_list = np.sort([t for t in switches])
+
+        for k in range(len(s_list) ):
+            if switches[s_list[k]] != [1.,1.,1.,1.]: # Remove 4 feet on the ground, useless for SL1M.
+                gait.append(switches[s_list[k]])
+
+        return np.array(gait)
+
+    def _evaluate_config(self, cs, timeline):
+        """ Evaluate the config of the foot for a given contact schedule a time
+        timeline.
+
+        Args:
+            - cs (ContactSchedule): ContactSchedule object.
+            - timeline (int): Time to evaluate the CS.
+
+        Returns:
+            - param1 (List x4): List of configs (1 --> in contact, 0 --> swing) in order given
+                                by contact_name_SL1M
+        """
+        gait_tmp = np.zeros(4)
+        for c in range(cs.C):
+            name = cs.contactNames[c]
+            j = self._contact_names_SL1M.index(name)
+            phases = cs.phases[c]
+            N_phase = len(phases)
+            active_phase = phases[0]
+            inactive_phase = phases[1]
+            if N_phase == 3:
+                if active_phase.T - timeline - 1 > 0:  # case 1, inside first Active phase
+                    gait_tmp[j] = 1
+                elif active_phase.T + inactive_phase.T - timeline - 1 > 0:  # case 2, during inactive phase
+                    gait_tmp[j] = 0
+                else:
+                    gait_tmp[j] = 1 # case 3, inside first Active phase
+        return gait_tmp.tolist()
+
+    def is_new_step(self):
+        """ Return True if a new flying phase is starting. False otherwise.
+        Usefull for the SurfacePlanner, to start a new optimisation.
+        """
+        if self._timeline in self.switches:
+            return True
+        else:
+            return False
+
 
 class QuadrupedalGaitGenerator:
     """ Create quadrupedal gait with polynomial swing foot trajectory.
@@ -213,6 +351,41 @@ class QuadrupedalGaitGenerator:
         self._dt = dt
         self._S = S
         self._contactNames = [lf, lh, rf, rh]
+
+    def walk(self, contacts, N_ds, N_ss, N_uds=0, N_uss=0, stepHeight=0.15, startPhase=True, endPhase=True):
+        N_0 = 0
+        if startPhase:
+            N_0 = N_ds
+        if endPhase:
+            N = N_0 + 2 * N_ds + 4 * N_ss - 2 * N_uss - N_uds
+        else:
+            N = N_0 + N_ds + 4 * N_ss - 2 * N_uss - N_uds
+        gait = ContactSchedule(self._dt, N, self._S, self._contactNames)
+        lf, lh, rf, rh = self._contactNames
+        lfSwingTraj = FootStepTrajectory(self._dt, N_ss, stepHeight, contacts[0][lf], contacts[1][lf])
+        lhSwingTraj = FootStepTrajectory(self._dt, N_ss, stepHeight, contacts[0][lh], contacts[1][lh])
+        rfSwingTraj = FootStepTrajectory(self._dt, N_ss, stepHeight, contacts[0][rf], contacts[1][rf])
+        rhSwingTraj = FootStepTrajectory(self._dt, N_ss, stepHeight, contacts[0][rh], contacts[1][rh])
+        gait.addSchedule(
+            lh, [ContactPhase(N_0),
+                 ContactPhase(N_ss, trajectory=lhSwingTraj),
+                 ContactPhase(N - (N_0 + N_ss))])
+        gait.addSchedule(lf, [
+            ContactPhase(N_0 + N_ss - N_uss),
+            ContactPhase(N_ss, trajectory=lfSwingTraj),
+            ContactPhase(N - (N_0 + 2 * N_ss - N_uss))
+        ])
+        gait.addSchedule(rh, [
+            ContactPhase(N_0 + N_ds + 2 * N_ss - N_uss - N_uds),
+            ContactPhase(N_ss, trajectory=rhSwingTraj),
+            ContactPhase(N - (N_0 + N_ds + 3 * N_ss - N_uss - N_uds))
+        ])
+        gait.addSchedule(rf, [
+            ContactPhase(N_0 + N_ds + 3 * N_ss - 2 * N_uss - N_uds),
+            ContactPhase(N_ss, trajectory=rfSwingTraj),
+            ContactPhase(N - (N_0 + N_ds + 4 * N_ss - 2 * N_uss - N_uds))
+        ])
+        return gait
 
     def trot(self, contacts, N_ds, N_ss, N_uss=0, N_uds=0, stepHeight=0.15, startPhase=True, endPhase=True):
         N_0 = 0
