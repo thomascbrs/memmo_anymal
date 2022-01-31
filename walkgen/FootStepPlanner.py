@@ -30,8 +30,7 @@
 import numpy as np
 import pinocchio as pin
 
-from walkgen.tools.heightmap import load_heightmap
-from walkgen.SurfacePlannerURDF import Surface
+from walkgen.SurfacePlanner import Surface
 from walkgen.tools.optimisation import quadprog_solve_qp
 
 
@@ -40,13 +39,14 @@ class FootStepPlanner():
     Use RBPRM as a guide path since the env is available.
     """
 
-    def __init__(self, model, q, heightmap_path):
+    def __init__(self, model, q, debug = True):
         """ Initialize the FootStepPlanner.
 
         Args:
             - model (pin.model): Pinocchio robot model.
             - q (array x19): Initial state of the robot.
             - heightmap_path (str): Heightmap binary file path.
+            - debug (bool): Store the footstep computed for debug purpose.
         """
         if q.shape[0] != 19:
             raise ArithmeticError(
@@ -63,6 +63,7 @@ class FootStepPlanner():
         rf = "RF_FOOT"
         rh = "RH_FOOT"
         self._contactNames = [lf, lh, rf, rh]
+        self._contact_names_SL1M = [lf, rf, lh, rh]
         self._offsets_feet = np.zeros((3, 4))  # Reference shoulder position, base frame.
         self._current_position = np.zeros((3, 4))  # Feet positions, world frame.
         self._current_velocities = np.zeros((3, 4))  # Feet velocities, world frame.
@@ -76,7 +77,9 @@ class FootStepPlanner():
         self._g = 9.81
         self._L = 0.5
 
-        self.heightmap = load_heightmap(heightmap_path)
+        self.debug = debug
+        if debug:
+            self.footstep = [] # List of all computed ftesp in the queue of contact for debug purpose
 
     def compute_footstep(self, queue_cs, q, vq, bvref, timeline, selected_surfaces):
         """ Run the queue in reverse order and update the position for each Contact Schedule (CS)
@@ -123,6 +126,11 @@ class FootStepPlanner():
         Returns:
             - (array 3x4): Target for the incoming footseps.
         """
+        if self.debug:
+            self.footstep.clear()
+            self.footstep = [[],[],[],[]]
+            for j in range(4):
+                self.footstep[j].append(self._current_position[:,j].tolist())
         # Get current orientation of the robot
         rpy = pin.rpy.matrixToRpy(pin.Quaternion(q[3:7]).toRotationMatrix())
         Rz = pin.rpy.rpyToMatrix(np.array([0., 0., rpy[2]]))  # Yaw rotation matrix
@@ -135,8 +143,10 @@ class FootStepPlanner():
         timeline = timeline_
         counter = 0
 
-        foot_optimized = [False, False, False, False]
+        foot_timeline = [0, 0, 0, 0]
+        target_footstep = np.zeros((3,4))
         for cs in reversed(queue_cs):
+
             for c in range(cs.C):
                 name = cs.contactNames[c]
                 j = self._contactNames.index(name)
@@ -167,20 +177,21 @@ class FootStepPlanner():
                                                            feedback_term=False)  # without feedback term
                         footstep = Rz @ Rz_tmp @ heuristic + q_tmp + Rz @ q_dxdy
 
-                        # TODO: Solve the entier problem at the same time.
-                        # Quick Fix to allow feedback term.
-                        if foot_optimized[j] == False:
-                            P_ = np.identity(3)
-                            q_ = np.zeros(3)
-                            sf = selected_surfaces.get(name)
-                            G_ = sf.A
-                            h_ = sf.b - sf.A @ footstep
-                            delta_x = quadprog_solve_qp(P_, q_, G_, h_)
-                            footstep_optim = footstep + delta_x
-                            foot_optimized[j] = True
-                        else:
-                            footstep_optim = footstep
-                            footstep_optim[2] = self.heightmap.get_height(footstep[0], footstep[1])
+                        P_ = np.identity(3)
+                        q_ = np.zeros(3)
+                        sf = selected_surfaces.get(name)[foot_timeline[j]]
+                        G_ = sf.A
+                        h_ = sf.b - sf.A @ footstep
+                        delta_x = quadprog_solve_qp(P_, q_, G_, h_)
+                        footstep_optim = footstep + delta_x
+                        if foot_timeline[j] == 0:
+                            target_footstep[:,self._contact_names_SL1M.index(name)] = footstep_optim
+
+                        foot_timeline[j] += 1
+
+                        # else: # if heightmap
+                        #     footstep_optim = footstep
+                        #     footstep_optim[2] = self.heightmap.get_height(footstep[0], footstep[1])
 
                         # With feedback term
                         # heuristic_fb = self.compute_heuristic(bv, bvref, Rxy, T_stance, name , feedback_term = True) # with feedback term
@@ -195,17 +206,24 @@ class FootStepPlanner():
                             t0 = timeline - active_phase.T
 
                         phases[1].trajectory.update(P0[:, j], V0[:, j], footstep_optim, t0 * cs.dt)
+                        P0[:, j] = footstep_optim
                         V0[:, j] = np.zeros(3)
+
+                        if self.debug:
+                            self.footstep[j].append(footstep_optim.tolist())
 
                     else:  # case 3
                         V0[:, j] = np.zeros(3)
+                        if self.debug:
+                            self.footstep[j].append(None)
 
                 else:
                     raise ArithmeticError("Problem nombre de phases inside CS.")
+
             timeline = 0.
             counter += 1
 
-        return np.zeros((3, 4))
+        return target_footstep
 
     def compute_heuristic(self, bv, bvref, Rxy, T_stance, name, feedback_term=True):
         """ Compute heuristic position in base frame
@@ -303,9 +321,11 @@ if __name__ == "__main__":
     vertices = [[-1.3946447276978748, 0.9646446609406726, 0.0], [-1.3946447276978748, -0.9646446609406726, 0.0],
                 [0.5346445941834704, -0.9646446609406726, 0.0], [0.5346445941834704, 0.9646446609406726, 0.0]]
 
+    sf = Surface(np.array(A), np.array(b), np.array(vertices).T)
+
     selected_surfaces = dict()  # Mimic asynchronous behaviour
     for foot in range(4):
-        selected_surfaces[foostep_planner._contactNames[foot]] = Surface(np.array(A), np.array(b), np.array(vertices))
+        selected_surfaces[foostep_planner._contactNames[foot]] = [sf, sf, sf] # horizon lenght of the Surface is 3.
     foostep_planner.compute_footstep(gait_manager.get_cs(), anymal.q0, anymal.v0, bvref, timeline, selected_surfaces)
 
     # TODO Add vizualisation.
