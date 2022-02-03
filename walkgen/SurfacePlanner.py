@@ -64,15 +64,15 @@ class SurfacePlanner():
         """
 
         self._config = yaml.load(open(filename, 'r'), Loader=yaml.FullLoader)
-        self.planeseg = self._config["planeseg"]
+        self.planeseg = self._config["walkgen_params"]["planeseg"]
 
         # PARAMETERS FOR SURFACES PROCESSING
-        self._margin = self._config["params"]["margin"]
+        self._margin = self._config["walkgen_params"]["params"]["margin"]
         if self.planeseg:
-            self._n_points = self._config["params"]["n_points"]
-            self._method_id = self._config["params"]["method_id"]
-            self._poly_size = self._config["params"]["poly_size"]
-            self._min_area = self._config["params"]["min_area"]
+            self._n_points = self._config["walkgen_params"]["params"]["n_points"]
+            self._method_id = self._config["walkgen_params"]["params"]["method_id"]
+            self._poly_size = self._config["walkgen_params"]["params"]["poly_size"]
+            self._min_area = self._config["walkgen_params"]["params"]["min_area"]
 
         else:  # Use URDF and heightmap environment
             from hpp.corbaserver.affordance.affordance import AffordanceTool
@@ -82,9 +82,9 @@ class SurfacePlanner():
             from walkgen.tools.geometry_utils import getAllSurfacesDict_inner
             from anymal_rbprm.anymal_abstract import Robot as AnymalAbstract
 
-            self._urdf_path = self._config["world"]["urdf"]
-            self._heightmap_path = self._config["world"]["heightmap"]
-
+            self._path = os.environ["DEVEL_DIR"] + "/memmo_anymal/"  # Temp path
+            self._urdf_path = self._path + self._config["walkgen_params"]["world"]["urdf"]
+            self._heightmap_path = self._path + self._config["walkgen_params"]["world"]["heightmap"]
             self.heightmap = load_heightmap(self._heightmap_path)  # Heightmap
 
             self._anymal_abstract = AnymalAbstract()
@@ -114,12 +114,12 @@ class SurfacePlanner():
         self._T_gait = T_gait  # Period of a gait.
         self._n_gait = n_gait  # Number of phases in a gait.
         self._step_duration = self._T_gait / n_gait
-        self._N_phase = self._config["params"]["N_phase"]
-        self._N_phase_return = self._config["params"]["N_phase_return"]
+        self._N_phase = self._config["walkgen_params"]["params"]["N_phase"]
+        self._N_phase_return = self._config["walkgen_params"]["params"]["N_phase_return"]
         if self._N_phase_return > self._N_phase :
             raise ArithmeticError("Cannot return more surfaces than step done in SL1M")
         self._N_total = self._n_gait * self._N_phase
-        self._com = self._config["params"]["com"]
+        self._com = self._config["walkgen_params"]["params"]["com"]
 
         self._contact_names = ['LF_FOOT', 'RF_FOOT', 'LH_FOOT', 'RH_FOOT']  # Order of the feet in the surface planner.
         # Shoulder position in base frame
@@ -465,8 +465,8 @@ if __name__ == "__main__":
     with open(fileObject, 'rb') as file2:
         array_markers = pickle.load(file2)
 
-    filename = "/home/thomas_cbrs/Desktop/edin/memmo_anymal/walkgen/config/parameters.yaml"
-    surface_planner = SurfacePlanner2(0.6, 2, filename)
+    filepath = os.path.dirname(os.path.abspath(__file__)) + "/config/params.yaml"
+    surface_planner = SurfacePlanner(0.6, 2, filepath)
 
     q = np.array([0., 0., 0.4792, 0., 0., 0., 1., -0.1, 0.7, -1., -0.1, -0.7, 1., 0.1, 0.7, -1., 0.1, -0.7, 1.])
     q[0] = 0.
@@ -500,4 +500,3 @@ if __name__ == "__main__":
         for sf in surface_planner.surfaces_processed :
             plot.plot_surface(sf,ax=ax)
         plot.plot_planner_result(surface_planner.pb_data.all_feet_pos, coms=surface_planner.pb_data.coms, ax=ax, show=True)
-
