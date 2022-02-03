@@ -33,6 +33,7 @@ import copy
 from walkgen.contact import ContactSchedule, ContactPhase
 from walkgen.FootStepTrajectory import FootStepTrajectory
 import ctypes
+import yaml
 
 # Mimic the ContactSchedule class to allow ros msg echange between FootStepPlanner and Caracal.
 
@@ -81,17 +82,24 @@ class GaitManager:
     - _queue_cs_data: List of contact schedule ctype, allowing data exchanges.
     """
 
-    def __init__(self, model, q):
+    def __init__(self, model, q, filename=None):
         """Initialize the gait management.
 
         Args:
             - model (pin.model): Pinocchio robot model.
             - q (Array x19): State of the robot.
+            - filename (str): Path to the config file.
         """
 
         # Create the model and data for forward simulation
         self._model = model
         self._data = self._model.createData()
+
+        if filename is None:
+            self._typeGait = "Trot" # By default trotting.
+        else:
+            self._config = yaml.load(open(filename, 'r'), Loader=yaml.FullLoader)
+            self._typeGait = self._config["gait"]["type"]
 
         pin.forwardKinematics(self._model, self._data, q)
         pin.updateFramePlacements(self._model, self._data)
@@ -107,10 +115,14 @@ class GaitManager:
         cs1["RF_FOOT"] = self._data.oMf[self._model.getFrameId("RF_FOOT")]
 
         self.gait_generator = QuadrupedalGaitGenerator()
-        self._default_cs = copy.deepcopy(
-            self.gait_generator.trot(contacts=[cs0, cs1], N_ds=0, N_ss=30, N_uss=0, N_uds=0, endPhase=False))
-        # self._default_cs = copy.deepcopy(
-        #     self.gait_generator.walk(contacts=[cs0, cs1], N_ds=2, N_ss=25, N_uss=0, N_uds=0, endPhase=False))
+        if self._typeGait == "Trot":
+            self._default_cs = copy.deepcopy(
+                self.gait_generator.trot(contacts=[cs0, cs1], N_ds=0, N_ss=30, N_uss=0, N_uds=0, endPhase=False))
+        elif self._typeGait == "Walk":
+            self._default_cs = copy.deepcopy(
+                self.gait_generator.walk(contacts=[cs0, cs1], N_ds=5, N_ss=20, N_uss=0, N_uds=0, endPhase=False))
+        else:
+            raise SyntaxError("Unknown gait type in the config file. Try Trot or gait.")
 
         # Define the MPC horizon
         self._horizon = copy.deepcopy(self._default_cs.T)
@@ -165,9 +177,33 @@ class GaitManager:
 
         self.switches = switches
 
+    def get_coefficients(self):
+        """ Get the coefficients of the Queue of contact.
+        Alternative way, to avoid using the complex Data Structure.
+
+        Returns:
+            - params1 (list): List of list with the coefficients for each foot.
+            Example: [[Ax_0,Ay_0,Az_0,Ax_1 ... , Ax_3, Ay_3,Az_3], ... , [Ax_0,Ay_0,Az_0,Ax_1 ... , Ax_3, Ay_3,Az_3]]
+
+        """
+        coeffs = []
+        for cs in reversed(self._queue_cs):
+            cs_coeff = []
+            for c in range(cs.C):
+                cs_coeff.append(cs.phases[c][1].trajectory.Ax)
+                cs_coeff.append(cs.phases[c][1].trajectory.Ay)
+                cs_coeff.append(cs.phases[c][1].trajectory.Az)
+            coeffs.append(cs_coeff)
+        return coeffs
+
+
     def update(self, n_step=1):
         """ Update the queue of contact schedule.
+
+        Returns:
+            - params1 (bool): True if a new gait needs to be added in the queue.
         """
+        addContact = False
         for s in range(n_step):
             self._timeline += 1
 
@@ -188,6 +224,9 @@ class GaitManager:
                 gait.updateSwitches()
                 self._queue_cs.insert(0, gait)
                 self._queue_cs_data.insert(0, self._create_cs_data(gait))
+                addContact = True
+        return addContact
+
 
     def get_cs_data(self):
         """ Get ContactSchedule Data type list.
