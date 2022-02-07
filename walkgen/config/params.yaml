@@ -15,7 +15,7 @@ walkgen_params:
     N_phase: 6 # Number of step to proceed (--> N_phase * n_gait step in SL1M)
     N_phase_return: 2 # Number of step to return (N_phase_return surfaces for each foot)
     com: False # Optimisation of the CoM
-    multiprocessing: False
+    multiprocessing_mimic: True # Mimic the behaviour of multiprocessing by using the surfaces of the previous optimisation.
 
   gait:
     type: "Walk" # Only "Walk" or "Trot" working

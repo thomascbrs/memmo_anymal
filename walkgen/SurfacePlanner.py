@@ -35,7 +35,7 @@ import yaml
 import copy
 
 from walkgen.tools.heightmap import load_heightmap
-from walkgen.tools.geometry_utils import reduce_surfaces, remove_overlap_surfaces
+from walkgen.tools.geometry_utils import reduce_surfaces, remove_overlap_surfaces, Surface
 
 from sl1m.problem_definition import Problem
 from sl1m.generic_solver import solve_MIP
@@ -119,7 +119,7 @@ class SurfacePlanner():
         elif self._typeGait == "Walk":
             n_gait = 4
         else:
-            n_gait = 2 # Trotting gait by default.
+            raise SyntaxError("Unknown gait type in the config file. Try Trot or Walk.")
 
         # SL1M parameters
         self._T_gait = N_total * dt  # Period of a gait.
@@ -424,7 +424,6 @@ class SurfacePlanner():
         R = [pin.XYZQUATToSE3(np.array(config)).rotation for config in configs]  # Orientation for each configurations.
 
         gait = self._compute_gait(gait_in) # remove redundancies + roll the matrix of 21.
-        print("gait SL1M :",  gait)
 
         # Initial contact at the beginning of the next phase.
         initial_contacts = [np.array(target_foostep[:, i].tolist()) for i in range(4)]
@@ -477,30 +476,6 @@ class SurfacePlanner():
             print("The MIP problem did NOT converge")
             return self._selected_surfaces
 
-
-class Surface():
-
-    def __init__(self, A, b, vertices):
-        """Initialize the surface.
-
-        Args :
-        - A (array nx3): Inequality matrix.
-        - b (array x n): Inequality vector.
-        - vertices (array 3 x n): Vertices with the format:
-                                array([[x0, x1, ... , xn],
-                                       [y0, y1, ... , yn],
-                                       [z0, z1, ... , zn]])
-        """
-        if A.shape[1] != 3:
-            raise ArithmeticError("Number column of the inequality array should be 3.")
-        if vertices.shape[0] != 3:
-            raise ArithmeticError("Number of rows of the vertice array should be 3.")
-
-        self.A = A
-        self.b = b
-        self.vertices = vertices
-
-
 if __name__ == "__main__":
     """ Run a simple example of SurfacePlanner.
     """
@@ -512,7 +487,7 @@ if __name__ == "__main__":
         array_markers = pickle.load(file2)
 
     filepath = os.path.dirname(os.path.abspath(__file__)) + "/config/params.yaml"
-    surface_planner = SurfacePlanner(0.6, 2, filepath)
+    surface_planner = SurfacePlanner(filepath)
 
     q = np.array([0., 0., 0.4792, 0., 0., 0., 1., -0.1, 0.7, -1., -0.1, -0.7, 1., 0.1, 0.7, -1., 0.1, -0.7, 1.])
     q[0] = 0.

@@ -30,57 +30,14 @@
 import pinocchio as pin
 import numpy as np
 import copy
-from walkgen.contact import ContactSchedule, ContactPhase
 from walkgen.FootStepTrajectory import FootStepTrajectory
-import ctypes
 import yaml
-import caracal
-
-# Mimic the ContactSchedule class to allow ros msg echange between FootStepPlanner and Caracal.
-
-N_DEGREE_X = 5
-N_DEGREE_Y = 5
-N_DEGREE_Z = 6
-
-
-class ContactPhaseData(ctypes.Structure):
-    """ Ctype structure to exhange contact phase data type.
-    """
-    C = 4  # number of contacts
-    _fields_ = [
-        ('T', ctypes.c_int64),  # number of nodes
-        ('type', ctypes.c_int64),  # type of contact
-        ('nx', ctypes.c_int),
-        ('ny', ctypes.c_int),
-        ('nz', ctypes.c_int),
-        ('coefficients_x', ctypes.c_double * (N_DEGREE_X + 1)),
-        ('coefficients_y', ctypes.c_double * (N_DEGREE_Y + 1)),
-        ('coefficients_z', ctypes.c_double * (N_DEGREE_Z + 1))
-    ]
-
-
-class ContactScheduleData(ctypes.Structure):
-    """ Ctype structure to exhange contact schedule data type.
-    """
-
-    C = 4  # number of contacts
-
-    _fields_ = [
-        ('dt', ctypes.c_double),  # time step
-        ('T', ctypes.c_int64),  # number of nodes
-        ('S_total', ctypes.c_int64),  # maximum number of contact phases
-        ('C', ctypes.c_int64),  # number of contacts
-        ('contactNames', ctypes.c_wchar_p * C),  # contact names
-        ('phases', ContactPhaseData * 3 * C)
-    ]
-
+from caracal import ContactPhase, ContactSchedule, SwingFootTrajectoryPolynomial
 
 class GaitManager:
     """ Gait manager. Add and remove contact schedule from the queue
     depending on the current timeline and the horizon length.
-    Works with 2 intern lists.
-    - _queue_cs: List of contact schedule.
-    - _queue_cs_data: List of contact schedule ctype, allowing data exchanges.
+    Get informations on the gait to trigger SL1M at the right time.
     """
 
     def __init__(self, model, q, filename=None):
@@ -147,30 +104,25 @@ class GaitManager:
                                          N_uds=0,
                                          endPhase=False))
         else:
-            raise SyntaxError("Unknown gait type in the config file. Try Trot or gait.")
+            raise SyntaxError("Unknown gait type in the config file. Try Trot or Walk.")
 
-        # Define the MPC horizon
-        self._horizon = copy.deepcopy(self._default_cs.T)
+        self._horizon = copy.deepcopy(self._default_cs.T)  # horizon of the MPC.
         self._timeline = 0  # Current timeline
-        self._queue_cs = [copy.deepcopy(self._default_cs)]
-        # Compute switches
-        self._queue_cs[-1].updateSwitches()
-        # Create data structure
-        self._queue_cs_data = [self._create_cs_data(self._queue_cs[-1])]
-        # Contact name order for SL1M
+        self._queue_cs = [copy.deepcopy(self._default_cs)]  # Intern queue of contact
+        self._queue_cs[-1].updateSwitches()  # Update the switches
 
-        lf = "LF_FOOT"
-        lh = "LH_FOOT"
-        rf = "RF_FOOT"
-        rh = "RH_FOOT"
-        self._contact_names_SL1M = [lf, rf, lh, rh]
+        lf, lh, rf, rh = "LF_FOOT", "LH_FOOT", "RF_FOOT", "RH_FOOT"
+        self._contact_names_SL1M = [lf, rf, lh, rh]  # Contact order name for SL1M
 
         # Initialize switches list
         self.initialize_switches(self._default_cs)
 
     def initialize_switches(self, cs):
-        """ Compute the switches that occur in the gait to trigger SL1M at the
+        """ Initialize the dictionnary containing the switches that occur in the gait to trigger SL1M at the
         beginning of each new footstep.
+
+        Args:
+            - cs (ContactSchedule): ContactSchedule object.
         """
         switches = dict()
         for c in range(cs.C):
@@ -204,7 +156,6 @@ class GaitManager:
 
     def get_coefficients(self):
         """ Get the coefficients of the Queue of contact.
-        Alternative way, to avoid using the complex Data Structure.
 
         Returns:
             - params1 (list): List of list with the coefficients for each foot.
@@ -222,17 +173,20 @@ class GaitManager:
         return coeffs
 
     def get_default_cs(self):
-        """ Create a default Contact Schedule for Caracal based on the internal contact schedule.
+        """ Create a default Contact Schedule (CS) for Caracal based on the internal CS.
+
+        Returns:
+            - params1 (CS): The Caracal Contact Schedule.
         """
         contactNames = [name for name in self._default_cs.contactNames]
-        gait = caracal.ContactSchedule(self._default_cs.dt, self._default_cs.T, self._default_cs.S_total, contactNames)
+        gait = ContactSchedule(self._default_cs.dt, self._default_cs.T, self._default_cs.S_total, contactNames)
         for id, phase in enumerate(self._default_cs.phases):
             gait.addSchedule(contactNames[id], [
-                caracal.ContactPhase(phase[0].T),
-                caracal.ContactPhase(phase[1].T,
-                                     trajectory=caracal.SwingFootTrajectoryPolynomial(
-                                         self._default_cs.dt, phase[1].T, self._nx, self._ny, self._nz)),
-                caracal.ContactPhase(phase[2].T)
+                ContactPhase(phase[0].T),
+                ContactPhase(phase[1].T,
+                             trajectory=SwingFootTrajectoryPolynomial(self._default_cs.dt, phase[1].T, self._nx,
+                                                                      self._ny, self._nz)),
+                ContactPhase(phase[2].T)
             ])
         gait.updateSwitches()
         return gait
@@ -252,7 +206,6 @@ class GaitManager:
                 # Remove the executed contact schedule and reset the timeline
                 self._timeline = 0
                 self._queue_cs.pop()
-                self._queue_cs_data.pop()
 
             # Add a contact schedule to the queue if necessary
             count = 0
@@ -263,70 +216,13 @@ class GaitManager:
                 gait = copy.deepcopy(self._default_cs)
                 gait.updateSwitches()
                 self._queue_cs.insert(0, gait)
-                self._queue_cs_data.insert(0, self._create_cs_data(gait))
                 addContact = True
         return addContact
-
-    def get_cs_data(self):
-        """ Get ContactSchedule Data type list.
-        """
-        return self._queue_cs_data
 
     def get_cs(self):
         """ Get ContactSchedule list.
         """
         return self._queue_cs
-
-    def _create_cs_data(self, cs):
-        """ Create Contact Schedule Ctype from Contact schedule object.
-
-        Args:
-            - cs (ContactSchedule): ContactSchedule object.
-
-        Returns:
-            - (ContactScheduleData): Equivalent Ctype object.
-        """
-        cs_data = ContactScheduleData()
-
-        # Update the ContactScheduleData
-        cs_data.C = cs.C
-        for c in range(cs.C):
-            cs_data.contactNames[c] = cs.contactNames[c]
-        cs_data.dt = cs.dt
-
-        cs_data.T = cs.T
-        cs_data.S_total = cs.S_total
-        for c in range(cs.C):
-            for k in range(3):
-                cs_data.phases[c][k].T = cs.phases[c][k].T
-                cs_data.phases[c][k].type = cs.phases[c][k].type.value
-                if k == 1:
-                    cs_data.phases[c][k].is_active = False
-                    cs_data.phases[c][k].nx = N_DEGREE_X
-                    cs_data.phases[c][k].ny = N_DEGREE_Y
-                    cs_data.phases[c][k].nz = N_DEGREE_Z
-                    Ax = np.frombuffer(cs_data.phases[c][k].coefficients_x)
-                    Ay = np.frombuffer(cs_data.phases[c][k].coefficients_y)
-                    Az = np.frombuffer(cs_data.phases[c][k].coefficients_z)
-                    Ax[:] = cs.phases[c][k].trajectory.Ax
-                    Ay[:] = cs.phases[c][k].trajectory.Ay
-                    Az[:] = cs.phases[c][k].trajectory.Az
-                else:
-                    cs_data.phases[c][k].is_active = True
-
-        return cs_data
-
-    def update_cs_data(self):
-        """ Update the Contact Schedule Data coefficients from the Contact Schedule list.
-        """
-        for id, cs in enumerate(self._queue_cs):
-            for c in range(cs.C):
-                Ax = np.frombuffer(self._queue_cs_data[id].phases[c][1].coefficients_x)
-                Ay = np.frombuffer(self._queue_cs_data[id].phases[c][1].coefficients_y)
-                Az = np.frombuffer(self._queue_cs_data[id].phases[c][1].coefficients_z)
-                Ax[:] = cs.phases[c][1].trajectory.Ax
-                Ay[:] = cs.phases[c][1].trajectory.Ay
-                Az[:] = cs.phases[c][1].trajectory.Az
 
     def get_current_gait(self):
         """ Compute the current gait matrix on the format : [[1,0,0,1],
@@ -423,6 +319,7 @@ class GaitManager:
 
 class QuadrupedalGaitGenerator:
     """ Create quadrupedal gait with polynomial swing foot trajectory.
+    It uses a custom Trajectory object, independant from Caracal.
     """
 
     def __init__(self, dt=1e-2, S=4, lf="LF_FOOT", lh="LH_FOOT", rf="RF_FOOT", rh="RH_FOOT"):
