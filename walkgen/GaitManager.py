@@ -34,6 +34,7 @@ from walkgen.contact import ContactSchedule, ContactPhase
 from walkgen.FootStepTrajectory import FootStepTrajectory
 import ctypes
 import yaml
+import caracal
 
 # Mimic the ContactSchedule class to allow ros msg echange between FootStepPlanner and Caracal.
 
@@ -96,10 +97,24 @@ class GaitManager:
         self._data = self._model.createData()
 
         if filename is None:
-            self._typeGait = "Trot" # By default trotting.
+            self._typeGait = "Trot"  # By default trotting.
+            self._dt = 0.01
+            self._N_ss = 30
+            self._N_ds = 0
+            self._nx = 5
+            self._ny = 5
+            self._nz = 6
         else:
             self._config = yaml.load(open(filename, 'r'), Loader=yaml.FullLoader)
+            # Gait parameters
             self._typeGait = self._config["walkgen_params"]["gait"]["type"]
+            self._dt = self._config["walkgen_params"]["gait"]["dt"]
+            self._N_ss = self._config["walkgen_params"]["gait"]["N_ss"]
+            self._N_ds = self._config["walkgen_params"]["gait"]["N_ds"]
+            # Trajectory parameters
+            self._nx = self._config["walkgen_params"]["trajectory"]["nx"]
+            self._ny = self._config["walkgen_params"]["trajectory"]["ny"]
+            self._nz = self._config["walkgen_params"]["trajectory"]["nz"]
 
         pin.forwardKinematics(self._model, self._data, q)
         pin.updateFramePlacements(self._model, self._data)
@@ -117,10 +132,20 @@ class GaitManager:
         self.gait_generator = QuadrupedalGaitGenerator()
         if self._typeGait == "Trot":
             self._default_cs = copy.deepcopy(
-                self.gait_generator.trot(contacts=[cs0, cs1], N_ds=0, N_ss=30, N_uss=0, N_uds=0, endPhase=False))
+                self.gait_generator.trot(contacts=[cs0, cs1],
+                                         N_ds=self._N_ds,
+                                         N_ss=self._N_ss,
+                                         N_uss=0,
+                                         N_uds=0,
+                                         endPhase=False))
         elif self._typeGait == "Walk":
             self._default_cs = copy.deepcopy(
-                self.gait_generator.walk(contacts=[cs0, cs1], N_ds=5, N_ss=20, N_uss=0, N_uds=0, endPhase=False))
+                self.gait_generator.walk(contacts=[cs0, cs1],
+                                         N_ds=self._N_ds,
+                                         N_ss=self._N_ss,
+                                         N_uss=0,
+                                         N_uds=0,
+                                         endPhase=False))
         else:
             raise SyntaxError("Unknown gait type in the config file. Try Trot or gait.")
 
@@ -172,7 +197,7 @@ class GaitManager:
 
         s_list = np.sort([t for t in switches])
         for t in s_list:
-            if switches[t] == [1.,1.,1.,1.]: # Remove 4 feet on the ground, useless for SL1M.
+            if switches[t] == [1., 1., 1., 1.]:  # Remove 4 feet on the ground, useless for SL1M.
                 switches.pop(t)
 
         self.switches = switches
@@ -196,12 +221,27 @@ class GaitManager:
             coeffs.append(cs_coeff)
         return coeffs
 
+    def get_default_cs(self):
+        """ Create a default Contact Schedule for Caracal based on the internal contact schedule.
+        """
+        contactNames = [name for name in self._default_cs.contactNames]
+        gait = caracal.ContactSchedule(self._default_cs.dt, self._default_cs.T, self._default_cs.S_total, contactNames)
+        for id, phase in enumerate(self._default_cs.phases):
+            gait.addSchedule(contactNames[id], [
+                caracal.ContactPhase(phase[0].T),
+                caracal.ContactPhase(phase[1].T,
+                                     trajectory=caracal.SwingFootTrajectoryPolynomial(
+                                         self._default_cs.dt, phase[1].T, self._nx, self._ny, self._nz)),
+                caracal.ContactPhase(phase[2].T)
+            ])
+        gait.updateSwitches()
+        return gait
 
     def update(self, n_step=1):
-        """ Update the queue of contact schedule.
+        """ Update the internal queue of contact schedule.
 
         Returns:
-            - params1 (bool): True if a new gait needs to be added in the queue.
+            - params1 (bool): True if a new gait has been added in the queue.
         """
         addContact = False
         for s in range(n_step):
@@ -226,7 +266,6 @@ class GaitManager:
                 self._queue_cs_data.insert(0, self._create_cs_data(gait))
                 addContact = True
         return addContact
-
 
     def get_cs_data(self):
         """ Get ContactSchedule Data type list.
@@ -306,7 +345,7 @@ class GaitManager:
             cs = self._queue_cs[-2]
 
         init_gait = self._evaluate_config(cs, timeline)
-        if init_gait != [1,1,1,1]:
+        if init_gait != [1, 1, 1, 1]:
             gait.append(init_gait)
 
         switches = dict()
@@ -315,7 +354,7 @@ class GaitManager:
             for c in range(cs.C):
                 phases = cs.phases[c]
                 N_phase = len(phases)
-                phase_index = index_cs*cs.T
+                phase_index = index_cs * cs.T
                 for p in range(0, N_phase, 2):
                     T_active = phases[p].T
                     T_inactive = 0
@@ -337,8 +376,8 @@ class GaitManager:
 
         s_list = np.sort([t for t in switches])
 
-        for k in range(len(s_list) ):
-            if switches[s_list[k]] != [1.,1.,1.,1.]: # Remove 4 feet on the ground, useless for SL1M.
+        for k in range(len(s_list)):
+            if switches[s_list[k]] != [1., 1., 1., 1.]:  # Remove 4 feet on the ground, useless for SL1M.
                 gait.append(switches[s_list[k]])
 
         return np.array(gait)
@@ -369,7 +408,7 @@ class GaitManager:
                 elif active_phase.T + inactive_phase.T - timeline - 1 > 0:  # case 2, during inactive phase
                     gait_tmp[j] = 0
                 else:
-                    gait_tmp[j] = 1 # case 3, inside first Active phase
+                    gait_tmp[j] = 1  # case 3, inside first Active phase
         return gait_tmp.tolist()
 
     def is_new_step(self):

@@ -19,3 +19,11 @@ walkgen_params:
 
   gait:
     type: "Walk" # Only "Walk" or "Trot" working
+    dt: 0.01
+    N_ss: 20 # 30 for Trot
+    N_ds: 5 # 0 for Trot
+
+  trajectory: # Degree of the polynomial curves
+    nx: 5
+    ny: 5
+    nz: 6

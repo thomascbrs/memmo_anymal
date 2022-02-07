@@ -54,12 +54,10 @@ rom_names = ['anymal_LFleg_rom', 'anymal_RFleg_rom', 'anymal_LHleg_rom', 'anymal
 
 class SurfacePlanner():
 
-    def __init__(self, T_gait, n_gait, filename):
+    def __init__(self, filename):
         """ Initialize the surface planner.
 
         Args:
-            - T_gait (float): The period of a gait.
-            - n_gait (int): Number of phases in one gait.
             - filename (str): Path to the config file.
         """
 
@@ -110,8 +108,21 @@ class SurfacePlanner():
                           suffix_com=suffix_com,
                           suffix_feet=suffix_feet)
 
+        # Gait parameters
+        self._typeGait = self._config["walkgen_params"]["gait"]["type"]
+        dt = self._config["walkgen_params"]["gait"]["dt"]
+        N_ss = self._config["walkgen_params"]["gait"]["N_ss"]
+        N_ds = self._config["walkgen_params"]["gait"]["N_ds"]
+        N_total = N_ds + 2 * N_ss
+        if self._typeGait == "Trot":
+            n_gait = 2
+        elif self._typeGait == "Walk":
+            n_gait = 4
+        else:
+            n_gait = 2 # Trotting gait by default.
+
         # SL1M parameters
-        self._T_gait = T_gait  # Period of a gait.
+        self._T_gait = N_total * dt  # Period of a gait.
         self._n_gait = n_gait  # Number of phases in a gait.
         self._step_duration = self._T_gait / n_gait
         self._N_phase = self._config["walkgen_params"]["params"]["N_phase"]

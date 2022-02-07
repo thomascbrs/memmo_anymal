@@ -49,6 +49,9 @@ python3 walkgen/stand_alone_scenarios/anymal_stairs.py
 ```
 ## Heightmap
 Create an heightmap from the URDF environment. Usefull to use the SurfacePlanner with the guide path RBPRM (SurfacePlannerURDF), for the simulations.
+- Setup the variable DEVEL_DIR, with the path of this repo (temporary):
+
+```export DEVEL_DIR=your_path```
 - Setup the ROS_PACKAGE_PATH variable environment in your /.bashrc file, for hpp. This allow to define in the urdf the paths as "package://meshes/lab_scene.stl"  :
 
 ```export ROS_PACKAGE_PATH=your_path/memmo_anymal/data:$ROS_PACKAGE_PATH ```
