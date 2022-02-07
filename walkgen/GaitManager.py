@@ -99,7 +99,7 @@ class GaitManager:
             self._typeGait = "Trot" # By default trotting.
         else:
             self._config = yaml.load(open(filename, 'r'), Loader=yaml.FullLoader)
-            self._typeGait = self._config["gait"]["type"]
+            self._typeGait = self._config["walkgen_params"]["gait"]["type"]
 
         pin.forwardKinematics(self._model, self._data, q)
         pin.updateFramePlacements(self._model, self._data)

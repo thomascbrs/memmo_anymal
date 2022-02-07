@@ -16,3 +16,6 @@ walkgen_params:
     N_phase_return: 2 # Number of step to return (N_phase_return surfaces for each foot)
     com: False # Optimisation of the CoM
     multiprocessing: False
+
+  gait:
+    type: "Walk" # Only "Walk" or "Trot" working
