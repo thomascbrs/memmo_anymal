@@ -34,7 +34,6 @@
 # >
 # > Copyright (c) 2014 Giuseppe Di Mauro (azrafe7)
 
-
 import sys
 
 import math as python_lib_Math
