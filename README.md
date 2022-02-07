@@ -54,12 +54,17 @@ Create an heightmap from the URDF environment. Usefull to use the SurfacePlanner
 ```export ROS_PACKAGE_PATH=your_path/memmo_anymal/data:$ROS_PACKAGE_PATH ```
 An example of environment (URDF and STL files) has been put in the data folder. The binary file will be created in the data folder. Open a terminal and run :
 ```
-hpp-rbprm-server
+$ hpp-rbprm-server
 ```
 
 In another terminal, from the main folder, run :
 ```
-python3 walkgen/tools/heightmap_generator.py
+$ python3 walkgen/tools/heightmap_generator.py
+```
+
+Temporary setup for path to devel directory
+```
+$ sh -c "echo \"export DEVEL_DIR=~/devel\" >> ~/.bashrc"
 ```
 
 For now, the location of the heightmap needs to be updated directly in the SurfacePlannerURDF file.

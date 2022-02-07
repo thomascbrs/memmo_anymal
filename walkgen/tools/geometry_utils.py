@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright 2021 University of Edinburgh
+# Copyright 2022 University of Edinburgh
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -102,19 +102,19 @@ def reduce_surfaces(markerArray, margin=0., n_points=None):
 
 
 def remove_overlap_surfaces(surfacesIn, polySize=10, method=0, min_area=0., initial_floor=None):
-    """Filter the surfaces. Projection of the surfaces in X,Y plan and reshape them to avoid overlaying 
+    """Filter the surfaces. Projection of the surfaces in X,Y plan and reshape them to avoid overlaying
     using Tesselation algorithm following the method:
     1. Run the list of surfaces starting with the lowest.
     2. Decomposes the lowest surface in set of convex ones by removing the upper surfaces that overlap it.
        (Tesselation algorithm).
-       Use one of the 4 methods listed in DECOMPO_type to select/intersect the surfaces. 
+       Use one of the 4 methods listed in DECOMPO_type to select/intersect the surfaces.
     3. Delate surface from the list and continue.
 
     --BASIC (0): Intersect the lowest polygon with all the upper polygon that overlay and keep all remaining
                  surfaces.
-    --AREA (1): After difference and decomposition with the upper polygons, select only the remining polygon 
+    --AREA (1): After difference and decomposition with the upper polygons, select only the remining polygon
                 whose area is superior to min_area arg.
-    --CONVEX (2): Apply the difference with the convex hull of the upper surfaces that intersect, to avoid 
+    --CONVEX (2): Apply the difference with the convex hull of the upper surfaces that intersect, to avoid
                   having small surfaces between the upper surfaces.
     --AREA_CONVEX (3): Both 1 and 2 methods.
 
@@ -284,11 +284,11 @@ def get_Polygon(contour):
     ''' Get Polygon object from a contour.
 
     Args:
-        - contour (list): The list containing the vertices of the contour line such as 
+        - contour (list): The list containing the vertices of the contour line such as
                           [x0,y0,x1,y1, ... , xn,yn].
 
     Returns:
-        - Polygon : Polygon class from shapely.geometry. 
+        - Polygon : Polygon class from shapely.geometry.
     '''
     poly = []
 

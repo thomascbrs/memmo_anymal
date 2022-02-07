@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright 2021 University of Edinburgh
+# Copyright 2022 University of Edinburgh
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -165,7 +165,7 @@ class Heightmap:
     def build(self, affordances):
         """
         Build the heightmap and return it
-        For each slot in the grid create a vertical segment and check its collisions with the 
+        For each slot in the grid create a vertical segment and check its collisions with the
         affordances until one is found
         :param affordances list of affordances
         """
@@ -279,4 +279,3 @@ def load_heightmap(heightmap_path):
         loaded_model = pickle.load(fs)
 
     return loaded_model
-
