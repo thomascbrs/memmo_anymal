@@ -29,6 +29,7 @@
 
 import numpy as np
 import pinocchio as pin
+import copy
 
 from walkgen.SurfacePlanner import Surface
 from walkgen.tools.optimisation import quadprog_solve_qp
@@ -130,7 +131,7 @@ class FootStepPlanner():
             self.footstep.clear()
             self.footstep = [[],[],[],[]]
             for j in range(4):
-                self.footstep[j].append(self._current_position[:,j].tolist())
+                self.footstep[j].append(copy.deepcopy(self._current_position[:,j].tolist()))
         # Get current orientation of the robot
         rpy = pin.rpy.matrixToRpy(pin.Quaternion(q[3:7]).toRotationMatrix())
         Rz = pin.rpy.rpyToMatrix(np.array([0., 0., rpy[2]]))  # Yaw rotation matrix
@@ -138,7 +139,7 @@ class FootStepPlanner():
 
         q_tmp = q[:3]  # Tmp state, z = 0.
         q_tmp[2] = 0.
-        P0 = self._current_position.copy()
+        P0 = copy.deepcopy(self._current_position)
         V0 = self._current_velocities.copy()
         timeline = timeline_
         counter = 0

@@ -35,7 +35,7 @@ import yaml
 import copy
 
 from walkgen.tools.heightmap import load_heightmap
-from walkgen.tools.geometry_utils import reduce_surfaces, remove_overlap_surfaces
+from walkgen.tools.geometry_utils import reduce_surfaces, remove_overlap_surfaces, Surface
 
 from sl1m.problem_definition import Problem
 from sl1m.generic_solver import solve_MIP
@@ -54,13 +54,11 @@ rom_names = ['anymal_LFleg_rom', 'anymal_RFleg_rom', 'anymal_LHleg_rom', 'anymal
 
 class SurfacePlanner():
 
-    def __init__(self, T_gait, n_gait, filename):
+    def __init__(self, filename):
         """ Initialize the surface planner.
 
         Args:
             - filename (str): Path to the config file.
-            - T_gait (float): The period of a gait.
-            - n_gait (int): Number of phases in one gait.
         """
 
         self._config = yaml.load(open(filename, 'r'), Loader=yaml.FullLoader)
@@ -110,8 +108,21 @@ class SurfacePlanner():
                           suffix_com=suffix_com,
                           suffix_feet=suffix_feet)
 
+        # Gait parameters
+        self._typeGait = self._config["walkgen_params"]["gait"]["type"]
+        dt = self._config["walkgen_params"]["gait"]["dt"]
+        N_ss = self._config["walkgen_params"]["gait"]["N_ss"]
+        N_ds = self._config["walkgen_params"]["gait"]["N_ds"]
+        N_total = N_ds + 2 * N_ss
+        if self._typeGait == "Trot":
+            n_gait = 2
+        elif self._typeGait == "Walk":
+            n_gait = 4
+        else:
+            raise SyntaxError("Unknown gait type in the config file. Try Trot or Walk.")
+
         # SL1M parameters
-        self._T_gait = T_gait  # Period of a gait.
+        self._T_gait = N_total * dt  # Period of a gait.
         self._n_gait = n_gait  # Number of phases in a gait.
         self._step_duration = self._T_gait / n_gait
         self._N_phase = self._config["walkgen_params"]["params"]["N_phase"]
@@ -192,8 +203,41 @@ class SurfacePlanner():
 
         return effector_positions
 
+    def _compute_shoulder_positions_2D_tuned(self, configs, bvref):
+        """Compute the shoulder positions, keep heuristic for back foot.
+        TODO: Maybe add a way to penalize only some feet in SL1M.
+
+        Args:
+            - configs (list): List of configurations (Array x7, [position, orientation]).
+        """
+        t_stance = self._T_gait / self._n_gait
+        shoulder_positions = np.zeros((4, self.pb.n_phases, 2))
+
+        for phase in self.pb.phaseData:
+            for foot in phase.moving:
+                if foot == 0 or foot == 1:
+                    R = pin.Quaternion(configs[phase.id][3:7]).toRotationMatrix()
+                    sh = R @ self._shoulders[:, foot] + configs[phase.id][:3]
+                    shoulder_positions[foot][phase.id] = sh[:2]
+                else:
+                    rpy = pin.rpy.matrixToRpy(pin.Quaternion(configs[phase.id][3:7]).toRotationMatrix())
+                    yaw = rpy[2]  # Get yaw for the predicted configuration
+                    shoulders = np.zeros(2)
+                    # Compute heuristic position in horizontal frame
+                    rpy[2] = 0.  # Yaw = 0. in horizontal frame
+                    Rp = pin.rpy.rpyToMatrix(rpy)[:2, :2]
+                    heuristic = 0.5 * t_stance * Rp @ bvref[:2] + Rp @ self._shoulders[:2, foot]
+
+                    # Compute heuristic in world frame, rotation
+                    shoulders[0] = heuristic[0] * np.cos(yaw) - heuristic[1] * np.sin(yaw)
+                    shoulders[1] = heuristic[0] * np.sin(yaw) + heuristic[1] * np.cos(yaw)
+                    shoulder_positions[foot][phase.id] = np.array(configs[phase.id][:2] + shoulders)
+
+        return shoulder_positions
+
     def _compute_shoulder_positions(self, configs):
-        """Compute the shoulder positions.
+        """Compute the shoulder positions, keep heuristic for back foot.
+        TODO: Maybe add a way to penalize only some feet in SL1M.
 
         Args:
             - configs (list): List of configurations (Array x7, [position, orientation]).
@@ -203,9 +247,8 @@ class SurfacePlanner():
         for phase in self.pb.phaseData:
             for foot in phase.moving:
                 R = pin.Quaternion(configs[phase.id][3:7]).toRotationMatrix()
-                shoulder_positions[foot][phase.id] = R @ self._shoulders[:, foot] + configs[phase.id][:3]
-
-        return shoulder_positions
+                sh = R @ self._shoulders[:, foot] + configs[phase.id][:3]
+                shoulder_positions[foot][phase.id] = sh
 
     def _compute_configuration(self, q, bvref):
         """ Compute configuration for the next phases.
@@ -380,7 +423,7 @@ class SurfacePlanner():
 
         R = [pin.XYZQUATToSE3(np.array(config)).rotation for config in configs]  # Orientation for each configurations.
 
-        gait = self._compute_gait(gait_in) # remove redundancies + roll the matrix of 1.
+        gait = self._compute_gait(gait_in) # remove redundancies + roll the matrix of 21.
 
         # Initial contact at the beginning of the next phase.
         initial_contacts = [np.array(target_foostep[:, i].tolist()) for i in range(4)]
@@ -407,6 +450,8 @@ class SurfacePlanner():
 
         # Compute the costs
         effector_positions = self._compute_effector_positions(configs, bvref)
+        shoulder_position_tuned = self._compute_shoulder_positions_2D_tuned(configs, bvref)
+        shoulder_position = self._compute_shoulder_positions(configs)
         com_positions = self._compute_com_positions(configs)
 
         costs = {
@@ -431,30 +476,6 @@ class SurfacePlanner():
             print("The MIP problem did NOT converge")
             return self._selected_surfaces
 
-
-class Surface():
-
-    def __init__(self, A, b, vertices):
-        """Initialize the surface.
-
-        Args :
-        - A (array nx3): Inequality matrix.
-        - b (array x n): Inequality vector.
-        - vertices (array 3 x n): Vertices with the format:
-                                array([[x0, x1, ... , xn],
-                                       [y0, y1, ... , yn],
-                                       [z0, z1, ... , zn]])
-        """
-        if A.shape[1] != 3:
-            raise ArithmeticError("Number column of the inequality array should be 3.")
-        if vertices.shape[0] != 3:
-            raise ArithmeticError("Number of rows of the vertice array should be 3.")
-
-        self.A = A
-        self.b = b
-        self.vertices = vertices
-
-
 if __name__ == "__main__":
     """ Run a simple example of SurfacePlanner.
     """
@@ -466,7 +487,7 @@ if __name__ == "__main__":
         array_markers = pickle.load(file2)
 
     filepath = os.path.dirname(os.path.abspath(__file__)) + "/config/params.yaml"
-    surface_planner = SurfacePlanner(0.6, 2, filepath)
+    surface_planner = SurfacePlanner(filepath)
 
     q = np.array([0., 0., 0.4792, 0., 0., 0., 1., -0.1, 0.7, -1., -0.1, -0.7, 1., 0.1, 0.7, -1., 0.1, -0.7, 1.])
     q[0] = 0.

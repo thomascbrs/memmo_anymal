@@ -458,6 +458,27 @@ def getAllSurfacesDict_inner(all_surfaces, margin):
     surfaces_dict = dict(zip(all_names, surfaces))
     return surfaces_dict
 
+class Surface():
+    def __init__(self, A, b, vertices):
+        """Initialize the surface.
+
+        Args :
+        - A (array nx3): Inequality matrix.
+        - b (array x n): Inequality vector.
+        - vertices (array 3 x n): Vertices with the format:
+                                array([[x0, x1, ... , xn],
+                                       [y0, y1, ... , yn],
+                                       [z0, z1, ... , zn]])
+        """
+        if A.shape[1] != 3:
+            raise ArithmeticError("Number column of the inequality array should be 3.")
+        if vertices.shape[0] != 3:
+            raise ArithmeticError("Number of rows of the vertice array should be 3.")
+
+        self.A = A
+        self.b = b
+        self.vertices = vertices
+
 
 ## TODO, from stackoverflow, find reference
 def order(vertices, method="convexHull"):

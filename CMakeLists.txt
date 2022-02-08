@@ -26,6 +26,7 @@ SET(${PROJECT_NAME}_SOURCES
   FootStepTrajectory.py
   GaitManager.py
   contact.py
+  FootStepManager.py
   )
 
 SET(${PROJECT_NAME}_STANDALONE_SCENARIOS_SOURCES
