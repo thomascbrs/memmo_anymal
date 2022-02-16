@@ -122,6 +122,7 @@ SET(${PROJECT_NAME}_SOURCES
   GaitManager.py
   contact.py
   FootStepManager.py
+  params.py
   )
 
 SET(${PROJECT_NAME}_STANDALONE_SCENARIOS_SOURCES
