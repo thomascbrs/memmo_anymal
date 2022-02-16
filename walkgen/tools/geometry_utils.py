@@ -29,9 +29,6 @@
 
 import numpy as np
 from enum import Enum
-import rospy
-from visualization_msgs.msg import MarkerArray
-from visualization_msgs.msg import Marker
 import visvalingamwyatt as vw
 from walkgen.tools.SurfaceData import SurfaceData
 from scipy.spatial import ConvexHull

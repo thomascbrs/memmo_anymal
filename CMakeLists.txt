@@ -144,7 +144,8 @@ SET(${PROJECT_NAME}_TOOLS_SOURCES
 
 SET(${PROJECT_NAME}_TESTS_SOURCES
   __init__.py
-  surface_planner.py
+  surface_planner_urdf.py
+  surface_planner_planeseg.py
   )
 
 FOREACH(src ${${PROJECT_NAME}_SOURCES})

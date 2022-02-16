@@ -3,8 +3,8 @@ walkgen_params:
 
   world:
     path: ""
-    urdf: "data/urdf/lab_scene.urdf" # Env URDF path
-    heightmap: "data/lab_scene.dat"  # Heightmap path
+    urdf: "/data/urdf/lab_scene.urdf" # Env URDF path
+    heightmap: "/data/lab_scene.dat"  # Heightmap path
 
   params:
     margin: 0.06 # inner surface margin
