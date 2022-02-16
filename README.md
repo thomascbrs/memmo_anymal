@@ -43,19 +43,50 @@ cd build
 cmake .. -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=~/install -DPYTHON_EXECUTABLE=$(which python3.8) -DPYTHON_STANDARD_LAYOUT=ON
 ```
 
-Launch an exemple of PlaneSeg-->SL1M, from memmo_anymal folder:
+## Examples
+
+Example of the SurfacePlanner with the convex patches returned by planeseg. Run :
 ```
-python3 walkgen/stand_alone_scenarios/anymal_stairs.py
+python3 -m walkgen.stand_alone_scenarios.anymal_stairs_planeseg
 ```
+
+
+Example of the SurfacePlanner with the URDF and heightmap of the environment. Run :
+```
+hpp-rbprm-server
+```
+In another terminal, run :
+```
+python3 -m walkgen.stand_alone_scenarios.anymal_stairs_urdf
+```
+
+## Test
+
+To test with planeseg data, run:
+```
+python3 -m walkgen.tests.surface_planner_urdf
+```
+
+
+
+To run the tests for the SurfacePlanner with the URDF env, run:
+```
+hpp-rbprm-server
+```
+```
+python3 -m walkgen.tests.surface_planner_urdf
+```
+
 ## Heightmap
-Create an heightmap from the URDF environment. Usefull to use the SurfacePlanner with the guide path RBPRM (SurfacePlannerURDF), for the simulations.
-- Setup the variable DEVEL_DIR, with the path of this repo (temporary):
+Create an heightmap from the URDF environment. Usefull to use the SurfacePlanner with the guide path RBPRM, for the simulations.
+- Setup the variable DEVEL_DIR, with the path of this repo (temporary): This should be removed, to be tested.
 
 ```export DEVEL_DIR=your_path```
 - Setup the ROS_PACKAGE_PATH variable environment in your /.bashrc file, for hpp. This allow to define in the urdf the paths as "package://meshes/lab_scene.stl"  :
 
-```export ROS_PACKAGE_PATH=your_path/memmo_anymal/data:$ROS_PACKAGE_PATH ```
-An example of environment (URDF and STL files) has been put in the data folder. The binary file will be created in the data folder. Open a terminal and run :
+```export ROS_PACKAGE_PATH=your_path/memmo_anymal/walkgen/data:$ROS_PACKAGE_PATH ```
+An example of environment (URDF and STL files) has been put in the data folder.
+To create a new heightmap, open the config file and tune the path (heightmap and urdf environment). The binary file will be created in the data folder with the new name. Open a terminal and run :
 ```
 $ hpp-rbprm-server
 ```
@@ -70,12 +101,9 @@ Temporary setup for path to devel directory
 $ sh -c "echo \"export DEVEL_DIR=~/devel\" >> ~/.bashrc"
 ```
 
-For now, the location of the heightmap needs to be updated directly in the SurfacePlannerURDF file.
-
 ## TODO
 
 - Generate a heightmap from the ros msg MarkerArray for SL1M in order to rotate the inequalities.
-- To work in pybullet environment, a SurfacePlannerURDF is used which is different from the SurfacePLanner that will be used to work with Planeseg. Create an equivalent URDF --> ros msg MarkerArray so that we work with the same SurfacePLanner.
 -  Bezier curves.
 - Check the QP for Footstepplanner.
-- Check the initial position for SurfacePLanner, it should be the incoming footstep because of the delay, and check the delay, +1 or +2 in the timeline horizon.
+- more tests
