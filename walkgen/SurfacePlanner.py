@@ -35,7 +35,7 @@ import yaml
 import copy
 
 from walkgen.tools.heightmap import load_heightmap
-from walkgen.tools.geometry_utils import reduce_surfaces, remove_overlap_surfaces, Surface
+from walkgen.tools.geometry_utils import Surface
 
 from sl1m.problem_definition import Problem
 from sl1m.generic_solver import solve_MIP
@@ -399,22 +399,22 @@ class SurfacePlanner():
                     self._selected_surfaces.get(self._contact_names[foot])[k].b = self.pb.phaseData[k*self._n_gait + i].S[id][id_sf][1][:]
                     self._selected_surfaces.get(self._contact_names[foot])[k].vertices = surfaces[k*self._n_gait + i][id][id_sf][:,:]
 
-    def run(self, q, gait_in, bvref, target_foostep, array_markers=None):
+    def run(self, q, gait_in, bvref, target_foostep, set_surfaces=None):
         """ Select the nex surfaces to use.
 
         Args:
             - q (array x19): Current state [pos x3 , quaternion x4, joint pos x12].
             - gait (Array n_gait x 4): Next walking gait.
-            - bvref (Array x3): Reference velocity.
+            - bvref (Array x6): Reference velocity.
             - target_foostep (Array 3x4): The next foot step position. (For the next phase of contact)
-            - array_markers (ArrayMarker): MarkerArray from visualization_msgs.msg. (list of surfaces)
+            - set_surfaces (list): The set of surfaces if not provided by the collision tool. (list of surfaces)
 
         Return:
             - param1 (dict): Next surfaces for each foot.
         """
         if len(q) != 19:
             raise ArithmeticError("Current state should be size 19, [pos x3 , quaternion x4, joint pos x12]")
-        if array_markers == None and self.planeseg == True:
+        if set_surfaces == None and self.planeseg == True:
             raise ArithmeticError("No surfaces provided, SL1M running without the env URDF.")
 
         t0 = clock()
@@ -429,15 +429,8 @@ class SurfacePlanner():
         initial_contacts = [np.array(target_foostep[:, i].tolist()) for i in range(4)]
 
         if self.planeseg:
-            # Reduce and sort incoming data
-            surfaces_reduced = reduce_surfaces(array_markers, margin=self._margin, n_points=self._n_points)
+            self.surfaces_processed = set_surfaces # MarkerArray already processed.
 
-            # Apply proccess to filter and decompose the surfaces to avoid overlap
-            self.surfaces_processed = remove_overlap_surfaces(surfaces_reduced,
-                                                              polySize=self._poly_size,
-                                                              method=self._method_id,
-                                                              min_area=self._min_area,
-                                                              initial_floor=self._init_surface.vertices)
             surfaces, empty_list = self._get_potential_surfaces(configs, gait, self.surfaces_processed)
 
         else:
