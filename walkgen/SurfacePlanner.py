@@ -31,11 +31,11 @@ import pinocchio as pin
 import numpy as np
 import os
 from time import perf_counter as clock
-import yaml
 import copy
 
 from walkgen.tools.heightmap import load_heightmap
 from walkgen.tools.geometry_utils import Surface
+from walkgen.params import WalkgenParams
 
 from sl1m.problem_definition import Problem
 from sl1m.generic_solver import solve_MIP
@@ -54,25 +54,20 @@ rom_names = ['anymal_LFleg_rom', 'anymal_RFleg_rom', 'anymal_LHleg_rom', 'anymal
 
 class SurfacePlanner():
 
-    def __init__(self, filename):
+    def __init__(self, params=None):
         """ Initialize the surface planner.
 
         Args:
-            - filename (str): Path to the config file.
+            - params (WalkgenParams): parameter class.
         """
+        if params != None:
+            self._params = copy.deepcopy(params)
+        else:
+            self._params = WalkgenParams()
 
-        self._config = yaml.load(open(filename, 'r'), Loader=yaml.FullLoader)
-        self.planeseg = self._config["walkgen_params"]["planeseg"]
+        self.planeseg = self._params.planeseg # Use URDF or planseg
 
-        # PARAMETERS FOR SURFACES PROCESSING
-        self._margin = self._config["walkgen_params"]["params"]["margin"]
-        if self.planeseg:
-            self._n_points = self._config["walkgen_params"]["params"]["n_points"]
-            self._method_id = self._config["walkgen_params"]["params"]["method_id"]
-            self._poly_size = self._config["walkgen_params"]["params"]["poly_size"]
-            self._min_area = self._config["walkgen_params"]["params"]["min_area"]
-
-        else:  # Use URDF and heightmap environment
+        if not self.planeseg:  # Use URDF and heightmap environment
             from hpp.corbaserver.affordance.affordance import AffordanceTool
             from hpp.corbaserver.rbprm.tools.surfaces_from_path import getAllSurfacesDict
             from hpp.corbaserver.problem_solver import ProblemSolver
@@ -80,10 +75,7 @@ class SurfacePlanner():
             from walkgen.tools.geometry_utils import getAllSurfacesDict_inner
             from anymal_rbprm.anymal_abstract import Robot as AnymalAbstract
 
-            self._path = os.environ["DEVEL_DIR"] + "/memmo_anymal/"  # Temp path
-            self._urdf_path = self._path + self._config["walkgen_params"]["world"]["urdf"]
-            self._heightmap_path = self._path + self._config["walkgen_params"]["world"]["heightmap"]
-            self.heightmap = load_heightmap(self._heightmap_path)  # Heightmap
+            self.heightmap = load_heightmap(self._params.heightmap)  # Heightmap
 
             self._anymal_abstract = AnymalAbstract()
             self._anymal_abstract.setJointBounds("root_joint", [-5., 5., -5., 5., 0.241, 1.5])
@@ -96,10 +88,10 @@ class SurfacePlanner():
             self._afftool = AffordanceTool()
             self._afftool.setAffordanceConfig('Support', [0.5, 0.03, 0.00005])
 
-            self._afftool.loadObstacleModel(self._urdf_path, "environment", self._vf)
+            self._afftool.loadObstacleModel(self._params.urdf, "environment", self._vf)
             self._ps.selectPathValidation("RbprmPathValidation", 0.05)
 
-            self._all_surfaces = getAllSurfacesDict_inner(getAllSurfacesDict(self._afftool), margin=self._margin)
+            self._all_surfaces = getAllSurfacesDict_inner(getAllSurfacesDict(self._afftool), margin=self._params.margin)
 
         # SL1M Problem initialization
         self.pb = Problem(limb_names=limbs,
@@ -109,28 +101,10 @@ class SurfacePlanner():
                           suffix_feet=suffix_feet)
 
         # Gait parameters
-        self._typeGait = self._config["walkgen_params"]["gait"]["type"]
-        dt = self._config["walkgen_params"]["gait"]["dt"]
-        N_ss = self._config["walkgen_params"]["gait"]["N_ss"]
-        N_ds = self._config["walkgen_params"]["gait"]["N_ds"]
-        N_total = N_ds + 2 * N_ss
-        if self._typeGait == "Trot":
-            n_gait = 2
-        elif self._typeGait == "Walk":
-            n_gait = 4
-        else:
-            raise SyntaxError("Unknown gait type in the config file. Try Trot or Walk.")
+        self._set_gait_param(self._params)
 
         # SL1M parameters
-        self._T_gait = N_total * dt  # Period of a gait.
-        self._n_gait = n_gait  # Number of phases in a gait.
-        self._step_duration = self._T_gait / n_gait
-        self._N_phase = self._config["walkgen_params"]["params"]["N_phase"]
-        self._N_phase_return = self._config["walkgen_params"]["params"]["N_phase_return"]
-        if self._N_phase_return > self._N_phase :
-            raise ArithmeticError("Cannot return more surfaces than step done in SL1M")
-        self._N_total = self._n_gait * self._N_phase
-        self._com = self._config["walkgen_params"]["params"]["com"]
+        self._com = self._params.com
 
         self._contact_names = ['LF_FOOT', 'RF_FOOT', 'LH_FOOT', 'RH_FOOT']  # Order of the feet in the surface planner.
         # Shoulder position in base frame
@@ -157,6 +131,32 @@ class SurfacePlanner():
         # Debug and plot purpose
         self.pb_data = None
         self.surfaces_processed = None
+
+    def _set_gait_param(self,params):
+        """ Initialize gait parameters.
+
+        Args:
+            - params (WalkgenParams): parameter class.
+        """
+        # Gait parameters
+        self._typeGait = self._params.typeGait
+        N_total = self._params.N_ds + 2 * self._params.N_ss
+        if self._typeGait == "Trot":
+            n_gait = 2
+        elif self._typeGait == "Walk":
+            n_gait = 4
+        else:
+            raise SyntaxError("Unknown gait type in the config file. Try Trot or Walk.")
+
+        # SL1M parameters
+        self._T_gait = N_total * self._params.dt  # Period of a gait.
+        self._n_gait = n_gait  # Number of phases in a gait.
+        self._step_duration = self._T_gait / n_gait
+        self._N_phase = self._params.N_phase
+        self._N_phase_return = self._params.N_phase_return
+        if self._N_phase_return > self._N_phase :
+            raise ArithmeticError("Cannot return more surfaces than step done in SL1M")
+        self._N_total = self._n_gait * self._N_phase
 
     def _compute_gait(self, gait_in):
         """
@@ -469,48 +469,3 @@ class SurfacePlanner():
             print("The MIP problem did NOT converge")
             return self._selected_surfaces
 
-if __name__ == "__main__":
-    """ Run a simple example of SurfacePlanner.
-    """
-    import pickle
-    # Load Marker array class example from ROS simulation
-    fileObject = os.getcwd() + "/data/example_marker_array.pickle"
-
-    with open(fileObject, 'rb') as file2:
-        array_markers = pickle.load(file2)
-
-    filepath = os.path.dirname(os.path.abspath(__file__)) + "/config/params.yaml"
-    surface_planner = SurfacePlanner(filepath)
-
-    q = np.array([0., 0., 0.4792, 0., 0., 0., 1., -0.1, 0.7, -1., -0.1, -0.7, 1., 0.1, 0.7, -1., 0.1, -0.7, 1.])
-    q[0] = 0.
-    bvref = np.zeros(6)
-    bvref[0] = 0.3
-    bvref[5] = 0.1
-    # gait_in = np.array([[1, 0, 0, 1], [0, 1, 1, 0]])
-    gait_in = np.array([[0, 1, 1, 1], [1, 0, 1, 1], [1,1,0,1], [1,1,1,0]])
-
-    selected_surfaces = surface_planner.run(q, gait_in, bvref, surface_planner._current_position, array_markers)
-
-    import matplotlib.pyplot as plt
-    import sl1m.tools.plot_tools as plot
-
-    if not surface_planner.planeseg :
-        ax = plot.draw_whole_scene(surface_planner._all_surfaces)
-        plot.plot_planner_result(surface_planner.pb_data.all_feet_pos, coms=surface_planner.pb_data.coms, ax=ax, show=True)
-
-    else:
-        from walkgen.tools.plot_tools import plot_marker_surface
-        # Plot initial surfaces from markerArray
-        fig = plt.figure(figsize=(10, 6))
-        ax = plt.axes(projection='3d')
-        plt.title("Initial surfaces")
-        plot_marker_surface(array_markers,ax)
-
-        # Plot SL1M results
-        fig = plt.figure(figsize=(10, 6))
-        ax = plt.axes(projection='3d')
-        plt.title("SL1M result")
-        for sf in surface_planner.surfaces_processed :
-            plot.plot_surface(sf,ax=ax)
-        plot.plot_planner_result(surface_planner.pb_data.all_feet_pos, coms=surface_planner.pb_data.coms, ax=ax, show=True)
