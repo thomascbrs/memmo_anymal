@@ -12,9 +12,9 @@ class WalkgenParams:
         self.planeseg= False # Use URDF of the environment or planeseg visualisation.
 
         # URDF and heightmap environment without planeseg.
-        path = os.environ["DEVEL_DIR"] + "/memmo_anymal/"
-        self.urdf= path + "data/urdf/lab_scene.urdf" # Env URDF path
-        self.heightmap= path + "data/lab_scene.dat"  # Heightmap path
+        path = os.path.dirname(os.path.abspath(__file__))
+        self.urdf= path + "/data/urdf/lab_scene.urdf" # Env URDF path
+        self.heightmap= path + "/data/lab_scene.dat"  # Heightmap path
 
         # Planeseg parameters for postprocessing.
         self.n_points= 6 # Maximum number of vertices for the surfaces
@@ -52,7 +52,7 @@ class WalkgenParams:
             - filename (string): path to the config file.
         """
         config = yaml.load(open(filename, 'r'), Loader=yaml.FullLoader)
-        path = os.environ["DEVEL_DIR"] + "/memmo_anymal/"
+        path = os.path.dirname(os.path.abspath(__file__))
         self.planeseg= config["walkgen_params"]["planeseg"]
         self.urdf= path + config["walkgen_params"]["world"]["urdf"]
         self.heightmap= path + config["walkgen_params"]["world"]["heightmap"]
