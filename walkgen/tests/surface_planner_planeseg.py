@@ -44,8 +44,6 @@ with open(fileObject, 'rb') as file2:
 
 params = WalkgenParams()
 params.planeseg = True
-params.heightmap = path + "lab_scene.dat"
-params.urdf = path + "urdf/lab_scene.urdf"
 
 # State of the robot
 q = np.array([0., 0., 0.4792, 0., 0., 0., 1., -0.1, 0.7, -1., -0.1, -0.7, 1., 0.1, 0.7, -1., 0.1, -0.7, 1.])
