@@ -122,6 +122,7 @@ SET(${PROJECT_NAME}_SOURCES
   GaitManager.py
   contact.py
   FootStepManager.py
+  WalkgenRosMessageConversion.py
   params.py
   )
 
