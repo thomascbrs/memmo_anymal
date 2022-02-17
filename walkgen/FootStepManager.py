@@ -33,31 +33,31 @@ from walkgen.tools.geometry_utils import Surface
 import copy
 import numpy as np
 import yaml
-
+from walkgen.params import WalkgenParams
 
 class FootStepManager:
     """ Wrapper class to manage the footstep planning of the Walkgen library.
     """
 
-    def __init__(self, model, q, filename=None):
+    def __init__(self, model, q, params=None):
         """Initialize the management.
 
         Args:
             - model (pin.model): Pinocchio robot model.
             - q (Array x19): State of the robot.
-            - filename (str): Path to the config file.
+            - params (WalkgenParams): parameter class.
         """
+        if params != None:
+            self._params = copy.deepcopy(params)
+        else:
+            self._params = WalkgenParams()
 
-        self._gait_manager = GaitManager(model, q, filename)  # Gait manager
+        self._gait_manager = GaitManager(model, q, params)  # Gait manager
         self._foostep_planner = FootStepPlanner(model, q)  # Foostep planner
 
-        if filename is None:
-            self._multiprocessing_mimic = True
-            self._N_phase_return = 2
-        else:
-            self._config = yaml.load(open(filename, 'r'), Loader=yaml.FullLoader)
-            self._multiprocessing_mimic = self._config["walkgen_params"]["params"]["multiprocessing_mimic"]
-            self._N_phase_return = self._config["walkgen_params"]["params"]["N_phase_return"]
+
+        self._multiprocessing_mimic = self._params.multiprocessing_mimic
+        self._N_phase_return = self._params.N_phase_return
 
         # Initial selected surface, rectangle of 1m2 around the origin.
         # TODO : Modify this surface according to the initial position.

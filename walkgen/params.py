@@ -54,7 +54,7 @@ class WalkgenParams:
 
         # SurfacePlanner parameters.
         self.N_phase = 2  # Number of step to proceed (--> N_phase * n_gait step in SL1M)
-        self.N_phase_return = 1  # Number of step to return (N_phase_return surfaces for each foot)
+        self.N_phase_return = 2  # Number of step to return (N_phase_return surfaces for each foot)
         self.com = False  # Optimisation of the CoM
         self.multiprocessing_mimic = True  # Mimic the behaviour of multiprocessing by using the surfaces of the previous optimisation.
 

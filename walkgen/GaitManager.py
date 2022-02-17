@@ -33,6 +33,7 @@ import copy
 from walkgen.FootStepTrajectory import FootStepTrajectory
 import yaml
 from caracal import ContactPhase, ContactSchedule, SwingFootTrajectoryPolynomial
+from walkgen.params import WalkgenParams
 
 class GaitManager:
     """ Gait manager. Add and remove contact schedule from the queue
@@ -40,38 +41,32 @@ class GaitManager:
     Get informations on the gait to trigger SL1M at the right time.
     """
 
-    def __init__(self, model, q, filename=None):
+    def __init__(self, model, q, params=None):
         """Initialize the gait management.
 
         Args:
             - model (pin.model): Pinocchio robot model.
             - q (Array x19): State of the robot.
-            - filename (str): Path to the config file.
+            - params (WalkgenParams): parameter class.
         """
+        if params != None:
+            self._params = copy.deepcopy(params)
+        else:
+            self._params = WalkgenParams()
 
         # Create the model and data for forward simulation
         self._model = model
         self._data = self._model.createData()
 
-        if filename is None:
-            self._typeGait = "Trot"  # By default trotting.
-            self._dt = 0.01
-            self._N_ss = 30
-            self._N_ds = 0
-            self._nx = 5
-            self._ny = 5
-            self._nz = 6
-        else:
-            self._config = yaml.load(open(filename, 'r'), Loader=yaml.FullLoader)
-            # Gait parameters
-            self._typeGait = self._config["walkgen_params"]["gait"]["type"]
-            self._dt = self._config["walkgen_params"]["gait"]["dt"]
-            self._N_ss = self._config["walkgen_params"]["gait"]["N_ss"]
-            self._N_ds = self._config["walkgen_params"]["gait"]["N_ds"]
-            # Trajectory parameters
-            self._nx = self._config["walkgen_params"]["trajectory"]["nx"]
-            self._ny = self._config["walkgen_params"]["trajectory"]["ny"]
-            self._nz = self._config["walkgen_params"]["trajectory"]["nz"]
+        # Gait parameters
+        self._typeGait = self._params.typeGait
+        self._dt = self._params.dt
+        self._N_ss = self._params.N_ss
+        self._N_ds = self._params.N_ds
+        # Trajectory parameters
+        self._nx = self._params.nx
+        self._ny = self._params.ny
+        self._nz = self._params.nz
 
         pin.forwardKinematics(self._model, self._data, q)
         pin.updateFramePlacements(self._model, self._data)
