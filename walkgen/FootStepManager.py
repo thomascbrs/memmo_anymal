@@ -34,12 +34,13 @@ import copy
 import numpy as np
 import yaml
 from walkgen.params import WalkgenParams
+from caracal import ContactPhase, ContactSchedule, SwingFootTrajectoryPolynomial
 
 class FootStepManager:
     """ Wrapper class to manage the footstep planning of the Walkgen library.
     """
 
-    def __init__(self, model, q, params=None):
+    def __init__(self, model, q, params=None, debug = False):
         """Initialize the management.
 
         Args:
@@ -53,11 +54,11 @@ class FootStepManager:
             self._params = WalkgenParams()
 
         self._gait_manager = GaitManager(model, q, params)  # Gait manager
-        self._foostep_planner = FootStepPlanner(model, q)  # Foostep planner
-
+        self._foostep_planner = FootStepPlanner(model, q, debug)  # Foostep planner
 
         self._multiprocessing_mimic = self._params.multiprocessing_mimic
         self._N_phase_return = self._params.N_phase_return
+        self._nsteps = self._params.nsteps
 
         # Initial selected surface, rectangle of 1m2 around the origin.
         # TODO : Modify this surface according to the initial position.
@@ -85,6 +86,31 @@ class FootStepManager:
         self._addContact = False
         self._firstIteration = True
         self._coeffs = []
+        self.initialize_default_cs()
+
+    def initialize_default_cs(self):
+        """ Create a default contact schedule compatible with Caracal CS.
+        """
+        coeffs = self._gait_manager.get_coefficients()
+        cs = self._gait_manager._default_cs
+        contactNames = [name for name in cs.contactNames]
+        gait = ContactSchedule(cs.dt, cs.T, cs.S_total, contactNames)
+        for id, phase in enumerate(cs.phases):
+            traj=SwingFootTrajectoryPolynomial(cs.dt, phase[1].T, self._gait_manager._nx,
+                                                                      self._gait_manager._ny, self._gait_manager._nz)
+            traj.Ax = np.array(coeffs[0][3*id])
+            traj.Ay = np.array(coeffs[0][3*id+1])
+            traj.Az = np.array(coeffs[0][3*id+2])
+            gait.addSchedule(
+                contactNames[id],
+                [ContactPhase(phase[0].T),
+                 ContactPhase(phase[1].T, trajectory=traj),
+                 ContactPhase(phase[2].T)])
+        gait.updateSwitches()
+        self._default_cs = copy.deepcopy(gait)
+
+    def get_default_cs(self):
+        return self._default_cs
 
     def step(self, q, vq, b_v_ref, selected_surfaces):
         """ Update the target position and the trajectories.
@@ -94,42 +120,43 @@ class FootStepManager:
             - vq (array x18): Linear and angular current velocity.
             - b_v_ref (array x6): Linear and angular desired velocities.
         """
-        # For the first iteration, the gait does not need to be updated.
-        if self._firstIteration:
-            self._firstIteration = False
-        else:
-            self._addContact = self._gait_manager.update()
+        for i in range(self._nsteps):
+            # For the first iteration, the gait does not need to be updated.
+            if self._firstIteration:
+                self._firstIteration = False
+            else:
+                self._addContact = self._gait_manager.update()
 
-        if self._gait_manager.is_new_step() and self._multiprocessing_mimic:
-            # New step beginning, get the surfaces computed by SL1M during the previous flying phase.
-            self._selected_surfaces_previous = copy.deepcopy(self._selected_surfaces)
-            self._selected_surfaces = selected_surfaces
+            if self._gait_manager.is_new_step() and self._multiprocessing_mimic:
+                # New step beginning, get the surfaces computed by SL1M during the previous flying phase.
+                self._selected_surfaces_previous = copy.deepcopy(self._selected_surfaces)
+                self._selected_surfaces = selected_surfaces
 
-        # Run Footstepplanner
-        if self._multiprocessing_mimic:
-            target_foostep = self._foostep_planner.compute_footstep(self._gait_manager.get_cs(), q.copy(), vq.copy(),
-                                                                        b_v_ref, self._gait_manager._timeline,
-                                                                        self._selected_surfaces_previous)
-        else:
-            target_foostep = self._foostep_planner.compute_footstep(self._gait_manager.get_cs(), q.copy(), vq.copy(),
-                                                                        b_v_ref, self._gait_manager._timeline,
-                                                                        selected_surfaces)
+            # Run Footstepplanner
+            if self._multiprocessing_mimic:
+                target_foostep = self._foostep_planner.compute_footstep(self._gait_manager.get_cs(), q.copy(), vq.copy(),
+                                                                            b_v_ref, self._gait_manager._timeline,
+                                                                            self._selected_surfaces_previous)
+            else:
+                target_foostep = self._foostep_planner.compute_footstep(self._gait_manager.get_cs(), q.copy(), vq.copy(),
+                                                                            b_v_ref, self._gait_manager._timeline,
+                                                                            selected_surfaces)
 
-        # Check if a new flying phase is starting to trigger SL1M.
-        if self._gait_manager.is_new_step():
-            self._gait_sl1m = self._gait_manager.get_current_gait()  # Current walking gait
+            # Check if a new flying phase is starting to trigger SL1M.
+            if self._gait_manager.is_new_step():
+                self._gait_sl1m = self._gait_manager.get_current_gait()  # Current walking gait
 
-            # Target foosteps for SL1M.
-            self._target_foostep = np.zeros((3, 4))
-            for j in range(self._gait_sl1m.shape[1]):  # gait in SL1M order
-                name = self._foostep_planner._contact_names_SL1M[j]
-                if self._gait_sl1m[
-                        0, j] == 0.:  # Flying phase has started, the SL1M problem start for the next one (delay)
-                    self._target_foostep[:, j] = target_foostep[:, j]
-                else:
-                    self._target_foostep[:, j] = self._foostep_planner._current_position[:,
-                                                                                   self._foostep_planner._contactNames.
-                                                                                   index(name)]
+                # Target foosteps for SL1M.
+                self._target_foostep = np.zeros((3, 4))
+                for j in range(self._gait_sl1m.shape[1]):  # gait in SL1M order
+                    name = self._foostep_planner._contact_names_SL1M[j]
+                    if self._gait_sl1m[
+                            0, j] == 0.:  # Flying phase has started, the SL1M problem start for the next one (delay)
+                        self._target_foostep[:, j] = target_foostep[:, j]
+                    else:
+                        self._target_foostep[:, j] = self._foostep_planner._current_position[:,
+                                                                                    self._foostep_planner._contactNames.
+                                                                                    index(name)]
 
         self._coeffs = self._gait_manager.get_coefficients()
 
@@ -149,7 +176,7 @@ class FootStepManager:
         Returns:
             - params1 (CS): The Caracal Contact Schedule.
         """
-        return self._gait_manager.get_default_cs()
+        return self._default_cs
 
     def is_new_contact_created(self):
         """ Returns boolean if a new contact schedule has been inserted in the queue.
@@ -199,4 +226,3 @@ if __name__ == "__main__":
     selected_surfaces = footstep_manager._selected_surfaces
     for k in range(5):
         footstep_manager.step(anymal.q0, anymal.v0, bvref, selected_surfaces)
-
