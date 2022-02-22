@@ -64,7 +64,7 @@ python3 -m walkgen.stand_alone_scenarios.anymal_stairs_urdf
 
 To test with planeseg data, run:
 ```
-python3 -m walkgen.tests.surface_planner_urdf
+python3 -m walkgen.tests.surface_planner_planeseg
 ```
 
 
