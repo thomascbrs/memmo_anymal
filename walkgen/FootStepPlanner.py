@@ -207,7 +207,7 @@ class FootStepPlanner():
                             t0 = timeline - active_phase.T
 
                         if t0 <= inactive_phase.T /2:
-                            phases[1].trajectory.update(P0[:, j], V0[:,j], footstep_optim, t0 * cs.dt, False, True)
+                            phases[1].trajectory.update(P0[:, j], V0[:,j], footstep_optim, t0 * cs.dt, True)
 
                         P0[:, j] = footstep_optim
                         V0[:, j] = np.zeros(3)
