@@ -40,7 +40,7 @@ class FootStepPlanner():
     Use RBPRM as a guide path since the env is available.
     """
 
-    def __init__(self, model, q, debug = True):
+    def __init__(self, model, q, debug = False):
         """ Initialize the FootStepPlanner.
 
         Args:
@@ -206,7 +206,9 @@ class FootStepPlanner():
                         else:
                             t0 = timeline - active_phase.T
 
-                        phases[1].trajectory.update(P0[:, j], V0[:, j], footstep_optim, t0 * cs.dt)
+                        if t0 <= inactive_phase.T /2:
+                            phases[1].trajectory.update(P0[:, j], V0[:,j], footstep_optim, t0 * cs.dt, False, True)
+
                         P0[:, j] = footstep_optim
                         V0[:, j] = np.zeros(3)
 
