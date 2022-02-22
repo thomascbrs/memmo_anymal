@@ -448,7 +448,7 @@ class SurfacePlanner():
         com_positions = self._compute_com_positions(configs)
 
         costs = {
-            "effector_positions": [1.0, effector_positions],
+            "effector_positions_xy": [1.0, effector_positions],
             "coms_xy": [0.5, com_positions],
             "coms_z": [0.05, com_positions]
         }
