@@ -31,9 +31,9 @@ import pinocchio as pin
 import numpy as np
 import copy
 from walkgen.FootStepTrajectory import FootStepTrajectory
-import yaml
-from caracal import ContactPhase, ContactSchedule, SwingFootTrajectoryPolynomial
+from caracal import ContactPhase, ContactSchedule
 from walkgen.params import WalkgenParams
+
 
 class GaitManager:
     """ Gait manager. Add and remove contact schedule from the queue
@@ -63,10 +63,14 @@ class GaitManager:
         self._dt = self._params.dt
         self._N_ss = self._params.N_ss
         self._N_ds = self._params.N_ds
+        self._nsteps = self._params.nsteps
         # Trajectory parameters
         self._nx = self._params.nx
         self._ny = self._params.ny
         self._nz = self._params.nz
+
+        # SurfacePlanner parameters
+        self._N_phase_return = self._params.N_phase_return
 
         pin.forwardKinematics(self._model, self._data, q)
         pin.updateFramePlacements(self._model, self._data)
@@ -101,16 +105,61 @@ class GaitManager:
         else:
             raise SyntaxError("Unknown gait type in the config file. Try Trot or Walk.")
 
-        self._horizon = copy.deepcopy(self._default_cs.T)  # horizon of the MPC.
+        if self._params.horizon is None:
+            self._horizon = copy.deepcopy(self._default_cs.T)  # horizon of one gait.
+        else:
+            self._horizon = self._params.horizon
+
+        # Create the queue of contact depending of the horizon length
         self._timeline = 0  # Current timeline
-        self._queue_cs = [copy.deepcopy(self._default_cs)]  # Intern queue of contact
-        self._queue_cs[-1].updateSwitches()  # Update the switches
+        self._queue_cs = []
+        for k in range(self._horizon // self._default_cs.T + 1):
+            cs = copy.deepcopy(self._default_cs)
+            cs.updateSwitches()
+            self._queue_cs.append(cs)
+
+        # Checking erros with the horizon length.
+        if (self._horizon // self._default_cs.T + 1 +
+                int(self._horizon % self._default_cs.T > 0)) > self._N_phase_return:
+            raise AttributeError(
+                "The horizon length needs to be compatible with the number of surfaces returned by the SurfacePlanner."
+            )
+        if not self.check_horizon(self._queue_cs, self._horizon):
+            raise ArithmeticError(
+                "The horizon length is not compatible with the gait parameters. There cannot be more than 5 switching nodes at the same time in the horizon. "
+            )
 
         lf, lh, rf, rh = "LF_FOOT", "LH_FOOT", "RF_FOOT", "RH_FOOT"
         self._contact_names_SL1M = [lf, rf, lh, rh]  # Contact order name for SL1M
 
         # Initialize switches list
         self.initialize_switches(self._default_cs)
+
+    def check_horizon(self, queue_cs, horizon):
+        """ Run the contact queue of contact and detect if the horizon length
+        is not appropriate. There cannot be more than 5 switching nodes in the
+        horizon.
+
+        Args:
+            - queue_cs (list): Queue of contact.
+            - horizon (int): Horizon length.
+
+        Returns:
+            - params (bool): Length is compatible or not.
+        """
+        checked = True
+        cs_index = 0
+        L = []  # List of switches
+        for cs in reversed(queue_cs):
+            for key in cs.switches.keys():
+                L.append(cs_index + key)
+            cs_index += cs.T
+
+        L.sort()
+        for i in range(len(L) - 5):
+            if L[i + 5] - L[i] < horizon:
+                checked = False
+        return checked
 
     def initialize_switches(self, cs):
         """ Initialize the dictionnary containing the switches that occur in the gait to trigger SL1M at the
@@ -154,8 +203,8 @@ class GaitManager:
 
         Returns:
             - params1 (list): List of list with the coefficients for each foot.
-            Example: [[Ax_0,Ay_0,Az_0,Ax_1 ... , Ax_3, Ay_3,Az_3], ... , [Ax_0,Ay_0,Az_0,Ax_1 ... , Ax_3, Ay_3,Az_3]]
-
+            Example: [[Ax_0,Ay_0,Az_0,Ax_1 ... , Ax_3, Ay_3,Az_3],   ... , [Ax_0,Ay_0,Az_0,Ax_1 ... , Ax_3, Ay_3,Az_3]]
+                     [[     current CS    ],   [    next CS      ],  ...   [      last CS of the queue    ]]
         """
         coeffs = []
         for cs in reversed(self._queue_cs):
@@ -167,33 +216,14 @@ class GaitManager:
             coeffs.append(cs_coeff)
         return coeffs
 
-    def get_default_cs(self):
-        """ Create a default Contact Schedule (CS) for Caracal based on the internal CS.
-
-        Returns:
-            - params1 (CS): The Caracal Contact Schedule.
-        """
-        contactNames = [name for name in self._default_cs.contactNames]
-        gait = ContactSchedule(self._default_cs.dt, self._default_cs.T, self._default_cs.S_total, contactNames)
-        for id, phase in enumerate(self._default_cs.phases):
-            gait.addSchedule(contactNames[id], [
-                ContactPhase(phase[0].T),
-                ContactPhase(phase[1].T,
-                             trajectory=SwingFootTrajectoryPolynomial(self._default_cs.dt, phase[1].T, self._nx,
-                                                                      self._ny, self._nz)),
-                ContactPhase(phase[2].T)
-            ])
-        gait.updateSwitches()
-        return gait
-
-    def update(self, n_step=1):
+    def update(self):
         """ Update the internal queue of contact schedule.
 
         Returns:
             - params1 (bool): True if a new gait has been added in the queue.
         """
         addContact = False
-        for s in range(n_step):
+        for s in range(self._nsteps):
             self._timeline += 1
 
             # Reset the timeline when it has been reached the current contact schedule
@@ -206,7 +236,6 @@ class GaitManager:
             count = 0
             for cs in self._queue_cs:
                 count += cs.T
-
             if count - self._timeline < self._horizon:
                 gait = copy.deepcopy(self._default_cs)
                 gait.updateSwitches()
@@ -299,7 +328,7 @@ class GaitManager:
                 elif active_phase.T + inactive_phase.T - timeline - 1 > 0:  # case 2, during inactive phase
                     gait_tmp[j] = 0
                 else:
-                    gait_tmp[j] = 1  # case 3, inside first Active phase
+                    gait_tmp[j] = 1  # case 3, inside last Active phase
         return gait_tmp.tolist()
 
     def is_new_step(self):
