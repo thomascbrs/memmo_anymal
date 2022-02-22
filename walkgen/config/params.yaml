@@ -22,6 +22,8 @@ walkgen_params:
     dt: 0.01
     N_ss: 20 # 30 for Trot
     N_ds: 5 # 0 for Trot
+    horizon: 125 # Horizon length of the queue of contact.
+    nsteps: 1 # Number of iteration.
 
   trajectory: # Degree of the polynomial curves
     nx: 5

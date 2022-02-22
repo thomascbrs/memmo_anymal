@@ -53,8 +53,8 @@ class WalkgenParams:
         self.min_area = 0.03  # Minimum area to keep the surfaces
 
         # SurfacePlanner parameters.
-        self.N_phase = 2  # Number of step to proceed (--> N_phase * n_gait step in SL1M)
-        self.N_phase_return = 2  # Number of step to return (N_phase_return surfaces for each foot)
+        self.N_phase = 3  # Number of step to proceed (--> N_phase * n_gait step in SL1M)
+        self.N_phase_return = 3  # Number of step to return (N_phase_return surfaces for each foot)
         self.com = False  # Optimisation of the CoM
         self.multiprocessing_mimic = True  # Mimic the behaviour of multiprocessing by using the surfaces of the previous optimisation.
 
@@ -66,6 +66,8 @@ class WalkgenParams:
         self.dt = 0.01
         self.N_ss = 20  # 30 for Trot
         self.N_ds = 5  # 0 for Trot
+        self.horizon = None # (int or None), use the lenght of the gait (None) or a defined horizon (int)
+        self.nsteps = 1 # Number of iteration.
 
         # Degree of the polynomial curves
         self.nx = 5
@@ -99,6 +101,8 @@ class WalkgenParams:
         self.dt = config["walkgen_params"]["gait"]["dt"]
         self.N_ss = config["walkgen_params"]["gait"]["N_ss"]
         self.N_ds = config["walkgen_params"]["gait"]["N_ds"]
+        self.horizon = config["walkgen_params"]["gait"]["horizon"]
+        self.nsteps = config["walkgen_params"]["gait"]["nsteps"]
         self.nx = config["walkgen_params"]["trajectory"]["nx"]
         self.ny = config["walkgen_params"]["trajectory"]["ny"]
         self.nz = config["walkgen_params"]["trajectory"]["nz"]
