@@ -74,15 +74,17 @@ class FootStepTrajectory():
         return 0
 
 
-    def update(self,x0,v0, xf, t0):
-
-        self._updatePolyCoeff_XY(x0, self._evaluate(1,t0), self._evaluate(2,t0), xf, t0, self._N * self._dt)
+    def update(self,x0,v0, xf, t0, feedback=False):
+        if feedback:
+            self._updatePolyCoeff_XY(x0, self._evaluate(1,t0), self._evaluate(2,t0), xf, t0, self._N * self._dt)
+        else:
+            self._updatePolyCoeff_XY(self._evaluate(0,t0), self._evaluate(1,t0), self._evaluate(2,t0), xf, t0, self._N * self._dt)
         if t0 == 0.:
             if xf[2] > 0.05:
                 h = xf[2] + 0.1
             else:
                 h = self._stepHeight
-            self._updatePolyCoeff_Z(x0, v0, self._evaluate(2,t0), xf, t0, self._N * self._dt,h)
+            self._updatePolyCoeff_Z(x0,  np.zeros(3), np.zeros(3), xf, t0, self._N * self._dt,h)
 
         return 0
 
