@@ -56,7 +56,6 @@ class WalkgenParams:
         self.N_phase = 3  # Number of step to proceed (--> N_phase * n_gait step in SL1M)
         self.N_phase_return = 3  # Number of step to return (N_phase_return surfaces for each foot)
         self.com = False  # Optimisation of the CoM
-        self.multiprocessing_mimic = True  # Mimic the behaviour of multiprocessing by using the surfaces of the previous optimisation.
 
         # Margin in m inside the convex surfaces.
         self.margin = 0.06  # inner surface margin in m
@@ -95,7 +94,6 @@ class WalkgenParams:
         self.N_phase = config["walkgen_params"]["params"]["N_phase"]
         self.N_phase_return = config["walkgen_params"]["params"]["N_phase_return"]
         self.com = config["walkgen_params"]["params"]["com"]
-        self.multiprocessing_mimic = config["walkgen_params"]["params"]["multiprocessing_mimic"]
         self.margin = config["walkgen_params"]["params"]["margin"]
         self.typeGait = config["walkgen_params"]["gait"]["type"]
         self.dt = config["walkgen_params"]["gait"]["dt"]
