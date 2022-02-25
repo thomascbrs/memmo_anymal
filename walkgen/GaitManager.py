@@ -64,10 +64,6 @@ class GaitManager:
         self._N_ss = self._params.N_ss
         self._N_ds = self._params.N_ds
         self._nsteps = self._params.nsteps
-        # Trajectory parameters
-        self._nx = self._params.nx
-        self._ny = self._params.ny
-        self._nz = self._params.nz
 
         # SurfacePlanner parameters
         self._N_phase_return = self._params.N_phase_return

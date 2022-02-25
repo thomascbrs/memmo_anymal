@@ -32,7 +32,6 @@ import walkgen.GaitManager as GaitManager
 from walkgen.tools.geometry_utils import Surface
 import copy
 import numpy as np
-import yaml
 from walkgen.params import WalkgenParams
 from caracal import QuadrupedalGaitGenerator
 

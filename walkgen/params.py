@@ -68,11 +68,6 @@ class WalkgenParams:
         self.horizon = None # (int or None), use the lenght of the gait (None) or a defined horizon (int)
         self.nsteps = 1 # Number of iteration.
 
-        # Degree of the polynomial curves
-        self.nx = 5
-        self.ny = 5
-        self.nz = 6
-
         if filename is not None:
             self.parseFile(filename)
 
@@ -101,6 +96,3 @@ class WalkgenParams:
         self.N_ds = config["walkgen_params"]["gait"]["N_ds"]
         self.horizon = config["walkgen_params"]["gait"]["horizon"]
         self.nsteps = config["walkgen_params"]["gait"]["nsteps"]
-        self.nx = config["walkgen_params"]["trajectory"]["nx"]
-        self.ny = config["walkgen_params"]["trajectory"]["ny"]
-        self.nz = config["walkgen_params"]["trajectory"]["nz"]
