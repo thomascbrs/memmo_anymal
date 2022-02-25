@@ -34,7 +34,7 @@ import copy
 import numpy as np
 import yaml
 from walkgen.params import WalkgenParams
-from caracal import ContactPhase, ContactSchedule, SwingFootTrajectoryPolynomial
+from caracal import QuadrupedalGaitGenerator
 
 
 class FootStepManager:
@@ -58,6 +58,11 @@ class FootStepManager:
         self._foostep_planner = FootStepPlanner(model, q, debug)  # Foostep planner
 
         self._N_phase_return = self._params.N_phase_return
+        self._typeGait = self._params.typeGait
+        self._dt = self._params.dt
+        self._N_ss = self._params.N_ss
+        self._N_ds = self._params.N_ds
+        self._nsteps = self._params.nsteps
 
         # Initial selected surface, rectangle of 1m2 around the origin.
         # TODO : Modify this surface according to the initial position.
@@ -90,24 +95,30 @@ class FootStepManager:
 
     def initialize_default_cs(self):
         """ Create a default contact schedule compatible with Caracal CS.
+        contacts, N_ds, N_ss, N_uss=0, N_uds=0, stepHeight=0.15, startPhase=True, endPhase=True
         """
-        coeffs = self._gait_manager.get_coefficients()
-        cs = self._gait_manager._default_cs
-        contactNames = [name for name in cs.contactNames]
-        gait = ContactSchedule(cs.dt, cs.T, cs.S_total, contactNames)
-        for id, phase in enumerate(cs.phases):
-            traj = SwingFootTrajectoryPolynomial(cs.dt, phase[1].T, self._gait_manager._nx, self._gait_manager._ny,
-                                                 self._gait_manager._nz)
-            traj.Ax = np.array(coeffs[0][3 * id])
-            traj.Ay = np.array(coeffs[0][3 * id + 1])
-            traj.Az = np.array(coeffs[0][3 * id + 2])
-            gait.addSchedule(
-                contactNames[id],
-                [ContactPhase(phase[0].T),
-                 ContactPhase(phase[1].T, trajectory=traj),
-                 ContactPhase(phase[2].T)])
-        gait.updateSwitches()
-        self._default_cs = copy.deepcopy(gait)
+        gait_generator = QuadrupedalGaitGenerator()
+        if self._typeGait == "Trot":
+            self._default_cs = copy.deepcopy(
+                gait_generator.trot(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
+                                         N_ds=self._N_ds,
+                                         N_ss=self._N_ss,
+                                         N_uss=0,
+                                         N_uds=0,
+                                         stepHeight=0.15,
+                                         startPhase=True,
+                                         endPhase=False))
+        elif self._typeGait == "Walk":
+            self._default_cs = copy.deepcopy(
+                gait_generator.walk(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
+                                         N_ds=self._N_ds,
+                                         N_ss=self._N_ss,
+                                         N_uss=0,
+                                         N_uds=0,
+                                         stepHeight=0.15,
+                                         startPhase=True,
+                                         endPhase=False))
+        self._default_cs.updateSwitches()
 
     def get_default_cs(self):
         return self._default_cs

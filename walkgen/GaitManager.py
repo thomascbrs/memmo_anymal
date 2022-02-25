@@ -202,18 +202,28 @@ class GaitManager:
         """ Get the coefficients of the Queue of contact.
 
         Returns:
-            - params1 (list): List of list with the coefficients for each foot.
-            Example: [[Ax_0,Ay_0,Az_0,Ax_1 ... , Ax_3, Ay_3,Az_3],   ... , [Ax_0,Ay_0,Az_0,Ax_1 ... , Ax_3, Ay_3,Az_3]]
-                     [[     current CS    ],   [    next CS      ],  ...   [      last CS of the queue    ]]
+            - params1 (list): List of list of matrix with the coefficients for each foot.
+            Example:    Ax = [Ax0, Ax1, Ax2 ... Axn] on x-axis
+                        mat_coeff = [Ax.T, Ay.T, Az.T], size degree x 3
+                        params1 = [  current _CS,  next_CS,  ...   last_CS_queue ]
+                        current_CS = [Foot1, Foot2, Foot3, Foot4]
+                        Foot1 = [Matrix_phase_1, Matrix_phase_2 ...]
         """
         coeffs = []
         for cs in reversed(self._queue_cs):
-            cs_coeff = []
+            cs_list = []  # For one CS, list of foot
             for c in range(cs.C):
-                cs_coeff.append(cs.phases[c][1].trajectory.Ax)
-                cs_coeff.append(cs.phases[c][1].trajectory.Ay)
-                cs_coeff.append(cs.phases[c][1].trajectory.Az)
-            coeffs.append(cs_coeff)
+                foot_list = [] # For one foot, list of matrix containing the coefficients
+                phases = cs.phases[c]
+                N_phase = len(phases)
+                for p in range(0, N_phase, 2):
+                    if p + 1 < N_phase:  # otherwise no inactive phase
+                        Ax = phases[p+1].trajectory.Ax
+                        Ay = phases[p+1].trajectory.Ay
+                        Az = phases[p+1].trajectory.Az
+                        foot_list.append(np.array([Ax,Ay,Az]))
+                cs_list.append(foot_list)
+            coeffs.append(cs_list)
         return coeffs
 
     def update(self):
