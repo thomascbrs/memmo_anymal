@@ -65,8 +65,9 @@ class WalkgenParams:
         self.dt = 0.01
         self.N_ss = 20  # 30 for Trot
         self.N_ds = 5  # 0 for Trot
-        self.horizon = None # (int or None), use the lenght of the gait (None) or a defined horizon (int)
-        self.nsteps = 1 # Number of iteration.
+        self.horizon = None  # (int or None), use the lenght of the gait (None) or a defined horizon (int)
+        self.nsteps = 1  # Number of iteration.
+        self.stepHeight = 0.15  # Step height [m]
 
         if filename is not None:
             self.parseFile(filename)
@@ -96,3 +97,4 @@ class WalkgenParams:
         self.N_ds = config["walkgen_params"]["gait"]["N_ds"]
         self.horizon = config["walkgen_params"]["gait"]["horizon"]
         self.nsteps = config["walkgen_params"]["gait"]["nsteps"]
+        self.stepHeight = config["walkgen_params"]["gait"]["stepHeight"]

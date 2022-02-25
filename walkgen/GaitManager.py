@@ -64,6 +64,7 @@ class GaitManager:
         self._N_ss = self._params.N_ss
         self._N_ds = self._params.N_ds
         self._nsteps = self._params.nsteps
+        self._stepHeight = self._params.stepHeight
 
         # SurfacePlanner parameters
         self._N_phase_return = self._params.N_phase_return
@@ -89,6 +90,8 @@ class GaitManager:
                                          N_ss=self._N_ss,
                                          N_uss=0,
                                          N_uds=0,
+                                         stepHeight=self._stepHeight,
+                                         startPhase=True,
                                          endPhase=False))
         elif self._typeGait == "Walk":
             self._default_cs = copy.deepcopy(
@@ -97,6 +100,8 @@ class GaitManager:
                                          N_ss=self._N_ss,
                                          N_uss=0,
                                          N_uds=0,
+                                         stepHeight=self._stepHeight,
+                                         startPhase=True,
                                          endPhase=False))
         else:
             raise SyntaxError("Unknown gait type in the config file. Try Trot or Walk.")

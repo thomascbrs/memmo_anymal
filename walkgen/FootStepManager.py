@@ -62,6 +62,7 @@ class FootStepManager:
         self._N_ss = self._params.N_ss
         self._N_ds = self._params.N_ds
         self._nsteps = self._params.nsteps
+        self._stepHeight = self._params.stepHeight
 
         # Initial selected surface, rectangle of 1m2 around the origin.
         # TODO : Modify this surface according to the initial position.
@@ -104,7 +105,7 @@ class FootStepManager:
                                          N_ss=self._N_ss,
                                          N_uss=0,
                                          N_uds=0,
-                                         stepHeight=0.15,
+                                         stepHeight=self._stepHeight,
                                          startPhase=True,
                                          endPhase=False))
         elif self._typeGait == "Walk":
@@ -114,7 +115,7 @@ class FootStepManager:
                                          N_ss=self._N_ss,
                                          N_uss=0,
                                          N_uds=0,
-                                         stepHeight=0.15,
+                                         stepHeight=self._stepHeight,
                                          startPhase=True,
                                          endPhase=False))
         self._default_cs.updateSwitches()

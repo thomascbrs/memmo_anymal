@@ -23,3 +23,4 @@ walkgen_params:
     N_ds: 5 # 0 for Trot
     horizon: 125 # Horizon length of the queue of contact.
     nsteps: 1 # Number of iteration.
+    stepHeight: 0.15 # Step height [m]
