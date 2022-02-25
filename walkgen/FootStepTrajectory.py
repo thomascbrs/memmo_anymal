@@ -42,8 +42,8 @@ class FootStepTrajectory():
             self._M_next = copy.deepcopy(M_next)
 
             # Polynomial coefficients
-            self.Ax = [0.] * 6  # x-axis
-            self.Ay = [0.] * 6  # y-axis
+            self.Ax = [0.] * 7  # x-axis
+            self.Ay = [0.] * 7  # y-axis
             self.Az = [0.] * 7  # z-axis
 
             # Create polynomial curve
