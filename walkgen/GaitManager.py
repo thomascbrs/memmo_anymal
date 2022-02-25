@@ -75,20 +75,20 @@ class GaitManager:
         pin.forwardKinematics(self._model, self._data, q)
         pin.updateFramePlacements(self._model, self._data)
 
-        cs0, cs1, cs2 = dict(), dict(), dict()
-        cs0["LH_FOOT"] = self._data.oMf[self._model.getFrameId("LH_FOOT")]
-        cs0["LF_FOOT"] = self._data.oMf[self._model.getFrameId("LF_FOOT")]
-        cs0["RH_FOOT"] = self._data.oMf[self._model.getFrameId("RH_FOOT")]
-        cs0["RF_FOOT"] = self._data.oMf[self._model.getFrameId("RF_FOOT")]
-        cs1["LH_FOOT"] = self._data.oMf[self._model.getFrameId("LH_FOOT")]
-        cs1["LF_FOOT"] = self._data.oMf[self._model.getFrameId("LF_FOOT")]
-        cs1["RH_FOOT"] = self._data.oMf[self._model.getFrameId("RH_FOOT")]
-        cs1["RF_FOOT"] = self._data.oMf[self._model.getFrameId("RF_FOOT")]
+        self.cs0, self.cs1 = dict(), dict()
+        self.cs0["LH_FOOT"] = self._data.oMf[self._model.getFrameId("LH_FOOT")]
+        self.cs0["LF_FOOT"] = self._data.oMf[self._model.getFrameId("LF_FOOT")]
+        self.cs0["RH_FOOT"] = self._data.oMf[self._model.getFrameId("RH_FOOT")]
+        self.cs0["RF_FOOT"] = self._data.oMf[self._model.getFrameId("RF_FOOT")]
+        self.cs1["LH_FOOT"] = self._data.oMf[self._model.getFrameId("LH_FOOT")]
+        self.cs1["LF_FOOT"] = self._data.oMf[self._model.getFrameId("LF_FOOT")]
+        self.cs1["RH_FOOT"] = self._data.oMf[self._model.getFrameId("RH_FOOT")]
+        self.cs1["RF_FOOT"] = self._data.oMf[self._model.getFrameId("RF_FOOT")]
 
         self.gait_generator = QuadrupedalGaitGenerator()
         if self._typeGait == "Trot":
             self._default_cs = copy.deepcopy(
-                self.gait_generator.trot(contacts=[cs0, cs1],
+                self.gait_generator.trot(contacts=[self.cs0, self.cs1],
                                          N_ds=self._N_ds,
                                          N_ss=self._N_ss,
                                          N_uss=0,
@@ -96,7 +96,7 @@ class GaitManager:
                                          endPhase=False))
         elif self._typeGait == "Walk":
             self._default_cs = copy.deepcopy(
-                self.gait_generator.walk(contacts=[cs0, cs1],
+                self.gait_generator.walk(contacts=[self.cs0, self.cs1],
                                          N_ds=self._N_ds,
                                          N_ss=self._N_ss,
                                          N_uss=0,
