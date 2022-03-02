@@ -31,7 +31,7 @@ import numpy as np
 import pinocchio as pin
 import copy
 
-from walkgen.SurfacePlanner import Surface
+from walkgen.tools.geometry_utils import Surface
 from walkgen.tools.optimisation import quadprog_solve_qp
 
 
