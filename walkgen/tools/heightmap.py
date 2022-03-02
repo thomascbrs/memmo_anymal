@@ -138,7 +138,7 @@ class Heightmap:
                 self.b[index] = self.get_height(xVector[i], yVector[j])
                 index += 1
 
-        fit = quadprog_solve_qp(self.A.T @ self.A, (- self.A.T @ self.b).reshape((3)))
+        fit = quadprog_solve_qp(np.dot(self.A.T, self.A), (-np.dot(self.A.T, self.b)).reshape((3)))
 
         return fit
 

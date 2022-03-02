@@ -83,7 +83,7 @@ class SurfaceData():
         Returns:
             - array 4x: [a,b,c,d] parameters.
         """
-        d = -vertices[:, 0] @ normal
+        d = -np.dot(vertices[:, 0], normal)
         return np.concatenate((normal, d), axis=None)
 
     def _compute_height(self, vertices):
@@ -101,7 +101,7 @@ class SurfaceData():
         """
         # Computes normal surface
         S_normal = np.cross(vertices[:, 0] - vertices[:, 1], vertices[:, 0] - vertices[:, 2])
-        if S_normal @ np.array([0., 0., 1.]) < 0.:  # Check orientation of the normal
+        if np.dot(S_normal, np.array([0., 0., 1.])) < 0.:  # Check orientation of the normal
             S_normal = -S_normal
 
         norm = np.linalg.norm(S_normal)

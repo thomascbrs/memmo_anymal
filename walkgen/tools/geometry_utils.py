@@ -309,7 +309,7 @@ def get_normal(vertices):
     """
     # Computes normal surface
     S_normal = np.cross(vertices[:, 0] - vertices[:, 1], vertices[:, 0] - vertices[:, 2])
-    if S_normal @ np.array([0., 0., 1.]) < 0.:  # Check orientation of the normal
+    if np.dot(S_normal, np.array([0., 0., 1.])) < 0.:  # Check orientation of the normal
         S_normal = -S_normal
 
     norm = np.linalg.norm(S_normal)
@@ -330,7 +330,7 @@ def projection_surface(vertices2D, equation):
     """
     if equation[2] < 10e-5:
         raise ValueError('The surface is vertical, cannot project 2D vectors inside.')
-    z = (1 / equation[2]) * (-equation[3] - equation[:2] @ vertices2D[:2, :])
+    z = (1 / equation[2]) * (-equation[3] - np.dot(equation[:2], vertices2D[:2, :]))
     return np.vstack([vertices2D[:2, :], z])
 
 
@@ -357,7 +357,7 @@ def compute_inner_inequalities(vertices, margin):
 
     # Computes normal surface
     S_normal = np.cross(vertices[0, :] - vertices[1, :], vertices[0, :] - vertices[2, :])
-    if S_normal @ np.array([0., 0., 1.]) < 0.:  # Check orientation of the normal
+    if np.dot(S_normal, np.array([0., 0., 1.])) < 0.:  # Check orientation of the normal
         S_normal = -S_normal
 
     normal = S_normal / np.linalg.norm(S_normal)

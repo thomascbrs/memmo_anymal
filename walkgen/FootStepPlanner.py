@@ -176,13 +176,13 @@ class FootStepPlanner():
                         q_dxdy = np.array([dx_, dy_, 0.])
                         heuristic = self.compute_heuristic(bv, bvref, Rxy, T_stance, name,
                                                            feedback_term=False)  # without feedback term
-                        footstep = Rz @ Rz_tmp @ heuristic + q_tmp + Rz @ q_dxdy
+                        footstep = np.dot(Rz, np.dot(Rz_tmp, heuristic)) + q_tmp + np.dot(Rz, q_dxdy)
 
                         P_ = np.identity(3)
                         q_ = np.zeros(3)
                         sf = selected_surfaces.get(name)[foot_timeline[j]]
                         G_ = sf.A
-                        h_ = sf.b - sf.A @ footstep
+                        h_ = sf.b - np.dot(sf.A, footstep)
                         delta_x = quadprog_solve_qp(P_, q_, G_, h_)
                         footstep_optim = footstep + delta_x
                         if foot_timeline[j] == 0:
@@ -253,7 +253,7 @@ class FootStepPlanner():
 
         # Add shoulders, Yaw axis taken into account later
         j = self._contactNames.index(name)
-        footstep += Rxy @ self._offsets_feet[:, j]
+        footstep += np.dot(Rxy, self._offsets_feet[:, j])
 
         # Remove Z component (working on flat ground)
         footstep[2] = 0.
