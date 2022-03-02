@@ -78,9 +78,7 @@ def reduce_surfaces(markerArray, margin=0., n_points=None):
 
         if n_points is None:
             vertices_vw = vertices
-
         else:
-            # Reduce the number of point using Visvalingam’s algorithm
             simplifier = vw.Simplifier(vertices)
             vertices_vw = simplifier.simplify(number=n_points)
 
