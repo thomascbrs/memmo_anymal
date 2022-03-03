@@ -70,8 +70,10 @@ class FootStepPlanner():
         self._current_velocities = np.zeros((3, 4))  # Feet velocities, world frame.
         for i, name in enumerate(self._contactNames):
             Id = self._model.getFrameId(name)
-            self._offsets_feet[:, i] = self._data.oMf[Id].translation
             self._current_position[:, i] = self._data.oMf[Id].translation
+
+        # Obtained with anymal.q0 configuration
+        self._offsets_feet = np.array([[0.367, -0.367, 0.367, -0.367], [0.2, 0.2, -0.2, -0.2], [0., 0., 0., 0.]])
 
         self._k_feedback = 0.03
         self._href = 0.48
@@ -91,7 +93,7 @@ class FootStepPlanner():
             - queue_cs (list): List of CS.
             - q (array x19): Current state of the robot.
             - vq (array x18): Linear and angular current velocity.
-            - bvref (array x6): Linear and angular desired velocities.
+            - bvref (array x6): Linear and angular desired velocities in base frame.
             - timeline (int): timeline in CS.
             - selected_surfaces (dict): Dictionary containing the incoming footstep surfaces.
 
@@ -237,7 +239,7 @@ class FootStepPlanner():
         footstep += T_stance * 0.5 * bvref[:3]
 
         # Add feedback term
-        footstep += self._k_feedback * bv[:3]
+        # footstep += self._k_feedback * bv[:3]
         if feedback_term:
             footstep += -self._k_feedback * bvref[:3]
 
