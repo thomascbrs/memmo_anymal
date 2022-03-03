@@ -45,7 +45,7 @@ class FootStepManager:
 
         Args:
             - model (pin.model): Pinocchio robot model.
-            - q (Array x19): State of the robot.
+            - q (Array x19): State of the robot in world frame.
             - params (WalkgenParams): parameter class.
         """
         if params != None:
@@ -64,11 +64,16 @@ class FootStepManager:
         self._nsteps = self._params.nsteps
         self._stepHeight = self._params.stepHeight
 
-        # Initial selected surface, rectangle of 1m2 around the origin.
-        # TODO : Modify this surface according to the initial position.
+        # Initial selected surface, rectangle of 4dxdy m2 around the initial position.
+        dx = 3 # Distance on x-axis around the initial position.
+        dy = 3 # Distance on y-axis around the initial position.
+        # Assume 4 feet are on the ground
+        lfeet = ["LF_FOOT", "LH_FOOT", "RF_FOOT", "RH_FOOT"]
+        height = np.mean([self._gait_manager.cs0[lfeet[k]].translation[2] for k in range(4)])
+        epsilon = 10e-6
         A = [[-1., 0., 0.], [0., -1., 0.], [0., 1., 0.], [1., 0., 0.], [0., 0., 1.], [-0., -0., -1.]]
-        b = [1., 1., 1., 1., 0., 0.]
-        vertices = [[-1., 1., 0.], [-1., -1., 0.], [1., -1., 0.], [1., 1., 0.]]
+        b = [dx - q[0], dy - q[1], dy + q[1], dx + q[0], height + epsilon, -height + epsilon]
+        vertices = [[q[0]-dx, q[1]+dy, height], [q[0]-dx, q[1]-dy, height], [q[0]+dx, q[1]-dy, height], [q[0]+dx, q[1]+dy, height]]
         self._init_surface = Surface(np.array(A), np.array(b), np.array(vertices).T)
 
         # Add initial surface to the result structure.
@@ -172,6 +177,7 @@ class FootStepManager:
         Args:
             - surfaces (dict): The set of new surfaces.
         """
+        # TODO: Implement a method to adjust the height of the surface according to the state of the robot.
         self._new_surfaces = copy.deepcopy(surfaces)
 
     def get_target_footstep(self):
