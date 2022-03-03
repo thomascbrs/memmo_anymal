@@ -79,6 +79,7 @@ class FootStepPlanner():
         self._href = 0.48
         self._g = 9.81
         self._L = 0.5
+        self._stop_heuristic = 4/5 # range [0.,1.], % of the curve to fix the position of the targetfoostep --> avoid slipping.
 
         self.debug = debug
         if debug:
@@ -208,7 +209,7 @@ class FootStepPlanner():
                         else:
                             t0 = timeline - active_phase.T
 
-                        if t0 <= inactive_phase.T /2:
+                        if t0 <= inactive_phase.T * self._stop_heuristic:
                             phases[1].trajectory.update(P0[:, j], V0[:,j], footstep_optim, t0 * cs.dt, True)
 
                         P0[:, j] = footstep_optim
