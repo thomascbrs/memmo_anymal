@@ -61,10 +61,12 @@ class WalkgenParams:
         self.margin = 0.06  # inner surface margin in m
 
         # Gait parameters
-        self.typeGait = "Walk"  # Only "Walk" or "Trot" working
+        self.typeGait = "walk"  # Only "walk" or "trot" working
         self.dt = 0.01
-        self.N_ss = 20  # 30 for Trot
-        self.N_ds = 5  # 0 for Trot
+        self.N_ss = 90
+        self.N_ds = 70
+        self.N_uds = 0
+        self.N_uss = 0
         self.horizon = None  # (int or None), use the lenght of the gait (None) or a defined horizon (int)
         self.nsteps = 1  # Number of iteration.
         self.stepHeight = 0.15  # Step height [m]
@@ -93,8 +95,10 @@ class WalkgenParams:
         self.margin = config["walkgen_params"]["params"]["margin"]
         self.typeGait = config["walkgen_params"]["gait"]["type"]
         self.dt = config["walkgen_params"]["gait"]["dt"]
-        self.N_ss = config["walkgen_params"]["gait"]["N_ss"]
-        self.N_ds = config["walkgen_params"]["gait"]["N_ds"]
+        self.N_ds = config["walkgen_params"]["gait"][self.typeGait]["N_ds"]
+        self.N_ss = config["walkgen_params"]["gait"][self.typeGait]["N_ss"]
+        self.N_uds = config["walkgen_params"]["gait"][self.typeGait]["N_uds"]
+        self.N_uss = config["walkgen_params"]["gait"][self.typeGait]["N_uss"]
         self.horizon = config["walkgen_params"]["gait"]["horizon"]
         self.nsteps = config["walkgen_params"]["gait"]["nsteps"]
         self.stepHeight = config["walkgen_params"]["gait"]["stepHeight"]
