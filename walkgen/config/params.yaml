@@ -19,8 +19,6 @@ walkgen_params:
   gait:
     type: "walk" # Only "walk" or "trot" working
     dt: 0.01
-    N_ss: 20 # 30 for Trot
-    N_ds: 5 # 0 for Trot
     horizon: 125 # Horizon length of the queue of contact.
     nsteps: 1 # Number of iteration.
     stepHeight: 0.15 # Step height [m]

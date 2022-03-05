@@ -61,6 +61,8 @@ class FootStepManager:
         self._dt = self._params.dt
         self._N_ss = self._params.N_ss
         self._N_ds = self._params.N_ds
+        self._N_uss = self._params.N_uss
+        self._N_uds = self._params.N_uds
         self._nsteps = self._params.nsteps
         self._stepHeight = self._params.stepHeight
 
@@ -88,7 +90,7 @@ class FootStepManager:
 
         self._new_surfaces = copy.deepcopy(self._selected_surfaces)
 
-        # SL1M quantities neede.
+        # SL1M quantities needed.
         self._target_foostep = np.zeros((3, 4))
         self._gait_sl1m = np.zeros((4, 4))  # Gait on SL1M format
 
@@ -103,30 +105,52 @@ class FootStepManager:
         contacts, N_ds, N_ss, N_uss=0, N_uds=0, stepHeight=0.15, startPhase=True, endPhase=True
         """
         gait_generator = QuadrupedalGaitGenerator()
-        if self._typeGait == "Trot":
+        if self._typeGait == "trot":
+            self._initial_cs = copy.deepcopy(
+                gait_generator.trot(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
+                                         N_ds=self._N_ds,
+                                         N_ss=self._N_ss,
+                                         N_uss=self._N_uss,
+                                         N_uds=self._N_uds,
+                                         stepHeight=self._stepHeight,
+                                         startPhase=True,
+                                         endPhase=False))
             self._default_cs = copy.deepcopy(
                 gait_generator.trot(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
                                          N_ds=self._N_ds,
                                          N_ss=self._N_ss,
-                                         N_uss=0,
-                                         N_uds=0,
+                                         N_uss=self._N_uss,
+                                         N_uds=self._N_uds,
+                                         stepHeight=self._stepHeight,
+                                         startPhase=False,
+                                         endPhase=False))
+        elif self._typeGait == "walk":
+            self._initial_cs = copy.deepcopy(
+                gait_generator.walk(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
+                                         N_ds=self._N_ds,
+                                         N_ss=self._N_ss,
+                                         N_uss=self._N_uss,
+                                         N_uds=self._N_uds,
                                          stepHeight=self._stepHeight,
                                          startPhase=True,
                                          endPhase=False))
-        elif self._typeGait == "Walk":
             self._default_cs = copy.deepcopy(
                 gait_generator.walk(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
                                          N_ds=self._N_ds,
                                          N_ss=self._N_ss,
-                                         N_uss=0,
-                                         N_uds=0,
+                                         N_uss=self._N_uss,
+                                         N_uds=self._N_uds,
                                          stepHeight=self._stepHeight,
-                                         startPhase=True,
+                                         startPhase=False,
                                          endPhase=False))
+        self._initial_cs.updateSwitches()
         self._default_cs.updateSwitches()
 
     def get_default_cs(self):
         return self._default_cs
+
+    def get_initial_cs(self):
+        return self._initial_cs
 
     def step(self, q, vq, b_v_ref):
         """ Update the target position and the trajectories.

@@ -63,8 +63,14 @@ class GaitManager:
         self._dt = self._params.dt
         self._N_ss = self._params.N_ss
         self._N_ds = self._params.N_ds
+        self._N_uds = self._params.N_uds
+        self._N_uss = self._params.N_uss
         self._nsteps = self._params.nsteps
         self._stepHeight = self._params.stepHeight
+
+        lf, lh, rf, rh = "LF_FOOT", "LH_FOOT", "RF_FOOT", "RH_FOOT"
+        self._contactNames = [lf, lh, rf, rh]
+        self._contact_names_SL1M = [lf, rf, lh, rh]  # Contact order name for SL1M
 
         # SurfacePlanner parameters
         self._N_phase_return = self._params.N_phase_return
@@ -83,25 +89,43 @@ class GaitManager:
         self.cs1["RF_FOOT"] = self._data.oMf[self._model.getFrameId("RF_FOOT")]
 
         self.gait_generator = QuadrupedalGaitGenerator()
-        if self._typeGait == "Trot":
+        if self._typeGait == "trot":
+            self._initial_cs = copy.deepcopy(
+                self.gait_generator.trot(contacts=[self.cs0, self.cs1],
+                                         N_ds=self._N_ds,
+                                         N_ss=self._N_ss,
+                                         N_uss=self._N_uss,
+                                         N_uds=self._N_uds,
+                                         stepHeight=self._stepHeight,
+                                         startPhase=True,
+                                         endPhase=False))
             self._default_cs = copy.deepcopy(
                 self.gait_generator.trot(contacts=[self.cs0, self.cs1],
                                          N_ds=self._N_ds,
                                          N_ss=self._N_ss,
-                                         N_uss=0,
-                                         N_uds=0,
+                                         N_uss=self._N_uss,
+                                         N_uds=self._N_uds,
+                                         stepHeight=self._stepHeight,
+                                         startPhase=False,
+                                         endPhase=False))
+        elif self._typeGait == "walk":
+            self._initial_cs = copy.deepcopy(
+                self.gait_generator.walk(contacts=[self.cs0, self.cs1],
+                                         N_ds=self._N_ds,
+                                         N_ss=self._N_ss,
+                                         N_uss=self._N_uss,
+                                         N_uds=self._N_uds,
                                          stepHeight=self._stepHeight,
                                          startPhase=True,
                                          endPhase=False))
-        elif self._typeGait == "Walk":
             self._default_cs = copy.deepcopy(
                 self.gait_generator.walk(contacts=[self.cs0, self.cs1],
                                          N_ds=self._N_ds,
                                          N_ss=self._N_ss,
-                                         N_uss=0,
-                                         N_uds=0,
+                                         N_uss=self._N_uss,
+                                         N_uds=self._N_uds,
                                          stepHeight=self._stepHeight,
-                                         startPhase=True,
+                                         startPhase=False,
                                          endPhase=False))
         else:
             raise SyntaxError("Unknown gait type in the config file. Try Trot or Walk.")
@@ -111,43 +135,46 @@ class GaitManager:
         else:
             self._horizon = self._params.horizon
 
-        # Create the queue of contact depending of the horizon length
         self._timeline = 0  # Current timeline
-        self._queue_cs = []
-        for k in range(self._horizon // self._default_cs.T + 1):
+        self._queue_cs = [] # Queue of contact
+
+        # Add initial CS (whith longer stand phase to warm-up the MPC)
+        self._initial_cs.updateSwitches()
+        self._queue_cs.append(self._initial_cs)
+        # Add default CS depending on the horizon length.
+        print("gait manager horizon : ", self._horizon)
+        T_global = self._initial_cs.T
+        while T_global < self._horizon:
             cs = copy.deepcopy(self._default_cs)
             cs.updateSwitches()
-            self._queue_cs.append(cs)
-
+            self._queue_cs.insert(0,cs)
+            T_global += cs.T
         # Checking erros with the horizon length.
-        if (self._horizon // self._default_cs.T + 1 +
-                int(self._horizon % self._default_cs.T > 0)) > self._N_phase_return:
-            raise AttributeError(
-                "The horizon length needs to be compatible with the number of surfaces returned by the SurfacePlanner."
-            )
-        if not self.check_horizon(self._queue_cs, self._horizon):
+        if not self.check_switching_nodes():
             raise ArithmeticError(
                 "The horizon length is not compatible with the gait parameters. There cannot be more than 5 switching nodes at the same time in the horizon. "
             )
 
-        lf, lh, rf, rh = "LF_FOOT", "LH_FOOT", "RF_FOOT", "RH_FOOT"
-        self._contact_names_SL1M = [lf, rf, lh, rh]  # Contact order name for SL1M
+        if not self.check_returned_phases():
+            raise AttributeError(
+                "There cannot be more phases of contact in the horizon planned than the number of contact returned by the ConvexPatch Planner."
+            )
 
         # Initialize switches list
         self.initialize_switches(self._default_cs)
 
-    def check_horizon(self, queue_cs, horizon):
+    def check_switching_nodes(self):
         """ Run the contact queue of contact and detect if the horizon length
         is not appropriate. There cannot be more than 5 switching nodes in the
         horizon.
 
         Args:
-            - queue_cs (list): Queue of contact.
             - horizon (int): Horizon length.
 
         Returns:
             - params (bool): Length is compatible or not.
         """
+        queue_cs = [self._default_cs, self._default_cs, self._default_cs]
         checked = True
         cs_index = 0
         L = []  # List of switches
@@ -158,8 +185,22 @@ class GaitManager:
 
         L.sort()
         for i in range(len(L) - 5):
-            if L[i + 5] - L[i] < horizon:
+            if L[i + 5] - L[i] < self._horizon:
                 checked = False
+        return checked
+
+    def check_returned_phases(self):
+        """ Check whether the number of phases returned by the ConvexPatch planner is compatible with the
+        horizon. There cannot be more phases of contact in the horizon planned than the number of contact
+        returned by the ConvexPatch Planner. A convex patch needs to be associated for each foot in each phase.
+        """
+        # For now, assume each foot move one time by gait.
+        # Conservative check, should be more precise.
+        checked = True
+        remain = int(self._horizon % self._default_cs.T > 0)
+        nb_phases = self._horizon // self._default_cs.T + 1
+        if remain + nb_phases > self._N_phase_return:
+            checked = False
         return checked
 
     def initialize_switches(self, cs):
@@ -436,8 +477,16 @@ class QuadrupedalGaitGenerator:
 if __name__ == "__main__":
 
     from example_robot_data.robots_loader import ANYmalLoader
+    from walkgen.params import WalkgenParams
 
+    params = WalkgenParams()
+    params.typeGait = "trot"
     # Load Anymal model to get the current feet position by forward kinematic.
+    params.N_ds= 45
+    params.N_ss= 35
+    params.N_uds= 0
+    params.N_uss= 0
+    params.horizon = 130
     ANYmalLoader.free_flyer = True
     anymal = ANYmalLoader().robot
-    gait = GaitManager(anymal.model, anymal.q0)
+    gait = GaitManager(anymal.model, anymal.q0, params)
