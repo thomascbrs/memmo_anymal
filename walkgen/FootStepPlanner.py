@@ -145,7 +145,7 @@ class FootStepPlanner():
         P0 = copy.deepcopy(self._current_position)
         V0 = self._current_velocities.copy()
         timeline = timeline_
-        counter = 0
+        cs_index = 0
 
         foot_timeline = [0, 0, 0, 0]
         target_footstep = np.zeros((3,4))
@@ -163,7 +163,7 @@ class FootStepPlanner():
 
                     # Displacement following the reference velocity compared to current position
                     if active_phase.T + inactive_phase.T - timeline > 0:  # case 1 & 2
-                        dt_ = (active_phase.T + inactive_phase.T - timeline) * cs.dt
+                        dt_ = (cs_index + active_phase.T + inactive_phase.T - timeline) * cs.dt
                         if bvref[5] > 10e-5:
                             dx_ = (bvref[0] * np.sin(bvref[5] * dt_) + bvref[1] *
                                    (np.cos(bvref[5] * dt_) - 1.0)) / bvref[5]
@@ -223,11 +223,8 @@ class FootStepPlanner():
                         if self.debug:
                             self.footstep[j].append(None)
 
-                else:
-                    raise ArithmeticError("Problem nombre de phases inside CS.")
-
+            cs_index += cs.T - timeline
             timeline = 0.
-            counter += 1
 
         return target_footstep
 
