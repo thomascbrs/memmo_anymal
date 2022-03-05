@@ -141,9 +141,9 @@ class SurfacePlanner():
         # Gait parameters
         self._typeGait = self._params.typeGait
         N_total = self._params.N_ds + 2 * self._params.N_ss
-        if self._typeGait == "Trot":
+        if self._typeGait == "trot":
             n_gait = 2
-        elif self._typeGait == "Walk":
+        elif self._typeGait == "walk":
             n_gait = 4
         else:
             raise SyntaxError("Unknown gait type in the config file. Try Trot or Walk.")
