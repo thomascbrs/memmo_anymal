@@ -61,7 +61,7 @@ params.poly_size = 10
 params.min_area = 0.03
 
 # Surface Planer initialization with params.
-surface_planner = SurfacePlanner(params)
+surface_planner = SurfacePlanner(params = params)
 
 # Initial config
 initial_config = np.array([0.2, 0.5, 0., 0., 0., 0., 1.])

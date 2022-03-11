@@ -62,7 +62,7 @@ params.typeGait = "walk"
 params.com = False
 gait_pattern = GAITS[params.typeGait]
 
-surface_planner = SurfacePlanner(params)
+surface_planner = SurfacePlanner(params = params)
 
 
 class SurfacePlannerTest(unittest.TestCase):

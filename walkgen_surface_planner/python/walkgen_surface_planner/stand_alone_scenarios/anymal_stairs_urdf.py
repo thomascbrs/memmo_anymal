@@ -47,7 +47,7 @@ params.com = True
 params.margin = 0.01
 
 # Surface Planer initialization with params.
-surface_planner = SurfacePlanner(params)
+surface_planner = SurfacePlanner(params = params)
 
 # Initial config
 initial_config = np.array([0.25, 0., 0., 0., 0., 0., 1.])
