@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-#
 # Copyright 2022 University of Edinburgh
 # All rights reserved.
 #

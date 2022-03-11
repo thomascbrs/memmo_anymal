@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-#
 # Copyright 2022 University of Edinburgh
 # All rights reserved.
 #
@@ -39,6 +37,7 @@ SET(CMAKE_VERBOSE_MAKEFILE True)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-undefined")
 
 # Project properties
+SET(PROJECT_ORG thomascbrs)
 SET(PROJECT_NAME walkgen)
 SET(PROJECT_DESCRIPTION "Implementation of reactive footstepplanner with Mixed-integer for surface choices.")
 SET(PROJECT_URL "https://github.com/thomascbrs/memmo_anymal")
@@ -51,16 +50,19 @@ option(ROS_INTERFACE "Install the ros interface" ON)
 
 # Check if the submodule cmake have been initialized
 if(NOT EXISTS "${CMAKE_SOURCE_DIR}/cmake/base.cmake")
-  message(
-    FATAL_ERROR
-      "\nPlease run the following command first:\ngit submodule update --init\n"
-  )
+  message(FATAL_ERROR "\nPlease run the following command first:\ngit submodule update --init\n")
 endif()
 
 # JRL-cmakemodule setup
 INCLUDE(cmake/base.cmake)
 INCLUDE(cmake/boost.cmake)
 INCLUDE(cmake/python.cmake)
+
+SET(PROJECT_USE_CMAKE_EXPORT TRUE)
+
+SETUP_PROJECT()
+FINDPYTHON()
+ADD_PROJECT_DEPENDENCY(pinocchio)
 
 # Naming project libraries
 SET(FOOTSTEP_PLANNER_NAME ${PROJECT_NAME}_footstep_planner)
@@ -69,7 +71,6 @@ SET(ROS_INTERFACE_NAME ${PROJECT_NAME}_ros)
 
 # Project definition
 COMPUTE_PROJECT_ARGS(PROJECT_ARGS LANGUAGES CXX)
-PROJECT(${PROJECT_NAME} ${PROJECT_ARGS})
 
 if(FOOTSTEP_PLANNER)
   ADD_SUBDIRECTORY("${FOOTSTEP_PLANNER_NAME}")

@@ -159,7 +159,7 @@ class WalkgenVisualizationPublisher():
 
             marker_y = Marker()
             color = [0., 1., 0., 1.]
-            quat = pin.Quaternion(mat_y @ pin.Quaternion(config[3:]).toRotationMatrix())
+            quat = pin.Quaternion(np.dot(mat_y, pin.Quaternion(config[3:]).toRotationMatrix()))
             marker_y.header.frame_id = frame_id
             marker_y.header.stamp = rospy.Time.now()
             marker_y.lifetime = rospy.Duration(
