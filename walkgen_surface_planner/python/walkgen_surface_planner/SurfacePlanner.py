@@ -462,10 +462,6 @@ class SurfacePlanner():
         Return:
             - param1 (dict): Next surfaces for each foot.
         """
-        print("q : ", q)
-        print("gait_in : ", gait_in)
-        print("bvref : ", bvref)
-        print("target_foostep : ", target_foostep)
         if len(q) != 19:
             raise ArithmeticError("Current state should be size 19, [pos x3 , quaternion x4, joint pos x12]")
         if set_surfaces == None and self.planeseg == True:
