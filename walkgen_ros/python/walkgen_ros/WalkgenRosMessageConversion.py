@@ -28,7 +28,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import rospy
-from footstep_msgs.msg import SetSurfaces, FootSurfaces, ConvexSurface, GaitStatusNewPhase
+from footstep_msgs.msg import SetSurfaces, FootSurfaces, ConvexSurface, GaitStatusOnNewPhase
 from std_msgs.msg import Float64MultiArray, MultiArrayDimension
 import numpy as np
 
@@ -51,7 +51,7 @@ class StepManagerPublisher():
 
     def __init__(self, topic, queue_size=10):
         # Initializing the publisher
-        self._pub = rospy.Publisher(topic, GaitStatusNewPhase, queue_size=queue_size)
+        self._pub = rospy.Publisher(topic, GaitStatusOnNewPhase, queue_size=queue_size)
         self._stepmanager_iface = StepManagerInterface()
 
     def publish(self, t, gait, target_foostep):
@@ -132,7 +132,7 @@ class SurfacePlannerInterface():
 class StepManagerInterface():
 
     def __init__(self):
-        self._msg = GaitStatusNewPhase()
+        self._msg = GaitStatusOnNewPhase()
         self._contact_names = ['LF_FOOT', 'RF_FOOT', 'LH_FOOT', 'RH_FOOT']  # Order of the feet in the surface planner.
 
     def writeToMessage(self, t, gait, foot_pos):
