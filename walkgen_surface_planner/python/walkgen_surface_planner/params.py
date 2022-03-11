@@ -43,9 +43,10 @@ class SurfacePlannerParams:
         self.planeseg = False
 
         # URDF and heightmap environment without planeseg.
-        path = os.path.dirname(os.path.abspath(__file__))
-        self.urdf = path + "/data/urdf/lab_scene.urdf"  # Env URDF path
-        self.heightmap = path + "/data/lab_scene.dat"  # Heightmap path
+        self.path = os.path.dirname(os.path.abspath(__file__))
+        self.urdf = "/data/urdf/lab_scene.urdf"  # Env URDF path
+        self.stl = "/data/meshes/lab_scene.stl"  # Env URDF path
+        self.heightmap = "/data/lab_scene.dat"  # Heightmap path
 
         # Planeseg parameters for postprocessing.
         self.n_points = 6  # Maximum Number of points for for each convex surface
@@ -87,12 +88,12 @@ class SurfacePlannerParams:
             - filename (string): path to the config file.
         """
         config = yaml.load(open(filename, 'r'), Loader=yaml.FullLoader)
-        path = config["walkgen_params"]["world"]["path"]
-        if path == "":
-            path = os.path.dirname(os.path.abspath(__file__))
+        self.path = config["walkgen_params"]["world"]["path"]
+        if self.path == "":
+            self.path = os.path.dirname(os.path.abspath(__file__))
         self.planeseg = config["walkgen_params"]["planeseg"]
-        self.urdf = path + config["walkgen_params"]["world"]["urdf"]
-        self.heightmap = path + config["walkgen_params"]["world"]["heightmap"]
+        self.urdf = config["walkgen_params"]["world"]["urdf"]
+        self.heightmap = config["walkgen_params"]["world"]["heightmap"]
         self.n_points = config["walkgen_params"]["params"]["n_points"]
         self.method_id = config["walkgen_params"]["params"]["method_id"]
         self.poly_size = config["walkgen_params"]["params"]["poly_size"]

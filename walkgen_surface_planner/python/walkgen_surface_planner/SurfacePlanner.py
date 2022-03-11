@@ -96,7 +96,7 @@ class SurfacePlanner():
             self._afftool = AffordanceTool()
             self._afftool.setAffordanceConfig('Support', [0.5, 0.03, 0.00005])
 
-            self._afftool.loadObstacleModel(self._params.urdf, "environment", self._vf)
+            self._afftool.loadObstacleModel(self._params.path + self._params.urdf, "environment", self._vf)
             self._ps.selectPathValidation("RbprmPathValidation", 0.05)
 
             # Height matrix is expressed in o frame, the position and orientation of the robot is known.
@@ -105,7 +105,7 @@ class SurfacePlanner():
             self._wTo = np.zeros(3)
             self._wTo[:2] = self._q0[:2]
             self._wTo[2] = initial_height
-            self.heightmap = load_heightmap(self._params.heightmap, initial_height)  # in o frame.
+            self.heightmap = load_heightmap(self._params.path + self._params.heightmap, initial_height)  # in o frame.
             self.worldPose = np.zeros(7)
             self.worldPose[:3] = self._wTo[:]
             self.worldPose[3:] = self._q0[3:]
