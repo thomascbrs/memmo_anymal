@@ -30,7 +30,6 @@
 import numpy as np
 import pinocchio as pin
 import copy
-import ndcurves
 
 from walkgen_footstep_planner.tools.Surface import Surface
 from walkgen_footstep_planner.tools.optimisation import quadprog_solve_qp
