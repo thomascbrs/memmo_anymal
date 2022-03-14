@@ -40,6 +40,7 @@ SET(${FOOTSTEP_PLANNER_NAME}_TOOLS_SOURCES
   __init__.py
   Surface.py
   optimisation.py
+  Filter.py
   )
 
 FOREACH(src ${${FOOTSTEP_PLANNER_NAME}_SOURCES})
