@@ -82,6 +82,10 @@ class FootStepPlanner():
         self._g = 9.81
         self._L = 0.5
         self._stop_heuristic = 4/5 # range [0.,1.], % of the curve to fix the position of the targetfoostep --> avoid slipping.
+        if params.horizon is None:
+            self._horizon = period / params.dt
+        else:
+            self._horizon = params.horizon
 
         self.debug = debug
         if debug:
@@ -187,79 +191,81 @@ class FootStepPlanner():
         foot_timeline = [0, 0, 0, 0]
         target_footstep = np.zeros((3,4))
         for cs in reversed(queue_cs):
+            if cs_index <= self._horizon:
+                for c in range(cs.C):
+                    name = cs.contactNames[c]
+                    j = self._contactNames.index(name)
+                    phases = cs.phases[c]
+                    N_phase = len(phases)
+                    if N_phase == 3:
+                        T_stance = (phases[0].T + phases[2].T) * cs.dt
+                        active_phase = phases[0]
+                        inactive_phase = phases[1]
 
-            for c in range(cs.C):
-                name = cs.contactNames[c]
-                j = self._contactNames.index(name)
-                phases = cs.phases[c]
-                N_phase = len(phases)
-                if N_phase == 3:
-                    T_stance = (phases[0].T + phases[2].T) * cs.dt
-                    active_phase = phases[0]
-                    inactive_phase = phases[1]
+                        if cs_index + active_phase.T <= self._horizon:
+                            # Displacement following the reference velocity compared to current position
+                            if active_phase.T + inactive_phase.T - timeline > 0:  # case 1 & 2
+                                dt_ = (cs_index + active_phase.T + inactive_phase.T - timeline) * cs.dt
+                                if bvref[5] > 10e-5:
+                                    dx_ = (bvref[0] * np.sin(bvref[5] * dt_) + bvref[1] *
+                                        (np.cos(bvref[5] * dt_) - 1.0)) / bvref[5]
+                                    dy_ = (bvref[1] * np.sin(bvref[5] * dt_) - bvref[0] *
+                                        (np.cos(bvref[5] * dt_) - 1.0)) / bvref[5]
+                                    yaw = bvref[5] * dt_
+                                    Rz_tmp = pin.rpy.rpyToMatrix(np.array([0., 0., yaw]))
+                                else:
+                                    dx_ = bvref[0] * dt_
+                                    dy_ = bvref[1] * dt_
+                                    Rz_tmp = np.identity(3)
 
-                    # Displacement following the reference velocity compared to current position
-                    if active_phase.T + inactive_phase.T - timeline > 0:  # case 1 & 2
-                        dt_ = (cs_index + active_phase.T + inactive_phase.T - timeline) * cs.dt
-                        if bvref[5] > 10e-5:
-                            dx_ = (bvref[0] * np.sin(bvref[5] * dt_) + bvref[1] *
-                                   (np.cos(bvref[5] * dt_) - 1.0)) / bvref[5]
-                            dy_ = (bvref[1] * np.sin(bvref[5] * dt_) - bvref[0] *
-                                   (np.cos(bvref[5] * dt_) - 1.0)) / bvref[5]
-                            yaw = bvref[5] * dt_
-                            Rz_tmp = pin.rpy.rpyToMatrix(np.array([0., 0., yaw]))
-                        else:
-                            dx_ = bvref[0] * dt_
-                            dy_ = bvref[1] * dt_
-                            Rz_tmp = np.identity(3)
+                                q_dxdy = np.array([dx_, dy_, 0.])
+                                heuristic = self.compute_heuristic(bv, bvref, Rxy, T_stance, name,
+                                                                feedback_term=False)  # without feedback term
+                                footstep = np.dot(Rz, np.dot(Rz_tmp, heuristic)) + q_tmp + np.dot(Rz, q_dxdy)
 
-                        q_dxdy = np.array([dx_, dy_, 0.])
-                        heuristic = self.compute_heuristic(bv, bvref, Rxy, T_stance, name,
-                                                           feedback_term=False)  # without feedback term
-                        footstep = np.dot(Rz, np.dot(Rz_tmp, heuristic)) + q_tmp + np.dot(Rz, q_dxdy)
+                                P_ = np.identity(3)
+                                q_ = np.zeros(3)
+                                sf = selected_surfaces.get(name)[foot_timeline[j]]
+                                G_ = sf.A
+                                h_ = sf.b - np.dot(sf.A, footstep)
+                                delta_x = quadprog_solve_qp(P_, q_, G_, h_)
+                                footstep_optim = footstep + delta_x
+                                if foot_timeline[j] == 0:
+                                    target_footstep[:,self._contact_names_SL1M.index(name)] = footstep_optim
 
-                        P_ = np.identity(3)
-                        q_ = np.zeros(3)
-                        sf = selected_surfaces.get(name)[foot_timeline[j]]
-                        G_ = sf.A
-                        h_ = sf.b - np.dot(sf.A, footstep)
-                        delta_x = quadprog_solve_qp(P_, q_, G_, h_)
-                        footstep_optim = footstep + delta_x
-                        if foot_timeline[j] == 0:
-                            target_footstep[:,self._contact_names_SL1M.index(name)] = footstep_optim
+                                foot_timeline[j] += 1
 
-                        foot_timeline[j] += 1
+                                # else: # if heightmap
+                                #     footstep_optim = footstep
+                                #     footstep_optim[2] = self.heightmap.get_height(footstep[0], footstep[1])
 
-                        # else: # if heightmap
-                        #     footstep_optim = footstep
-                        #     footstep_optim[2] = self.heightmap.get_height(footstep[0], footstep[1])
+                                # With feedback term
+                                # heuristic_fb = self.compute_heuristic(bv, bvref, Rxy, T_stance, name , feedback_term = True) # with feedback term
+                                # footstep_fb = Rz @ Rz_tmp @ heuristic + q_tmp + Rz @ q_dxdy
+                                # optimVector.append(OptimData(0,name, selected_surfaces.get(name),heuristic, Rz_tmp ))
 
-                        # With feedback term
-                        # heuristic_fb = self.compute_heuristic(bv, bvref, Rxy, T_stance, name , feedback_term = True) # with feedback term
-                        # footstep_fb = Rz @ Rz_tmp @ heuristic + q_tmp + Rz @ q_dxdy
-                        # optimVector.append(OptimData(0,name, selected_surfaces.get(name),heuristic, Rz_tmp ))
+                                # Update the trajectory
+                                if active_phase.T - timeline >= 0:
+                                    t0 = 0.
+                                    V0[:, j] = np.zeros(3)
+                                else:
+                                    t0 = timeline - active_phase.T
 
-                        # Update the trajectory
-                        if active_phase.T - timeline >= 0:
-                            t0 = 0.
+                                if t0 <= inactive_phase.T * self._stop_heuristic:
+                                    phases[1].trajectory.update(P0[:, j], V0[:,j], footstep_optim, t0 * cs.dt, True)
+
+                                P0[:, j] = footstep_optim
+                                V0[:, j] = np.zeros(3)
+
+                                if self.debug:
+                                    self.footstep[j].append(footstep_optim.tolist())
+
+                        else:  # case 3
                             V0[:, j] = np.zeros(3)
-                        else:
-                            t0 = timeline - active_phase.T
-
-                        if t0 <= inactive_phase.T * self._stop_heuristic:
-                            phases[1].trajectory.update(P0[:, j], V0[:,j], footstep_optim, t0 * cs.dt, True)
-
-                        P0[:, j] = footstep_optim
-                        V0[:, j] = np.zeros(3)
-
-                        if self.debug:
-                            self.footstep[j].append(footstep_optim.tolist())
-
-                    else:  # case 3
-                        V0[:, j] = np.zeros(3)
-                        if self.debug:
-                            self.footstep[j].append(None)
-
+                            if self.debug:
+                                self.footstep[j].append(None)
+            else:
+                break
             cs_index += cs.T - timeline
             timeline = 0.
 
