@@ -33,6 +33,7 @@ import copy
 from walkgen_footstep_planner.FootStepTrajectory import FootStepTrajectory
 from caracal import ContactPhase, ContactSchedule
 from walkgen_footstep_planner.params import FootStepPlannerParams
+import warnings
 
 
 class GaitManager:
@@ -138,7 +139,7 @@ class GaitManager:
         self._timeline = 0  # Current timeline
         self._new_step = False
         self._is_first_gait = True
-        self._queue_cs = [] # Queue of contact
+        self._queue_cs = []  # Queue of contact
         self._surface_planner_gait = None
 
         # Add initial CS (whith longer stand phase to warm-up the MPC)
@@ -150,7 +151,7 @@ class GaitManager:
         while T_global < self._horizon:
             cs = copy.deepcopy(self._default_cs)
             cs.updateSwitches()
-            self._queue_cs.insert(0,cs)
+            self._queue_cs.insert(0, cs)
             T_global += cs.T
         # Checking erros with the horizon length.
         if not self.check_switching_nodes():
@@ -159,9 +160,11 @@ class GaitManager:
             )
 
         if not self.check_returned_phases():
-            raise AttributeError(
-                "There cannot be more phases of contact in the horizon planned than the number of contact returned by the ConvexPatch Planner."
-            )
+            warnings.warn(
+                "There cannot be more phases of contact in the horizon planned than the number of contact returned by the ConvexPatch Planner. The horizon needs to be carefully checked with the type of gait selected.")
+            # raise AttributeError(
+            #     "There cannot be more phases of contact in the horizon planned than the number of contact returned by the ConvexPatch Planner."
+            # )
 
         # Initialize switches list
         self.initialize_switches(self._default_cs)
@@ -269,15 +272,15 @@ class GaitManager:
         for cs in reversed(self._queue_cs):
             cs_list = []  # For one CS, list of foot
             for c in range(cs.C):
-                foot_list = [] # For one foot, list of matrix containing the coefficients
+                foot_list = []  # For one foot, list of matrix containing the coefficients
                 phases = cs.phases[c]
                 N_phase = len(phases)
                 for p in range(0, N_phase, 2):
                     if p + 1 < N_phase:  # otherwise no inactive phase
-                        Ax = phases[p+1].trajectory.Ax
-                        Ay = phases[p+1].trajectory.Ay
-                        Az = phases[p+1].trajectory.Az
-                        foot_list.append(np.array([Ax,Ay,Az]))
+                        Ax = phases[p + 1].trajectory.Ax
+                        Ay = phases[p + 1].trajectory.Ay
+                        Az = phases[p + 1].trajectory.Az
+                        foot_list.append(np.array([Ax, Ay, Az]))
                 cs_list.append(foot_list)
             coeffs.append(cs_list)
         return coeffs
@@ -309,7 +312,7 @@ class GaitManager:
                 gait.updateSwitches()
                 self._queue_cs.insert(0, gait)
                 addContact = True
-            if self._is_first_gait: # Double support phase added for the first gait
+            if self._is_first_gait:  # Double support phase added for the first gait
                 if (self._timeline - self._N_ds) in self.switches:
                     self._new_step = True
                     self._surface_planner_gait = self._retrieve_gait(self._timeline - self._N_ds)
@@ -332,13 +335,12 @@ class GaitManager:
         """
         gait = []
         id = self._timelines_list.index(timeline)
-        for t in self._timelines_array_double[id:id+self._n_gait]:
+        for t in self._timelines_array_double[id:id + self._n_gait]:
             gait.append(self.switches[t])
         return np.array(gait)
 
     def get_current_gait(self):
         return self._surface_planner_gait
-
 
     def get_current_gait_backup(self):
         """ Compute the current gait matrix on the format : [[1,0,0,1],
@@ -519,10 +521,10 @@ if __name__ == "__main__":
     params = FootStepPlannerParams()
     params.typeGait = "walk"
     # Load Anymal model to get the current feet position by forward kinematic.
-    params.N_ds= 90
-    params.N_ss= 70
-    params.N_uds= 0
-    params.N_uss= 0
+    params.N_ds = 90
+    params.N_ss = 70
+    params.N_uds = 0
+    params.N_uss = 0
     params.horizon = 130
     ANYmalLoader.free_flyer = True
     anymal = ANYmalLoader().robot
