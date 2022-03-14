@@ -95,7 +95,7 @@ class FootStepPlanner():
         if params.typeGait == "walk":
             cutoff = 6*[1/period]
             cutoff[1] =  1/(2*period)
-        if params.typeGait == "trot":
+        elif params.typeGait == "trot":
             cutoff = 6* [1/(2*period)]
         else:
             raise ArgumentError("Wrong type of gait. Try walk or trot")
