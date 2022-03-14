@@ -27,20 +27,21 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from argparse import ArgumentError
 import numpy as np
 import pinocchio as pin
 import copy
 
 from walkgen_footstep_planner.tools.Surface import Surface
 from walkgen_footstep_planner.tools.optimisation import quadprog_solve_qp
-
+from walkgen_footstep_planner.tools.Filter import Filter
 
 class FootStepPlanner():
     """ FootStepPlanner initialized by URDF model of the environment.
     Use RBPRM as a guide path since the env is available.
     """
 
-    def __init__(self, model, q, params = None, debug = False):
+    def __init__(self, model, q, params = None, debug = False, period = 0.5):
         """ Initialize the FootStepPlanner.
 
         Args:
@@ -48,6 +49,7 @@ class FootStepPlanner():
             - q (array x19): Initial state of the robot.
             - heightmap_path (str): Heightmap binary file path.
             - debug (bool): Store the footstep computed for debug purpose.
+            - period (float): Gait period [s]
         """
         if q.shape[0] != 19:
             raise ArithmeticError(
@@ -85,6 +87,23 @@ class FootStepPlanner():
         if debug:
             self.footstep = [] # List of all computed ftesp in the queue of contact for debug purpose
 
+        # Low pass filter
+        if params.typeGait == "walk":
+            cutoff = 6*[1/period]
+            cutoff[1] =  1/(2*period)
+        if params.typeGait == "trot":
+            cutoff = 6* [1/(2*period)]
+        else:
+            raise ArgumentError("Wrong type of gait. Try walk or trot")
+
+        self._q_filter = Filter(cutoff, 1/(params.nsteps * params.dt), 1)
+
+        # Quick debug tools
+        # self.q_save = []
+        # self.v_save = []
+        # self.q_filter_save = []
+
+
     def compute_footstep(self, queue_cs, q, vq, bvref, timeline, selected_surfaces):
         """ Run the queue in reverse order and update the position for each Contact Schedule (CS)
         following the Raibert heuristic, depending on current linear velocity and both desired angular and
@@ -113,16 +132,32 @@ class FootStepPlanner():
         # Update current feet position
         self._update_current_state(q, vq)
 
+        # Filter quantities
+        rpy = pin.rpy.matrixToRpy(pin.Quaternion(q[3:7]).toRotationMatrix())
+        q_ = np.zeros(6)
+        q_[:3] = q[:3]
+        q_[3:] = rpy
+        q_filter = self._q_filter.filter(q_)
+
+        # Quick debug tools
+        # q_save = [q[0], q[1], q[3], rpy[0], rpy[1], rpy[2]]
+        # self.q_save.append(q_save)
+        # self.v_save.append(vq[:6])
+        # self.q_filter_save.append(q_filter)
+        # np.save("/home/thomas_cbrs/Desktop/edin/tmp/memmo_anymal_test/CoM_analysis/q_9070", np.array(self.q_save))
+        # np.save("/home/thomas_cbrs/Desktop/edin/tmp/memmo_anymal_test/CoM_analysis/v_9070", np.array(self.v_save))
+        # np.save("/home/thomas_cbrs/Desktop/edin/tmp/memmo_anymal_test/CoM_analysis/q_filter_9070", np.array(self.q_filter_save))
+
         # Update position for each CS in the queue.
-        return self.update_position(queue_cs, q, vq, bvref, timeline, selected_surfaces)
+        return self.update_position(queue_cs, q_filter, vq[:6], bvref, timeline, selected_surfaces)
 
     def update_position(self, queue_cs, q, bv, bvref, timeline_, selected_surfaces):
         """ Update the position for a contact schedule.
 
         Args:
             - queue_cs (list): List of CS.
-            - q (array x19): Current state of the robot.
-            - vq (array x18): Linear and angular current velocity.
+            - q (array x6): Current state of the robot (position + orientation(rpy))
+            - vq (array x6): Linear and angular current velocity.
             - bvref (array x6): Linear and angular desired velocities.
             - timeline (int): timeline in CS.
             - selected_surfaces (dict): Dictionary containing the incoming footstep surfaces.
@@ -135,8 +170,9 @@ class FootStepPlanner():
             self.footstep = [[],[],[],[]]
             for j in range(4):
                 self.footstep[j].append(copy.deepcopy(self._current_position[:,j].tolist()))
+
         # Get current orientation of the robot
-        rpy = pin.rpy.matrixToRpy(pin.Quaternion(q[3:7]).toRotationMatrix())
+        rpy = q[3:]
         Rz = pin.rpy.rpyToMatrix(np.array([0., 0., rpy[2]]))  # Yaw rotation matrix
         Rxy = pin.rpy.rpyToMatrix(np.array([rpy[0], rpy[1], 0.]))  # Roll/Pitch rotation matrix
 

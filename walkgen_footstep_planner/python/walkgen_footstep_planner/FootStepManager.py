@@ -54,7 +54,6 @@ class FootStepManager:
             self._params = FootStepPlannerParams()
 
         self._gait_manager = GaitManager(model, q, params)  # Gait manager
-        self._foostep_planner = FootStepPlanner(model, q, self._params, debug)  # Foostep planner
 
         self._N_phase_return = self._params.N_phase_return
         self._typeGait = self._params.typeGait
@@ -65,6 +64,12 @@ class FootStepManager:
         self._N_uds = self._params.N_uds
         self._nsteps = self._params.nsteps
         self._stepHeight = self._params.stepHeight
+
+        lf = "LF_FOOT"
+        lh = "LH_FOOT"
+        rf = "RF_FOOT"
+        rh = "RH_FOOT"
+        self._contactNames = [lf, lh, rf, rh]
 
         # Initial selected surface, rectangle of 4dxdy m2 around the initial position.
         dx = 1.5 # Distance on x-axis around the initial position.
@@ -86,7 +91,7 @@ class FootStepManager:
             L = []
             for k in range(self._N_phase_return):
                 L.append(copy.deepcopy(self._init_surface))
-            self._selected_surfaces[self._foostep_planner._contactNames[foot]] = L
+            self._selected_surfaces[self._contactNames[foot]] = L
 
         self._new_surfaces = copy.deepcopy(self._selected_surfaces)
 
@@ -99,6 +104,7 @@ class FootStepManager:
         self._firstIteration = True
         self._coeffs = []
         self.initialize_default_cs()
+        self._foostep_planner = FootStepPlanner(model, q, self._params, debug, self._params.dt * self._default_cs.T)  # Foostep planner
 
     def initialize_default_cs(self):
         """ Create a default contact schedule compatible with Caracal CS.
