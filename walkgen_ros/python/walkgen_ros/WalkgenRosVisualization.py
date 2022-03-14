@@ -52,26 +52,12 @@ class WalkgenVisualizationPublisher():
         if len(worldPose) != 7:
             raise ArithmeticError("worldPose should be size 7 (position, Orientation)")
         msg = Marker()
-        msg.header.frame_id = frame_id
-        msg.header.stamp = rospy.Time.now()
-        msg.ns = "map"
-        msg.id = 0
+        color = [0.7,0.7,0.7,1.]
+        self._set_header(msg, id= 0, frame_id=frame_id, ns="world",lifetime=0 )
+        self._set_pose(msg, [worldPose[0],worldPose[1],worldPose[2]],[worldPose[3],worldPose[4],worldPose[5],worldPose[6]])
+        self._set_color(msg, color)
+        self._set_scale(msg, 3*[1.])
         msg.type = msg.MESH_RESOURCE
-        msg.pose.position.x = worldPose[0]
-        msg.pose.position.y = worldPose[1]
-        msg.pose.position.z = worldPose[2]
-        msg.pose.orientation.x = worldPose[3]
-        msg.pose.orientation.y = worldPose[4]
-        msg.pose.orientation.z = worldPose[5]
-        msg.pose.orientation.w = worldPose[6]
-        msg.lifetime = rospy.Duration(0)
-        msg.scale.x = 1
-        msg.scale.y = 1
-        msg.scale.z = 1
-        msg.color.a = 1.0
-        msg.color.r = 0.7
-        msg.color.g = 0.7
-        msg.color.b = 0.7
         msg.mesh_resource = "file://" + worldMesh
         self._marker_pub.publish(msg)
 
@@ -85,37 +71,25 @@ class WalkgenVisualizationPublisher():
         """
         msg = MarkerArray()
         color = [[1.,0.,0.,1.],[0.,0.,1.,1.],[0.,1.,0.,1.],[0.,1.,1.,1.]]
+        counter = 0
         for foot_id,all_foot_pos in enumerate(all_feet_pos):
-            for id_,foot_pos in enumerate(all_foot_pos):
+            for foot_pos in all_foot_pos:
                 if foot_pos is not None:
                     marker_x = Marker()
-
-                    marker_x.header.frame_id = frame_id
-                    marker_x.header.stamp = rospy.Time.now()
-                    marker_x.lifetime = rospy.Duration(
-                        lifetime)  # How long the object should last before being automatically deleted.  0 means forever
-                    marker_x.ns = "arrow_config_" + str(id) + str(id_)
-                    marker_x.id = 50*foot_id + id_
-                    marker_x.type = 2 # Sphere
-                    marker_x.action = 0  # 0 add/modify an object, 1 (deprecated), 2 deletes an object, 3 deletes all objects
-                    # Pose
-                    marker_x.pose.position.x = foot_pos[0]
-                    marker_x.pose.position.y = foot_pos[1]
-                    marker_x.pose.position.z = foot_pos[2]
-                    # Color
-                    marker_x.color.r = color[foot_id][0]
-                    marker_x.color.g = color[foot_id][1]
-                    marker_x.color.b = color[foot_id][2]
-                    marker_x.color.a = color[foot_id][3]
-                    marker_x.scale.x = 0.06
-                    marker_x.scale.y = 0.06
-                    marker_x.scale.z = 0.06
+                    self._set_header(marker_x, id= counter, frame_id=frame_id, ns="fsteps",lifetime=lifetime )
+                    self._set_pose(marker_x, [foot_pos[0],foot_pos[1],foot_pos[2]],[0.,0.,0.,1.])
+                    self._set_color(marker_x, color[foot_id])
+                    self._set_scale(marker_x, 3*[0.06])
+                    marker_x.type = marker_x.SPHERE
+                    marker_x.action = marker_x.ADD
                     marker_x.frame_locked = True
                     msg.markers.append(marker_x)
+                    counter += 1
+
         self._marker_array_pub.publish(msg)
 
     def publish_config(self, configs, lifetime = 0., frame_id="map"):
-        """ Publish the configuration of each phase of contact of the MIP.
+        """ Publish the configuration of each phase of contact of the MIP (arrow on x-axis and arrow on y-axis).
 
         Args:
             - configs (list): List of config (array x7 Positon and Orientation)
@@ -128,62 +102,25 @@ class WalkgenVisualizationPublisher():
         for id,config in enumerate(configs):
             marker_x = Marker()
             color = [1., 0., 0., 1.]
-
-            marker_x.header.frame_id = frame_id
-            marker_x.header.stamp = rospy.Time.now()
-            marker_x.lifetime = rospy.Duration(
-                lifetime)  # How long the object should last before being automatically deleted.  0 means forever
-            marker_x.ns = "arrow_config"
-            marker_x.id = id
-            marker_x.type = 0  # Arrow
-            marker_x.action = 0  # 0 add/modify an object, 1 (deprecated), 2 deletes an object, 3 deletes all objects
-            # Pose
-            marker_x.pose.position.x = config[0]
-            marker_x.pose.position.y = config[1]
-            marker_x.pose.position.z = config[2]
-            marker_x.pose.orientation.x = config[3]
-            marker_x.pose.orientation.y = config[4]
-            marker_x.pose.orientation.z = config[5]
-            marker_x.pose.orientation.w = config[6]
-            # Color
-            marker_x.color.r = color[0]
-            marker_x.color.g = color[1]
-            marker_x.color.b = color[2]
-            marker_x.color.a = color[3]
-            marker_x.scale.x = 0.1
-            marker_x.scale.y = 0.01
-            marker_x.scale.z = 0.01
+            pose = np.array(config)
+            self._set_header(marker_x, id= id, frame_id=frame_id, ns="arrow_x",lifetime=lifetime )
+            self._set_pose(marker_x, pose[:3],pose[3:])
+            self._set_color(marker_x, color)
+            self._set_scale(marker_x, [0.1,0.01,0.01])
+            marker_x.type = marker_x.ARROW
+            marker_x.action = marker_x.ADD
             marker_x.frame_locked = True
             msg.markers.append(marker_x)
-
 
             marker_y = Marker()
             color = [0., 1., 0., 1.]
             quat = pin.Quaternion(np.dot(mat_y, pin.Quaternion(config[3:]).toRotationMatrix()))
-            marker_y.header.frame_id = frame_id
-            marker_y.header.stamp = rospy.Time.now()
-            marker_y.lifetime = rospy.Duration(
-                lifetime)  # How long the object should last before being automatically deleted.  0 means forever
-            marker_y.ns = "arrow_config"
-            marker_y.id = id + 50
-            marker_y.type = 0  # Arrow
-            marker_y.action = 0  # 0 add/modify an object, 1 (deprecated), 2 deletes an object, 3 deletes all objects
-            # Pose
-            marker_y.pose.position.x = config[0]
-            marker_y.pose.position.y = config[1]
-            marker_y.pose.position.z = config[2]
-            marker_y.pose.orientation.x = quat.x
-            marker_y.pose.orientation.y = quat.y
-            marker_y.pose.orientation.z = quat.z
-            marker_y.pose.orientation.w = quat.w
-            # Color
-            marker_y.color.r = color[0]
-            marker_y.color.g = color[1]
-            marker_y.color.b = color[2]
-            marker_y.color.a = color[3]
-            marker_y.scale.x = 0.1
-            marker_y.scale.y = 0.01
-            marker_y.scale.z = 0.01
+            self._set_header(marker_y, id= id+50, frame_id=frame_id, ns="arrow_x",lifetime=lifetime )
+            self._set_pose(marker_y, pose[:3],quat.coeffs())
+            self._set_color(marker_y, color)
+            self._set_scale(marker_y, [0.1,0.01,0.01])
+            marker_y.type = marker_y.ARROW
+            marker_y.action = marker_y.ADD
             marker_y.frame_locked = True
             msg.markers.append(marker_y)
         self._marker_array_pub.publish(msg)
@@ -202,56 +139,63 @@ class WalkgenVisualizationPublisher():
             raise ArithmeticError("Vertices should be an array of size 3xn")
 
         msg = MarkerArray()
+        color = [1., 0., 0., 1.]
         for id, vertices in enumerate(surfaces):
             marker = Marker()
-            color = [1., 0., 0., 1.]
-
-            marker.header.frame_id = frame_id
-            marker.header.stamp = rospy.Time.now()
-            marker.lifetime = rospy.Duration(
-                lifetime)  # How long the object should last before being automatically deleted.  0 means forever
-            marker.ns = "hull"
-            marker.id = id
-            marker.type = 4  # 4 LINE_STRIP, 8 POINTS
-            marker.action = 0  # 0 add/modify an object, 1 (deprecated), 2 deletes an object, 3 deletes all objects
-            # Pose
-            marker.pose.position.x = 0
-            marker.pose.position.y = 0
-            marker.pose.position.z = 0
-            marker.pose.orientation.x = 0.0
-            marker.pose.orientation.y = 0.0
-            marker.pose.orientation.z = 0.0
-            marker.pose.orientation.w = 1.0
-            # Color
-            marker.color.r = color[0]
-            marker.color.g = color[1]
-            marker.color.b = color[2]
-            marker.color.a = color[3]
-            marker.scale.x = 0.03
-            marker.scale.y = 0.03
-            marker.scale.z = 0.03
+            self._set_header(marker, id= id, frame_id=frame_id, ns="hull",lifetime=lifetime )
+            self._set_pose(marker, [0.,0.,0.],[0.,0.,0.,1.])
+            self._set_color(marker, color)
+            self._set_scale(marker, 3*[0.03])
+            marker.type = marker.LINE_STRIP
+            marker.action = marker.ADD
             marker.frame_locked = True
+            # Add points [P0,P1,P1,P2...]
             for k in range(vertices.shape[1] - 1):
-                point_a = Point()
-                point_a.x = vertices[0, k]
-                point_a.y = vertices[1, k]
-                point_a.z = vertices[2, k]
-                marker.points.append(point_a)
-                point_b = Point()
-                point_b.x = vertices[0, k + 1]
-                point_b.y = vertices[1, k + 1]
-                point_b.z = vertices[2, k + 1]
-                marker.points.append(point_b)
-            # Add end line
-            point_a = Point()
-            point_a.x = vertices[0, 0]
-            point_a.y = vertices[1, 0]
-            point_a.z = vertices[2, 0]
-            marker.points.append(point_a)
-            point_b = Point()
-            point_b.x = vertices[0, -1]
-            point_b.y = vertices[1, -1]
-            point_b.z = vertices[2, -1]
-            marker.points.append(point_b)
+                marker.points.append(self._point(vertices[:,k]))
+                marker.points.append(self._point(vertices[:,k+1]))
+            # Add end line.
+            marker.points.append(self._point(vertices[:,0]))
+            marker.points.append(self._point(vertices[:,-1]))
+            # Add marker to markerArray.
             msg.markers.append(marker)
         self._marker_array_pub.publish(msg)
+
+    def _set_header(self, marker, id, frame_id, ns, lifetime):
+        """ Set the header parameters for marker type msg.
+        """
+        marker.id = id
+        marker.header.frame_id = frame_id
+        marker.header.stamp = rospy.Time.now()
+        marker.ns = ns
+        marker.lifetime= rospy.Duration(lifetime)
+
+    def _set_pose(self, marker, pose, orientation):
+        """ Set the pose (x7 position, orientation) for marker type msg.
+        """
+        marker.pose.position.x = pose[0]
+        marker.pose.position.y = pose[1]
+        marker.pose.position.z = pose[2]
+        marker.pose.orientation.x = orientation[0]
+        marker.pose.orientation.y = orientation[1]
+        marker.pose.orientation.z = orientation[2]
+        marker.pose.orientation.w = orientation[3]
+
+    def _set_color(self, marker, color):
+        """ Set the color for marker type msg.
+        """
+        marker.color.r = color[0]
+        marker.color.g = color[1]
+        marker.color.b = color[2]
+        marker.color.a = color[3]
+
+    def _set_scale(self, marker, scale):
+        """ Set the scale for marker type msg.
+        """
+        marker.scale.x = scale[0]
+        marker.scale.y = scale[1]
+        marker.scale.z = scale[2]
+
+    def _point(self, position):
+        """ Return geometry_msgs Point type, from 3x array/list.
+        """
+        return Point(x=position[0], y =position[1], z=position[2])
