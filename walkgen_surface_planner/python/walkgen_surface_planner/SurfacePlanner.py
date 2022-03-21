@@ -82,7 +82,7 @@ class SurfacePlanner():
 
         self.planeseg = self._params.planeseg  # Use URDF or planseg
 
-        if not self.planeseg:  # Use URDF and heightmap environment
+        if not self.planeseg:  # Use a heightmap of the environment
             # Height matrix is expressed in o frame, the position and orientation of the robot is known.
             # pos = (0,0,height_feet = 0.), quat = (0,0,0,1)
             self._wRo = pin.Quaternion(self._q0[3:]).toRotationMatrix()
@@ -289,6 +289,7 @@ class SurfacePlanner():
             raise ArithmeticError("Reference velocity should be size 6.")
 
         yaw_init = pin.rpy.matrixToRpy(pin.Quaternion(q[3:7]).toRotationMatrix())[2]
+        print("yaw init : ", yaw_init)
         # List of configurations in planned horizon, using the reference velocity.
         configs = []
 
@@ -315,7 +316,7 @@ class SurfacePlanner():
             config = np.zeros(7)
             dt_config = self._step_duration * (i + 1)  # Delay of 1 phase of contact for MIP
 
-            if bvref[5] >= 0.001:
+            if bvref[5] >= 0.01:
                 config[0] = (bvref[0] * np.sin(bvref[5] * dt_config) + bvref[1] *
                              (np.cos(bvref[5] * dt_config) - 1.0)) / bvref[5]
                 config[1] = (bvref[1] * np.sin(bvref[5] * dt_config) - bvref[0] *
@@ -355,33 +356,7 @@ class SurfacePlanner():
 
         return com_positions
 
-    def _get_potential_surfaces(self, configs, gait, all_surfaces):
-        """ Get the rotation matrix and surface condidates for each configuration in configs.
-        Without a guide path, gives all surfaces as potential surfaces for each feet.
-
-        Args:
-         - configs (list): List of configurations (Array x7, [position, orientation]).
-         - gait (array nx4): gait matrix.
-         - all_surfaces (list): List of the surface reshaped, defined using the vertices positions:
-                                array([[x0, x1, ... , xn],
-                                       [y0, y1, ... , yn],
-                                       [z0, z1, ... , zn]]).
-        """
-        surfaces_list = []
-        empty_list = False
-        for id, config in enumerate(configs):
-            foot_surfaces = []
-            stance_feet = np.nonzero(gait[id % len(gait)] == 1)[0]
-            previous_swing_feet = np.nonzero(gait[(id - 1) % len(gait)] == 0)[0]
-            moving_feet = stance_feet[np.in1d(stance_feet, previous_swing_feet, assume_unique=True)]
-
-            for elt in moving_feet:
-                foot_surfaces.append(all_surfaces)
-            surfaces_list.append(foot_surfaces)
-
-        return surfaces_list, empty_list
-
-    def get_potential_surfaces_hppfcl(self, configs, gait):
+    def get_potential_surfaces(self, configs, gait):
         """ Get the rotation matrix and surface condidates for each configuration in configs using
         the collision tool hppfcl.
 
@@ -437,51 +412,6 @@ class SurfacePlanner():
 
         # Dictionnary type containing the convex FCl object for collision checking
         self.all_surfaces_collision = dict(zip( all_surfaces.keys(), [convert_to_convexFcl(value) for value in all_surfaces.values()] )  )
-
-    def _get_potential_surfaces_RBPRM(self, configs, gait):
-        """ Get the rotation matrix and surface condidates for each configuration in configs using
-        the guide path RBPRM.
-
-        Args:
-         - configs (list): List of configurations (Array x7, [position, orientation]).
-         - gait (array nx4): gait matrix.
-        """
-        surfaces_list = []
-        empty_list = False
-        for id, config in enumerate(configs):
-            print("\n")
-            print("config nb : ", id)
-            stance_feet = np.nonzero(gait[id % len(gait)] == 1)[0]
-            previous_swing_feet = np.nonzero(gait[(id - 1) % len(gait)] == 0)[0]
-            moving_feet = stance_feet[np.in1d(stance_feet, previous_swing_feet, assume_unique=True)]
-            roms = np.array(rom_names)[moving_feet]
-            print("movinf feet : ", moving_feet)
-            foot_surfaces = []
-            for rom in roms:
-                print("-----")
-                surfaces = []
-                surfaces_names = self._anymal_abstract.clientRbprm.rbprm.getCollidingObstacleAtConfig(
-                    config.tolist(), rom)
-                for name in surfaces_names:
-                    surfaces.append(self._all_surfaces[name][0])
-                print("surface_name : ", surfaces_names)
-                if not len(surfaces_names):
-                    for key in self._all_surfaces:
-                        # In case there are not any potential surface to use, gives all the surfaces as potential surfaces.
-                        surfaces.append(self._all_surfaces[key][0])
-                        # empty_list = True
-
-                # Sort and then convert to array
-                surfaces = sorted(surfaces)
-                surfaces_array = []
-                for surface in surfaces:
-                    surfaces_array.append(np.array(surface).T)
-
-                # Add to surfaces list
-                foot_surfaces.append(surfaces_array)
-            surfaces_list.append(foot_surfaces)
-
-        return surfaces_list, empty_list
 
     def _retrieve_surfaces(self, surfaces, indices):
         """ Update the structure containing the surfaces selected for each foot.
@@ -548,18 +478,7 @@ class SurfacePlanner():
         # Initial contact at the beginning of the next phase.
         initial_contacts = [np.array(target_foostep[:, i].tolist()) for i in range(4)]
 
-        surfaces, empty_list = self.get_potential_surfaces_hppfcl(configs, gait)
-
-        # if self.planeseg:
-        #     self.surfaces_processed = set_surfaces  # MarkerArray already processed.
-
-        #     surfaces, empty_list = self._get_potential_surfaces(configs, gait, self.surfaces_processed)
-
-        # else:
-        #     t0 = clock()
-        #     surfaces, empty_list = self._get_potential_surfaces_RBPRM(configs, gait)
-        #     t1 = clock()
-        #     print("Get potential surfaces RBPRM [ms] : ", 1000*(t1-t0))
+        surfaces, empty_list = self.get_potential_surfaces(configs, gait)
 
         self.pb.generate_problem(R, surfaces, gait, initial_contacts, configs[0][:3], com=self._com)
 

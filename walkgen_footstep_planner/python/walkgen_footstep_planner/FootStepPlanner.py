@@ -172,8 +172,6 @@ class FootStepPlanner():
         Returns:
             - (array 3x4): Target for the incoming footseps.
         """
-        print("\n -- ")
-        print(timeline_ )
         if self.debug:
             self.footstep.clear()
             self.footstep = [[],[],[],[]]

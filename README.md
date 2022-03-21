@@ -36,6 +36,12 @@ The compilation option are the following:
 - DPYTHON_STANDARD_LAYOUT : Build the python modules inside python3.8 folder.
 ---
 
+## Surface planner processing
+
+Tools to post-process the data from planeseg or extract
+
+---
+
 ## Footstep planner
 
 This module is used to interface with the caracal library. It allows to update the trajectory of the feet at each time step by sending to the Caracal MPC the new polynomial coefficients of the trajectory. It contains :
