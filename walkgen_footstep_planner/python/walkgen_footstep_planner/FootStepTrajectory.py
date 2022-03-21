@@ -69,7 +69,7 @@ class FootStepTrajectory():
         x0 = self._M_current.translation
         xf = self._M_next.translation
         self._updatePolyCoeff_XY(x0, np.zeros(3), np.zeros(3), xf, 0., self._N * self._dt)
-        self._updatePolyCoeff_Z(x0, np.zeros(3), np.zeros(3), xf, 0., self._N * self._dt, self._stepHeight )
+        self._updatePolyCoeff_Z(x0, np.zeros(3), np.zeros(3), xf, 0., self._N * self._dt, xf[2] + self._stepHeight )
 
         return 0
 

@@ -32,8 +32,16 @@ import unittest
 from walkgen_surface_planner.SurfacePlanner import SurfacePlanner
 from walkgen_surface_planner.params import SurfacePlannerParams
 
+from walkgen_surface_processing.SurfaceDetector import SurfaceDetector
+
+
 params = SurfacePlannerParams()
 params.planeseg = False
+
+# Extract surfaces from URDF file.
+surface_detector = SurfaceDetector(params.path + params.urdf, params.margin, q0=None, initial_height=0.)
+all_surfaces = surface_detector.extract_surfaces()
+
 # path = os.path.dirname(os.path.abspath(__file__)) + "/../data/"
 # params.heightmap = path + "lab_scene.dat"
 # params.urdf = path + "urdf/lab_scene.urdf"
@@ -68,6 +76,7 @@ class SurfacePlannerTest(unittest.TestCase):
 
         # update gait parameters
         surface_planner._set_gait_param(params)
+        surface_planner.set_surfaces(all_surfaces)
 
         # Run MIP problem.
         selected_surfaces = surface_planner.run(q, gait_pattern, bvref, surface_planner._current_position)
@@ -82,6 +91,7 @@ class SurfacePlannerTest(unittest.TestCase):
 
         # update gait parameters
         surface_planner._set_gait_param(params)
+        surface_planner.set_surfaces(all_surfaces)
 
         # Run MIP problem.
         selected_surfaces = surface_planner.run(q, gait_pattern, bvref, surface_planner._current_position)
@@ -96,6 +106,7 @@ class SurfacePlannerTest(unittest.TestCase):
 
         # update gait parameters
         surface_planner._set_gait_param(params)
+        surface_planner.set_surfaces(all_surfaces)
 
         # Run MIP problem.
         selected_surfaces = surface_planner.run(q, gait_pattern, bvref, surface_planner._current_position)
@@ -110,6 +121,7 @@ class SurfacePlannerTest(unittest.TestCase):
 
         # update gait parameters
         surface_planner._set_gait_param(params)
+        surface_planner.set_surfaces(all_surfaces)
 
         # Run MIP problem.
         selected_surfaces = surface_planner.run(q, gait_pattern, bvref, surface_planner._current_position)

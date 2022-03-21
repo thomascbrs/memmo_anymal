@@ -71,6 +71,11 @@ class Filter():
             self._x_queue = self._nb * [q]
             self._y_queue = (self._na-1) * [q]
             self._is_initialized = True
+
+        # Handle modulo for orientation
+        if abs(q[5] - self._y_queue[0][5]) > 1.5 * np.pi :
+            self.handle_modulo(q[5] - self._y_queue[0][5] > 0)
+
         self._x_queue.pop()
         self._x_queue.insert(0, q)
 
@@ -82,3 +87,18 @@ class Filter():
         self._y_queue.pop()
         self._y_queue.insert(0, acc_ / self._a[:,0])
         return np.array(self._y_queue[0])
+
+    def handle_modulo(self, dir):
+        """ Add or remove 2 PI to all elements in the queue for yaw angle.
+        """
+        for x in self._x_queue:
+            if dir:
+                x[5] += 2 * np.pi
+            else:
+                x[5] += - 2 * np.pi
+
+        for y in self._y_queue:
+            if dir:
+                y[5] += 2 * np.pi
+            else:
+                y[5] += - 2 * np.pi

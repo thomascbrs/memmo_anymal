@@ -34,7 +34,8 @@ import numpy as np
 import unittest
 from walkgen_surface_planner.SurfacePlanner import SurfacePlanner
 from walkgen_surface_planner.params import SurfacePlannerParams
-from walkgen_surface_planner.tools.geometry_utils import reduce_surfaces, remove_overlap_surfaces
+
+from walkgen_surface_processing.SurfaceProcessing import SurfaceProcessing
 
 # Load Marker array class example extracted from rosbag.
 path = os.path.dirname(os.path.abspath(__file__)) + "/../data/"
@@ -46,10 +47,10 @@ params = SurfacePlannerParams()
 params.planeseg = True
 
 # State of the robot
-q = np.array([0., 0., 0.4792, 0., 0., 0., 1., -0.1, 0.7, -1., -0.1, -0.7, 1., 0.1, 0.7, -1., 0.1, -0.7, 1.])
+q = np.array([0.2, 0.5, 0.4792, 0., 0., 0., 1., -0.1, 0.7, -1., -0.1, -0.7, 1., 0.1, 0.7, -1., 0.1, -0.7, 1.])
 # Reference velocity
 bvref = np.zeros(6)
-bvref[0] = 0.5
+bvref[0] = 0.08
 bvref[5] = 0.
 
 # Order : [LF, RF, LH, RH]
@@ -62,6 +63,16 @@ params.typeGait = "walk"
 params.com = False
 gait_pattern = GAITS[params.typeGait]
 
+h_init = -0.06
+
+# order ['LF_FOOT', 'RF_FOOT', 'LH_FOOT', 'RH_FOOT']
+current_contacts = np.array([[0.37, 0.37, -0.37, -0.37], [0.2, -0.2, 0.2, -0.2], [0., 0., 0., 0.]])
+for k in range(4):
+    current_contacts[:, k] += q[:3]
+current_contacts[2, :] = h_init
+
+# Process surfaces
+surface_processing = SurfaceProcessing(initial_height= h_init, params = params)
 surface_planner = SurfacePlanner(params = params)
 
 
@@ -76,19 +87,11 @@ class SurfacePlannerTest(unittest.TestCase):
         # update gait parameters
         surface_planner._set_gait_param(params)
 
-        # Reduce and sort incoming data
-        surfaces_reduced = reduce_surfaces(data, margin=params.margin, n_points=params.n_points)
-
-        # Apply proccess to filter and decompose the surfaces to avoid overlap
-        set_surfaces = remove_overlap_surfaces(surfaces_reduced,
-                                               polySize=params.poly_size,
-                                               method=params.method_id,
-                                               min_area=params.min_area,
-                                               initial_floor=surface_planner._init_surface.vertices)
+        all_surfaces = surface_processing.run(q[:3], data)
+        surface_planner.set_surfaces(all_surfaces)
 
         # Run MIP problem.
-        selected_surfaces = surface_planner.run(q, gait_pattern, bvref, surface_planner._current_position,
-                                                set_surfaces)
+        selected_surfaces = surface_planner.run(q, gait_pattern, bvref, current_contacts)
         results = surface_planner.pb_data
         self.assertTrue(results.success)
 
@@ -101,19 +104,11 @@ class SurfacePlannerTest(unittest.TestCase):
         # update gait parameters
         surface_planner._set_gait_param(params)
 
-        # Reduce and sort incoming data
-        surfaces_reduced = reduce_surfaces(data, margin=params.margin, n_points=params.n_points)
-
-        # Apply proccess to filter and decompose the surfaces to avoid overlap
-        set_surfaces = remove_overlap_surfaces(surfaces_reduced,
-                                               polySize=params.poly_size,
-                                               method=params.method_id,
-                                               min_area=params.min_area,
-                                               initial_floor=surface_planner._init_surface.vertices)
+        all_surfaces = surface_processing.run(q[:3], data)
+        surface_planner.set_surfaces(all_surfaces)
 
         # Run MIP problem.
-        selected_surfaces = surface_planner.run(q, gait_pattern, bvref, surface_planner._current_position,
-                                                set_surfaces)
+        selected_surfaces = surface_planner.run(q, gait_pattern, bvref, current_contacts)
         results = surface_planner.pb_data
         self.assertTrue(results.success)
 
@@ -126,19 +121,11 @@ class SurfacePlannerTest(unittest.TestCase):
         # update gait parameters
         surface_planner._set_gait_param(params)
 
-        # Reduce and sort incoming data
-        surfaces_reduced = reduce_surfaces(data, margin=params.margin, n_points=params.n_points)
-
-        # Apply proccess to filter and decompose the surfaces to avoid overlap
-        set_surfaces = remove_overlap_surfaces(surfaces_reduced,
-                                               polySize=params.poly_size,
-                                               method=params.method_id,
-                                               min_area=params.min_area,
-                                               initial_floor=surface_planner._init_surface.vertices)
+        all_surfaces = surface_processing.run(q[:3], data)
+        surface_planner.set_surfaces(all_surfaces)
 
         # Run MIP problem.
-        selected_surfaces = surface_planner.run(q, gait_pattern, bvref, surface_planner._current_position,
-                                                set_surfaces)
+        selected_surfaces = surface_planner.run(q, gait_pattern, bvref, current_contacts)
         results = surface_planner.pb_data
         self.assertTrue(results.success)
 
@@ -151,19 +138,12 @@ class SurfacePlannerTest(unittest.TestCase):
         # update gait parameters
         surface_planner._set_gait_param(params)
 
-        # Reduce and sort incoming data
-        surfaces_reduced = reduce_surfaces(data, margin=params.margin, n_points=params.n_points)
-
-        # Apply proccess to filter and decompose the surfaces to avoid overlap
-        set_surfaces = remove_overlap_surfaces(surfaces_reduced,
-                                               polySize=params.poly_size,
-                                               method=params.method_id,
-                                               min_area=params.min_area,
-                                               initial_floor=surface_planner._init_surface.vertices)
+        all_surfaces = surface_processing.run(q[:3], data)
+        surface_planner.set_surfaces(all_surfaces)
 
         # Run MIP problem.
-        selected_surfaces = surface_planner.run(q, gait_pattern, bvref, surface_planner._current_position,
-                                                set_surfaces)
+        selected_surfaces = surface_planner.run(q, gait_pattern, bvref, current_contacts)
+
         results = surface_planner.pb_data
         self.assertTrue(results.success)
 

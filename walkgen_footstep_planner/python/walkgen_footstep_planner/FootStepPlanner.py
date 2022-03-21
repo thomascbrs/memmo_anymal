@@ -81,11 +81,13 @@ class FootStepPlanner():
         self._href = 0.48
         self._g = 9.81
         self._L = 0.5
-        self._stop_heuristic = 4/5 # range [0.,1.], % of the curve to fix the position of the targetfoostep --> avoid slipping.
+        self._stop_heuristic = 5/8 # range [0.,1.], % of the curve to fix the position of the targetfoostep --> avoid slipping.
         if params.horizon is None:
             self._horizon = period / params.dt
         else:
             self._horizon = params.horizon
+
+        print("horizon footstepplanner : ", self._horizon)
 
         self.debug = debug
         if debug:
@@ -93,19 +95,20 @@ class FootStepPlanner():
 
         # Low pass filter
         if params.typeGait == "walk":
-            cutoff = 6*[1/period]
+            cutoff = 6*[1/(2*period)]
             cutoff[1] =  1/(2*period)
         elif params.typeGait == "trot":
             cutoff = 6* [1/(2*period)]
         else:
             raise ArgumentError("Wrong type of gait. Try walk or trot")
 
-        self._q_filter = Filter(cutoff, 1/(params.nsteps * params.dt), 1)
+        print("cut off frequency : ", cutoff)
+        self._q_filter = Filter(cutoff, 1/(params.nsteps * params.dt),1)
 
         # Quick debug tools
-        # self.q_save = []
-        # self.v_save = []
-        # self.q_filter_save = []
+        self.q_save = []
+        self.v_save = []
+        self.q_filter_save = []
 
 
     def compute_footstep(self, queue_cs, q, vq, bvref, timeline, selected_surfaces):
@@ -144,10 +147,10 @@ class FootStepPlanner():
         q_filter = self._q_filter.filter(q_)
 
         # Quick debug tools
-        # q_save = [q[0], q[1], q[3], rpy[0], rpy[1], rpy[2]]
-        # self.q_save.append(q_save)
-        # self.v_save.append(vq[:6])
-        # self.q_filter_save.append(q_filter)
+        q_save = [q[0], q[1], q[3], rpy[0], rpy[1], rpy[2]]
+        self.q_save.append(q_save)
+        self.v_save.append(vq[:6])
+        self.q_filter_save.append(q_filter)
         # np.save("/home/thomas_cbrs/Desktop/edin/tmp/memmo_anymal_test/CoM_analysis/q_9070", np.array(self.q_save))
         # np.save("/home/thomas_cbrs/Desktop/edin/tmp/memmo_anymal_test/CoM_analysis/v_9070", np.array(self.v_save))
         # np.save("/home/thomas_cbrs/Desktop/edin/tmp/memmo_anymal_test/CoM_analysis/q_filter_9070", np.array(self.q_filter_save))
@@ -169,6 +172,8 @@ class FootStepPlanner():
         Returns:
             - (array 3x4): Target for the incoming footseps.
         """
+        print("\n -- ")
+        print(timeline_ )
         if self.debug:
             self.footstep.clear()
             self.footstep = [[],[],[],[]]
@@ -202,11 +207,11 @@ class FootStepPlanner():
                         active_phase = phases[0]
                         inactive_phase = phases[1]
 
-                        if cs_index + active_phase.T <= self._horizon:
+                        if cs_index + active_phase.T - timeline <= self._horizon:
                             # Displacement following the reference velocity compared to current position
                             if active_phase.T + inactive_phase.T - timeline > 0:  # case 1 & 2
-                                dt_ = (cs_index + active_phase.T + inactive_phase.T - timeline) * cs.dt
                                 if bvref[5] > 10e-5:
+                                    dt_ = (cs_index + active_phase.T + inactive_phase.T) * cs.dt
                                     dx_ = (bvref[0] * np.sin(bvref[5] * dt_) + bvref[1] *
                                         (np.cos(bvref[5] * dt_) - 1.0)) / bvref[5]
                                     dy_ = (bvref[1] * np.sin(bvref[5] * dt_) - bvref[0] *
@@ -214,6 +219,7 @@ class FootStepPlanner():
                                     yaw = bvref[5] * dt_
                                     Rz_tmp = pin.rpy.rpyToMatrix(np.array([0., 0., yaw]))
                                 else:
+                                    dt_ = (cs_index + active_phase.T + inactive_phase.T - timeline) * cs.dt
                                     dx_ = bvref[0] * dt_
                                     dy_ = bvref[1] * dt_
                                     Rz_tmp = np.identity(3)

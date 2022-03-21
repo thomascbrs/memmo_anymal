@@ -35,19 +35,25 @@ import matplotlib.pyplot as plt
 
 from walkgen_surface_planner.SurfacePlanner import SurfacePlanner
 from walkgen_surface_planner.params import SurfacePlannerParams
+from walkgen_surface_processing.SurfaceDetector import SurfaceDetector
 
 
 # Walkgen parameters.
 params = SurfacePlannerParams()
 
-params.planeseg = False
+params.planeseg = True
 params.N_phase = 10
-params.typeGait = "walk"
+params.typeGait = "trot"
 params.com = True
 params.margin = 0.01
 
+# Extract surfaces from URDF file.
+surface_detector = SurfaceDetector(params.path + params.urdf, params.margin, q0=None, initial_height=0.)
+all_surfaces = surface_detector.extract_surfaces()
+
 # Surface Planer initialization with params.
 surface_planner = SurfacePlanner(params = params)
+surface_planner.set_surfaces(all_surfaces)
 
 # Initial config
 initial_config = np.array([0.25, 0., 0., 0., 0., 0., 1.])
@@ -79,6 +85,9 @@ selected_surfaces = surface_planner.run(q, gait_pattern, bvref, current_contacts
 t1 = clock()
 print("Run MIP [ms]", 1000. * (t1 - t0))
 
-# # Plot SL1M results
-ax = plot.draw_whole_scene(surface_planner._all_surfaces)
+# Plot SL1M results
+fig = plt.figure(figsize=(10, 6))
+ax = plt.axes(projection='3d')
+for value in surface_planner.all_surfaces.values():
+    plot.plot_surface(np.array(value).T, ax)
 plot.plot_planner_result(surface_planner.pb_data.all_feet_pos, coms=surface_planner.pb_data.coms, ax=ax, show=True)

@@ -33,8 +33,6 @@ import copy
 from walkgen_footstep_planner.FootStepTrajectory import FootStepTrajectory
 from caracal import ContactPhase, ContactSchedule
 from walkgen_footstep_planner.params import FootStepPlannerParams
-import warnings
-
 
 class GaitManager:
     """ Gait manager. Add and remove contact schedule from the queue
@@ -160,11 +158,9 @@ class GaitManager:
             )
 
         if not self.check_returned_phases():
-            warnings.warn(
-                "There cannot be more phases of contact in the horizon planned than the number of contact returned by the ConvexPatch Planner. The horizon needs to be carefully checked with the type of gait selected.")
-            # raise AttributeError(
-            #     "There cannot be more phases of contact in the horizon planned than the number of contact returned by the ConvexPatch Planner."
-            # )
+            raise AttributeError(
+                "There cannot be more phases of contact in the horizon planned than the number of contact returned by the ConvexPatch Planner."
+            )
 
         # Initialize switches list
         self.initialize_switches(self._default_cs)

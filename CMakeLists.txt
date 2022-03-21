@@ -67,6 +67,7 @@ ADD_PROJECT_DEPENDENCY(pinocchio)
 # Naming project libraries
 SET(FOOTSTEP_PLANNER_NAME ${PROJECT_NAME}_footstep_planner)
 SET(SURFACE_PLANNER_NAME ${PROJECT_NAME}_surface_planner)
+SET(SURFACE_PROCESSING_NAME ${PROJECT_NAME}_surface_processing)
 SET(ROS_INTERFACE_NAME ${PROJECT_NAME}_ros)
 
 # Project definition
@@ -78,6 +79,7 @@ endif()
 
 if(SURFACE_PLANNER)
   ADD_SUBDIRECTORY("${SURFACE_PLANNER_NAME}/python")
+  ADD_SUBDIRECTORY("${SURFACE_PROCESSING_NAME}/python")
 endif()
 
 if(ROS_INTERFACE)
