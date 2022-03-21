@@ -103,7 +103,8 @@ class FootStepPlanner():
             raise ArgumentError("Wrong type of gait. Try walk or trot")
 
         print("cut off frequency : ", cutoff)
-        self._q_filter = Filter(cutoff, 1/(params.nsteps * params.dt),1)
+        self._q_filter = Filter(cutoff, 1/(params.nsteps * params.dt),2)
+        self.q_f = np.zeros(18)
 
         # Quick debug tools
         self.q_save = []
@@ -144,19 +145,19 @@ class FootStepPlanner():
         q_ = np.zeros(6)
         q_[:3] = q[:3]
         q_[3:] = rpy
-        q_filter = self._q_filter.filter(q_)
+        self.q_f = self._q_filter.filter(q_)
 
         # Quick debug tools
-        q_save = [q[0], q[1], q[3], rpy[0], rpy[1], rpy[2]]
-        self.q_save.append(q_save)
-        self.v_save.append(vq[:6])
-        self.q_filter_save.append(q_filter)
+        # q_save = [q[0], q[1], q[3], rpy[0], rpy[1], rpy[2]]
+        # self.q_save.append(q_save)
+        # self.v_save.append(vq[:6])
+        # self.q_filter_save.append(q_filter)
         # np.save("/home/thomas_cbrs/Desktop/edin/tmp/memmo_anymal_test/CoM_analysis/q_9070", np.array(self.q_save))
         # np.save("/home/thomas_cbrs/Desktop/edin/tmp/memmo_anymal_test/CoM_analysis/v_9070", np.array(self.v_save))
         # np.save("/home/thomas_cbrs/Desktop/edin/tmp/memmo_anymal_test/CoM_analysis/q_filter_9070", np.array(self.q_filter_save))
 
         # Update position for each CS in the queue.
-        return self.update_position(queue_cs, q_filter, vq[:6], bvref, timeline, selected_surfaces)
+        return self.update_position(queue_cs, self.q_f, vq[:6], bvref, timeline, selected_surfaces)
 
     def update_position(self, queue_cs, q, bv, bvref, timeline_, selected_surfaces):
         """ Update the position for a contact schedule.
@@ -208,7 +209,7 @@ class FootStepPlanner():
                         if cs_index + active_phase.T - timeline <= self._horizon:
                             # Displacement following the reference velocity compared to current position
                             if active_phase.T + inactive_phase.T - timeline > 0:  # case 1 & 2
-                                if bvref[5] > 10e-5:
+                                if abs(bvref[5]) > 10e-3:
                                     dt_ = (cs_index + active_phase.T + inactive_phase.T) * cs.dt
                                     dx_ = (bvref[0] * np.sin(bvref[5] * dt_) + bvref[1] *
                                         (np.cos(bvref[5] * dt_) - 1.0)) / bvref[5]

@@ -54,8 +54,8 @@ class StepManagerPublisher():
         self._pub = rospy.Publisher(topic, GaitStatusOnNewPhase, queue_size=queue_size)
         self._stepmanager_iface = StepManagerInterface()
 
-    def publish(self, t, gait, target_foostep):
-        msg = self._stepmanager_iface.writeToMessage(t, gait, target_foostep)
+    def publish(self, t, gait, target_foostep, q_filter):
+        msg = self._stepmanager_iface.writeToMessage(t, gait, target_foostep, q_filter)
         self._pub.publish(msg)
 
 
@@ -135,12 +135,13 @@ class StepManagerInterface():
         self._msg = GaitStatusOnNewPhase()
         self._contact_names = ['LF_FOOT', 'RF_FOOT', 'LH_FOOT', 'RH_FOOT']  # Order of the feet in the surface planner.
 
-    def writeToMessage(self, t, gait, foot_pos):
+    def writeToMessage(self, t, gait, foot_pos, q_filter):
         """ Write data to ROS message FootStepStateSL1M.
         Args:
             - t (time): Current timing.
             - gait (Array n_gait x 4): Next walking gait pattern.
             - foot_pos (Array 3x4): Foot position for the next phase. (For the next phase of contact)
+            - q_filter (array x6): Filtered state. (rpy)
         """
         self._msg.header.stamp = rospy.Time(t)
 
@@ -161,6 +162,10 @@ class StepManagerInterface():
             self._msg.foot_pos[k].position.x = foot_pos[0, k]
             self._msg.foot_pos[k].position.y = foot_pos[1, k]
             self._msg.foot_pos[k].position.z = foot_pos[2, k]
+
+        # Filtered state
+        self._msg.q_filter[:] = q_filter[:]
+
         return self._msg
 
     def writeFromMessage(self, msg):
@@ -177,4 +182,7 @@ class StepManagerInterface():
             foot_pos[1, c] = msg.foot_pos[k].position.y
             foot_pos[2, c] = msg.foot_pos[k].position.z
 
-        return gait, foot_pos
+        q_filter = np.zeros(6)
+        q_filter[:] = msg.q_filter[:]
+
+        return gait, foot_pos, q_filter

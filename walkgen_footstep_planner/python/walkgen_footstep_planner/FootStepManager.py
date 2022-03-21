@@ -244,6 +244,11 @@ class FootStepManager:
         """
         return self._gait_sl1m
 
+    def get_q_filter(self):
+        """ Returns the state filtered. (x 18)
+        """
+        return self._foostep_planner.q_f
+
 
 if __name__ == "__main__":
     """ Run a simple example of the FootStepManager wrapper.

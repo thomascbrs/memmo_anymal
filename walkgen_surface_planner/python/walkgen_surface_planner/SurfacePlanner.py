@@ -289,6 +289,10 @@ class SurfacePlanner():
             raise ArithmeticError("Reference velocity should be size 6.")
 
         yaw_init = pin.rpy.matrixToRpy(pin.Quaternion(q[3:7]).toRotationMatrix())[2]
+        if yaw_init <= - np.pi :
+            yaw_init += 2 * np.pi
+        if yaw_init >= np.pi:
+            yaw_init -= 2 *np.pi
         print("yaw init : ", yaw_init)
         # List of configurations in planned horizon, using the reference velocity.
         configs = []
@@ -316,7 +320,7 @@ class SurfacePlanner():
             config = np.zeros(7)
             dt_config = self._step_duration * (i + 1)  # Delay of 1 phase of contact for MIP
 
-            if bvref[5] >= 0.01:
+            if abs(bvref[5]) >= 0.01:
                 config[0] = (bvref[0] * np.sin(bvref[5] * dt_config) + bvref[1] *
                              (np.cos(bvref[5] * dt_config) - 1.0)) / bvref[5]
                 config[1] = (bvref[1] * np.sin(bvref[5] * dt_config) - bvref[0] *
@@ -461,7 +465,7 @@ class SurfacePlanner():
         """
         if self.all_surfaces is None:
             raise AttributeError("Cannot start an optimisation without surfaces. Use set_surfaces function.")
-        if len(q) != 19:
+        if len(q) != 7:
             raise ArithmeticError("Current state should be size 19, [pos x3 , quaternion x4, joint pos x12]")
         # if set_surfaces == None and self.planeseg == True:
         #     raise ArithmeticError("No surfaces provided, SL1M running without the env URDF.")

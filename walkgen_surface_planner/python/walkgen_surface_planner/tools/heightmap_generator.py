@@ -44,7 +44,7 @@ from walkgen_surface_planner.tools.geometry_utils import getAllSurfacesDict_inne
 
 # --------------------------------- PROBLEM DEFINITION -----------------------------------------------------
 
-environment_urdf = os.getcwd() + "/data/urdf/one_step.urdf"
+environment_urdf = os.getcwd() + "/data/urdf/two_step.urdf"
 
 N_X = 100
 N_Y = 100
@@ -150,7 +150,7 @@ if __name__ == "__main__":
     heightmap.build(affordances)
     # heightmap.save_binary(os.environ["SOLO3D_ENV_DIR"] + params.environment_heightmap)
 
-    heightmap_path = os.getcwd() + "/data/one_step.dat"
+    heightmap_path = os.getcwd() + "/data/two_step.dat"
     heightmap.save_pickle(heightmap_path)
     # save_pickle(heightmap,heightmap_path)
 
