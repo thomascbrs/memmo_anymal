@@ -28,27 +28,27 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 SET(${FOOTSTEP_PLANNER_NAME}_SOURCES
-  __init__.py
-  FootStepPlanner.py
-  FootStepTrajectory.py
-  GaitManager.py
-  FootStepManager.py
-  params.py
-  )
+    __init__.py
+    FootStepPlanner.py
+    FootStepTrajectory.py
+    GaitManager.py
+    FootStepManager.py
+    params.py
+    )
 
 SET(${FOOTSTEP_PLANNER_NAME}_TOOLS_SOURCES
-  __init__.py
-  Surface.py
-  optimisation.py
-  Filter.py
-  )
+    __init__.py
+    Surface.py
+    optimisation.py
+    Filter.py
+    )
 
 FOREACH(src ${${FOOTSTEP_PLANNER_NAME}_SOURCES})
-  PYTHON_INSTALL_ON_SITE(${FOOTSTEP_PLANNER_NAME} ${src})
+PYTHON_INSTALL_ON_SITE(${FOOTSTEP_PLANNER_NAME} ${src})
 ENDFOREACH(src ${FOOTSTEP_PLANNER_NAME}_SOURCES)
 
 FOREACH(src ${${FOOTSTEP_PLANNER_NAME}_TOOLS_SOURCES})
-  PYTHON_INSTALL_ON_SITE(${FOOTSTEP_PLANNER_NAME}/tools ${src})
+PYTHON_INSTALL_ON_SITE(${FOOTSTEP_PLANNER_NAME}/tools ${src})
 ENDFOREACH(src ${FOOTSTEP_PLANNER_NAME}_TOOLS_SOURCES)
 
 ADD_LIBRARY(${FOOTSTEP_PLANNER_NAME} INTERFACE)

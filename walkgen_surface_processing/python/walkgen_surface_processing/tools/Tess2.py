@@ -166,8 +166,9 @@ class Std:
                 _g3 = _g2
                 if (((((((((((_g3 == 57) or ((_g3 == 56))) or ((_g3 == 55))) or ((_g3 == 54))) or ((_g3 == 53))) or
                          ((_g3 == 52))) or ((_g3 == 51))) or ((_g3 == 50))) or ((_g3 == 49))) or ((_g3 == 48))) or
-                    ((_g3 == 46))):
-                    r = (("null" if r is None else r) + ("null" if c is None else c))
+                        ((_g3 == 46))):
+                    r = (("null" if r is None else r) +
+                         ("null" if c is None else c))
                 else:
                     break
         return r
@@ -720,7 +721,8 @@ class hxGeomAlgo_PolyTools:
             while (j < _hx_len):
                 this1 = (poly[i] if i >= 0 and i < len(poly) else None)
                 p = (poly[j] if j >= 0 and j < len(poly) else None)
-                foundDup = (((p is not None) and ((this1.x == p.x))) and ((this1.y == p.y)))
+                foundDup = (((p is not None) and ((this1.x == p.x)))
+                            and ((this1.y == p.y)))
                 if foundDup:
                     dupIndices.append(i)
                 if (consecutiveOnly or ((foundDup and (not consecutiveOnly)))):
@@ -730,7 +732,8 @@ class hxGeomAlgo_PolyTools:
         if (wrapAround and consecutiveOnly):
             this2 = (poly[0] if 0 < len(poly) else None)
             p1 = python_internal_ArrayImpl._get(poly, (_hx_len - 1))
-            tmp = (((p1 is not None) and ((this2.x == p1.x))) and ((this2.y == p1.y)))
+            tmp = (((p1 is not None) and ((this2.x == p1.x)))
+                   and ((this2.y == p1.y)))
         else:
             tmp = False
         if tmp:
@@ -880,7 +883,8 @@ class hxGeomAlgo_PolyTools:
                 i = _g
                 _g = (_g + 1)
                 p0 = (poly[i] if i >= 0 and i < len(poly) else None)
-                p1 = python_internal_ArrayImpl._get(poly, HxOverrides.mod(((i + 1)), _hx_len))
+                p1 = python_internal_ArrayImpl._get(
+                    poly, HxOverrides.mod(((i + 1)), _hx_len))
                 m = ((p0.x * p1.y) - ((p1.x * p0.y)))
                 _hx_local_0 = c
                 _hx_local_1 = _hx_local_0.x
@@ -912,7 +916,8 @@ class hxGeomAlgo_PolyTools:
             i = _g
             _g = (_g + 1)
             p0 = (poly[i] if i >= 0 and i < len(poly) else None)
-            p1 = python_internal_ArrayImpl._get(poly, HxOverrides.mod(((i + 1)), _hx_len))
+            p1 = python_internal_ArrayImpl._get(
+                poly, HxOverrides.mod(((i + 1)), _hx_len))
             area = (area + (((p0.x * p1.y) - ((p1.x * p0.y)))))
         area = (.5 * area)
         return area
@@ -962,8 +967,10 @@ class hxGeomAlgo_PolyTools:
             i = _g
             _g = (_g + 1)
             xPos = ((((nPoints - i) - 1)) * 2)
-            python_internal_ArrayImpl._set(res, (i * 2), (poly[xPos] if xPos >= 0 and xPos < len(poly) else None))
-            python_internal_ArrayImpl._set(res, ((i * 2) + 1), python_internal_ArrayImpl._get(poly, (xPos + 1)))
+            python_internal_ArrayImpl._set(
+                res, (i * 2), (poly[xPos] if xPos >= 0 and xPos < len(poly) else None))
+            python_internal_ArrayImpl._set(
+                res, ((i * 2) + 1), python_internal_ArrayImpl._get(poly, (xPos + 1)))
         return res
 
     @staticmethod
@@ -1005,7 +1012,8 @@ class hxGeomAlgo_PolyTools:
             else:
                 return False
 
-        floats = list(map(Std.parseFloat, list(filter(_hx_local_0, EReg("[^-eE\\.\\d]+", "g").split(_hx_str)))))
+        floats = list(map(Std.parseFloat, list(
+            filter(_hx_local_0, EReg("[^-eE\\.\\d]+", "g").split(_hx_str)))))
         pts = list()
         n = len(floats)
         _g = 0
@@ -1035,10 +1043,12 @@ class hxGeomAlgo_PolyTools:
         nx = ((dx / _hx_len) * halfWidth)
         ny = ((dy / _hx_len) * halfWidth)
         return [
-            hxGeomAlgo__HxPoint_HxPoint_Impl_._new((start.x - ny), (start.y + nx)),
+            hxGeomAlgo__HxPoint_HxPoint_Impl_._new(
+                (start.x - ny), (start.y + nx)),
             hxGeomAlgo__HxPoint_HxPoint_Impl_._new((end.x - ny), (end.y + nx)),
             hxGeomAlgo__HxPoint_HxPoint_Impl_._new((end.x + ny), (end.y - nx)),
-            hxGeomAlgo__HxPoint_HxPoint_Impl_._new((start.x + ny), (start.y - nx))
+            hxGeomAlgo__HxPoint_HxPoint_Impl_._new(
+                (start.x + ny), (start.y - nx))
         ]
 
     @staticmethod
@@ -1058,21 +1068,25 @@ class hxGeomAlgo_PolyTools:
         while (_g < _g1):
             i = _g
             _g = (_g + 1)
-            clipEdgeStart = (clipPoly[i] if i >= 0 and i < len(clipPoly) else None)
+            clipEdgeStart = (clipPoly[i] if i >=
+                             0 and i < len(clipPoly) else None)
             idx = (i + 1)
             _hx_len = len(clipPoly)
             if (idx < 0):
                 idx = (idx + _hx_len)
-            clipEdgeEnd = python_internal_ArrayImpl._get(clipPoly, HxOverrides.mod(idx, _hx_len))
+            clipEdgeEnd = python_internal_ArrayImpl._get(
+                clipPoly, HxOverrides.mod(idx, _hx_len))
             input = output
             output = []
-            inputEdgeStart = python_internal_ArrayImpl._get(input, (len(input) - 1))
+            inputEdgeStart = python_internal_ArrayImpl._get(
+                input, (len(input) - 1))
             _g2 = 0
             _g11 = len(input)
             while (_g2 < _g11):
                 j = _g2
                 _g2 = (_g2 + 1)
-                inputEdgeEnd = (input[j] if j >= 0 and j < len(input) else None)
+                inputEdgeEnd = (input[j] if j >= 0 and j <
+                                len(input) else None)
                 if isInside(inputEdgeEnd, clipEdgeStart, clipEdgeEnd):
                     if (not isInside(inputEdgeStart, clipEdgeStart, clipEdgeEnd)):
                         intersectionPoint = hxGeomAlgo_PolyTools.intersection(inputEdgeStart, inputEdgeEnd,
@@ -1112,7 +1126,8 @@ hxGeomAlgo_WindingRule.ODD = hxGeomAlgo_WindingRule("ODD", 0, ())
 hxGeomAlgo_WindingRule.NON_ZERO = hxGeomAlgo_WindingRule("NON_ZERO", 1, ())
 hxGeomAlgo_WindingRule.POSITIVE = hxGeomAlgo_WindingRule("POSITIVE", 2, ())
 hxGeomAlgo_WindingRule.NEGATIVE = hxGeomAlgo_WindingRule("NEGATIVE", 3, ())
-hxGeomAlgo_WindingRule.ABS_GEQ_TWO = hxGeomAlgo_WindingRule("ABS_GEQ_TWO", 4, ())
+hxGeomAlgo_WindingRule.ABS_GEQ_TWO = hxGeomAlgo_WindingRule(
+    "ABS_GEQ_TWO", 4, ())
 
 
 class hxGeomAlgo_ResultType(Enum):
@@ -1121,15 +1136,19 @@ class hxGeomAlgo_ResultType(Enum):
 
 
 hxGeomAlgo_ResultType.POLYGONS = hxGeomAlgo_ResultType("POLYGONS", 0, ())
-hxGeomAlgo_ResultType.CONNECTED_POLYGONS = hxGeomAlgo_ResultType("CONNECTED_POLYGONS", 1, ())
-hxGeomAlgo_ResultType.BOUNDARY_CONTOURS = hxGeomAlgo_ResultType("BOUNDARY_CONTOURS", 2, ())
-hxGeomAlgo_ResultType.EXPERIMENTAL_DELAUNAY = hxGeomAlgo_ResultType("EXPERIMENTAL_DELAUNAY", 3, ())
+hxGeomAlgo_ResultType.CONNECTED_POLYGONS = hxGeomAlgo_ResultType(
+    "CONNECTED_POLYGONS", 1, ())
+hxGeomAlgo_ResultType.BOUNDARY_CONTOURS = hxGeomAlgo_ResultType(
+    "BOUNDARY_CONTOURS", 2, ())
+hxGeomAlgo_ResultType.EXPERIMENTAL_DELAUNAY = hxGeomAlgo_ResultType(
+    "EXPERIMENTAL_DELAUNAY", 3, ())
 
 
 class hxGeomAlgo_Tess2:
     _hx_class_name = "hxGeomAlgo.Tess2"
     __slots__ = ()
-    _hx_statics = ["tesselate", "union", "intersection", "difference", "convertResult"]
+    _hx_statics = ["tesselate", "union",
+                   "intersection", "difference", "convertResult"]
 
     @staticmethod
     def tesselate(contours, windingRule=None, resultType=None, polySize=None, vertexDim=None, normal=None):
@@ -1143,9 +1162,11 @@ class hxGeomAlgo_Tess2:
         while (_g < _g1):
             i = _g
             _g = (_g + 1)
-            tess.addContour(vertexDim, (contours[i] if i >= 0 and i < len(contours) else None))
+            tess.addContour(
+                vertexDim, (contours[i] if i >= 0 and i < len(contours) else None))
         tess.tesselate((hxGeomAlgo_WindingRule.ODD if ((windingRule is None)) else windingRule),
-                       (hxGeomAlgo_ResultType.POLYGONS if ((resultType is None)) else resultType), polySize, vertexDim,
+                       (hxGeomAlgo_ResultType.POLYGONS if ((resultType is None))
+                        else resultType), polySize, vertexDim,
                        ([0, 0, 1] if ((normal is None)) else normal))
         return _hx_AnonObject({
             'vertices': tess.vertices,
@@ -1183,7 +1204,8 @@ class hxGeomAlgo_Tess2:
         _g = []
         _g1 = 0
         while (_g1 < len(contoursB)):
-            poly = (contoursB[_g1] if _g1 >= 0 and _g1 < len(contoursB) else None)
+            poly = (contoursB[_g1] if _g1 >= 0 and _g1 <
+                    len(contoursB) else None)
             _g1 = (_g1 + 1)
             x = hxGeomAlgo_PolyTools.reverseFloatArray(poly)
             _g.append(x)
@@ -1255,8 +1277,10 @@ class hxGeomAlgo_Tess2:
 
 class hxGeomAlgo__Tess2_TessVertex:
     _hx_class_name = "hxGeomAlgo._Tess2.TessVertex"
-    __slots__ = ("next", "prev", "anEdge", "coords", "s", "t", "pqHandle", "n", "idx")
-    _hx_fields = ["next", "prev", "anEdge", "coords", "s", "t", "pqHandle", "n", "idx"]
+    __slots__ = ("next", "prev", "anEdge", "coords",
+                 "s", "t", "pqHandle", "n", "idx")
+    _hx_fields = ["next", "prev", "anEdge",
+                  "coords", "s", "t", "pqHandle", "n", "idx"]
 
     def __init__(self):
         self.idx = 0
@@ -1287,8 +1311,10 @@ class hxGeomAlgo__Tess2_TessFace:
 
 class hxGeomAlgo__Tess2_TessHalfEdge:
     _hx_class_name = "hxGeomAlgo._Tess2.TessHalfEdge"
-    __slots__ = ("next", "Sym", "Onext", "Lnext", "Org", "Lface", "activeRegion", "winding", "side", "mark")
-    _hx_fields = ["next", "Sym", "Onext", "Lnext", "Org", "Lface", "activeRegion", "winding", "side", "mark"]
+    __slots__ = ("next", "Sym", "Onext", "Lnext", "Org", "Lface",
+                 "activeRegion", "winding", "side", "mark")
+    _hx_fields = ["next", "Sym", "Onext", "Lnext", "Org",
+                  "Lface", "activeRegion", "winding", "side", "mark"]
     _hx_methods = [
         "get_Rface", "set_Rface", "get_Dst", "set_Dst", "get_Oprev", "set_Oprev", "get_Lprev", "set_Lprev",
         "get_Dprev", "set_Dprev", "get_Rprev", "set_Rprev", "get_Dnext", "set_Dnext", "get_Rnext", "set_Rnext"
@@ -1902,7 +1928,8 @@ class hxGeomAlgo__Tess2_Geom:
 
     @staticmethod
     def edgeEval(u, v, w):
-        cond = (hxGeomAlgo__Tess2_Geom.vertLeq(u, v) and hxGeomAlgo__Tess2_Geom.vertLeq(v, w))
+        cond = (hxGeomAlgo__Tess2_Geom.vertLeq(u, v)
+                and hxGeomAlgo__Tess2_Geom.vertLeq(v, w))
         gapL = (v.s - u.s)
         gapR = (w.s - v.s)
         if ((gapL + gapR) > 0.0):
@@ -1914,7 +1941,8 @@ class hxGeomAlgo__Tess2_Geom:
 
     @staticmethod
     def edgeSign(u, v, w):
-        cond = (hxGeomAlgo__Tess2_Geom.vertLeq(u, v) and hxGeomAlgo__Tess2_Geom.vertLeq(v, w))
+        cond = (hxGeomAlgo__Tess2_Geom.vertLeq(u, v)
+                and hxGeomAlgo__Tess2_Geom.vertLeq(v, w))
         gapL = (v.s - u.s)
         gapR = (w.s - v.s)
         if ((gapL + gapR) > 0.0):
@@ -1923,7 +1951,8 @@ class hxGeomAlgo__Tess2_Geom:
 
     @staticmethod
     def transEval(u, v, w):
-        cond = (hxGeomAlgo__Tess2_Geom.transLeq(u, v) and hxGeomAlgo__Tess2_Geom.transLeq(v, w))
+        cond = (hxGeomAlgo__Tess2_Geom.transLeq(u, v)
+                and hxGeomAlgo__Tess2_Geom.transLeq(v, w))
         gapL = (v.t - u.t)
         gapR = (w.t - v.t)
         if ((gapL + gapR) > 0.0):
@@ -1935,7 +1964,8 @@ class hxGeomAlgo__Tess2_Geom:
 
     @staticmethod
     def transSign(u, v, w):
-        cond = (hxGeomAlgo__Tess2_Geom.transLeq(u, v) and hxGeomAlgo__Tess2_Geom.transLeq(v, w))
+        cond = (hxGeomAlgo__Tess2_Geom.transLeq(u, v)
+                and hxGeomAlgo__Tess2_Geom.transLeq(v, w))
         gapL = (v.t - u.t)
         gapR = (w.t - v.t)
         if ((gapL + gapR) > 0.0):
@@ -2136,9 +2166,12 @@ class hxGeomAlgo__Tess2_PQHandleElem:
 
 class hxGeomAlgo__Tess2_PriorityQ:
     _hx_class_name = "hxGeomAlgo._Tess2.PriorityQ"
-    __slots__ = ("size", "max", "nodes", "handles", "initialized", "freeList", "leq")
-    _hx_fields = ["size", "max", "nodes", "handles", "initialized", "freeList", "leq"]
-    _hx_methods = ["floatDown_", "floatUp_", "init", "min", "isEmpty", "insert", "extractMin", "delete"]
+    __slots__ = ("size", "max", "nodes", "handles",
+                 "initialized", "freeList", "leq")
+    _hx_fields = ["size", "max", "nodes",
+                  "handles", "initialized", "freeList", "leq"]
+    _hx_methods = ["floatDown_", "floatUp_", "init",
+                   "min", "isEmpty", "insert", "extractMin", "delete"]
 
     def __init__(self, size, leq):
         self.size = 0
@@ -2149,14 +2182,16 @@ class hxGeomAlgo__Tess2_PriorityQ:
         while (_g < _g1):
             i = _g
             _g = (_g + 1)
-            python_internal_ArrayImpl._set(self.nodes, i, hxGeomAlgo__Tess2_PQNode())
+            python_internal_ArrayImpl._set(
+                self.nodes, i, hxGeomAlgo__Tess2_PQNode())
         self.handles = []
         _g2 = 0
         _g3 = (size + 1)
         while (_g2 < _g3):
             i1 = _g2
             _g2 = (_g2 + 1)
-            python_internal_ArrayImpl._set(self.handles, i1, hxGeomAlgo__Tess2_PQHandleElem())
+            python_internal_ArrayImpl._set(
+                self.handles, i1, hxGeomAlgo__Tess2_PQHandleElem())
         self.initialized = False
         self.freeList = 0
         self.leq = leq
@@ -2177,7 +2212,8 @@ class hxGeomAlgo__Tess2_PriorityQ:
                     python_internal_ArrayImpl._get(h,
                                                    (n[child] if child >= 0 and child < len(n) else None).handle).key)):
                 child = (child + 1)
-            hChild = (n[child] if child >= 0 and child < len(n) else None).handle
+            hChild = (n[child] if child >= 0 and child <
+                      len(n) else None).handle
             if ((child > self.size) or self.leq((h[hCurr] if hCurr >= 0 and hCurr < len(h) else None).key,
                                                 (h[hChild] if hChild >= 0 and hChild < len(h) else None).key)):
                 (n[curr] if curr >= 0 and curr < len(n) else None).handle = hCurr
@@ -2195,7 +2231,8 @@ class hxGeomAlgo__Tess2_PriorityQ:
         hCurr = (n[curr] if curr >= 0 and curr < len(n) else None).handle
         while True:
             parent = (curr >> 1)
-            hParent = (n[parent] if parent >= 0 and parent < len(n) else None).handle
+            hParent = (n[parent] if parent >= 0 and parent <
+                       len(n) else None).handle
             if ((parent == 0) or self.leq((h[hParent] if hParent >= 0 and hParent < len(h) else None).key,
                                           (h[hCurr] if hCurr >= 0 and hCurr < len(h) else None).key)):
                 (n[curr] if curr >= 0 and curr < len(n) else None).handle = hCurr
@@ -2234,22 +2271,28 @@ class hxGeomAlgo__Tess2_PriorityQ:
             while (_g < _g1):
                 i = _g
                 _g = (_g + 1)
-                python_internal_ArrayImpl._set(self.nodes, i, hxGeomAlgo__Tess2_PQNode())
+                python_internal_ArrayImpl._set(
+                    self.nodes, i, hxGeomAlgo__Tess2_PQNode())
             s = len(self.handles)
             _g2 = len(self.handles)
             _g3 = (self.max + 1)
             while (_g2 < _g3):
                 i1 = _g2
                 _g2 = (_g2 + 1)
-                python_internal_ArrayImpl._set(self.handles, i1, hxGeomAlgo__Tess2_PQHandleElem())
+                python_internal_ArrayImpl._set(
+                    self.handles, i1, hxGeomAlgo__Tess2_PQHandleElem())
         if (self.freeList == 0):
             free = curr
         else:
             free = self.freeList
-            self.freeList = (self.handles[free] if free >= 0 and free < len(self.handles) else None).node
-        (self.nodes[curr] if curr >= 0 and curr < len(self.nodes) else None).handle = free
-        (self.handles[free] if free >= 0 and free < len(self.handles) else None).node = curr
-        (self.handles[free] if free >= 0 and free < len(self.handles) else None).key = keyNew
+            self.freeList = (self.handles[free] if free >= 0 and free < len(
+                self.handles) else None).node
+        (self.nodes[curr] if curr >= 0 and curr <
+         len(self.nodes) else None).handle = free
+        (self.handles[free] if free >= 0 and free <
+         len(self.handles) else None).node = curr
+        (self.handles[free] if free >= 0 and free <
+         len(self.handles) else None).key = keyNew
         if self.initialized:
             self.floatUp_(curr)
         return free
@@ -2260,10 +2303,13 @@ class hxGeomAlgo__Tess2_PriorityQ:
         hMin = (n[1] if 1 < len(n) else None).handle
         _hx_min = (h[hMin] if hMin >= 0 and hMin < len(h) else None).key
         if (self.size > 0):
-            (n[1] if 1 < len(n) else None).handle = python_internal_ArrayImpl._get(n, self.size).handle
-            python_internal_ArrayImpl._get(h, (n[1] if 1 < len(n) else None).handle).node = 1
+            (n[1] if 1 < len(n) else None).handle = python_internal_ArrayImpl._get(
+                n, self.size).handle
+            python_internal_ArrayImpl._get(
+                h, (n[1] if 1 < len(n) else None).handle).node = 1
             (h[hMin] if hMin >= 0 and hMin < len(h) else None).key = None
-            (h[hMin] if hMin >= 0 and hMin < len(h) else None).node = self.freeList
+            (h[hMin] if hMin >= 0 and hMin < len(
+                h) else None).node = self.freeList
             self.freeList = hMin
             _hx_local_0 = self
             _hx_local_1 = _hx_local_0.size
@@ -2277,8 +2323,10 @@ class hxGeomAlgo__Tess2_PriorityQ:
         n = self.nodes
         h = self.handles
         curr = (h[hCurr] if hCurr >= 0 and hCurr < len(h) else None).node
-        (n[curr] if curr >= 0 and curr < len(n) else None).handle = python_internal_ArrayImpl._get(n, self.size).handle
-        python_internal_ArrayImpl._get(h, (n[curr] if curr >= 0 and curr < len(n) else None).handle).node = curr
+        (n[curr] if curr >= 0 and curr < len(
+            n) else None).handle = python_internal_ArrayImpl._get(n, self.size).handle
+        python_internal_ArrayImpl._get(
+            h, (n[curr] if curr >= 0 and curr < len(n) else None).handle).node = curr
         _hx_local_0 = self
         _hx_local_1 = _hx_local_0.size
         _hx_local_0.size = (_hx_local_1 - 1)
@@ -2292,14 +2340,17 @@ class hxGeomAlgo__Tess2_PriorityQ:
             else:
                 self.floatUp_(curr)
         (h[hCurr] if hCurr >= 0 and hCurr < len(h) else None).key = None
-        (h[hCurr] if hCurr >= 0 and hCurr < len(h) else None).node = self.freeList
+        (h[hCurr] if hCurr >= 0 and hCurr < len(
+            h) else None).node = self.freeList
         self.freeList = hCurr
 
 
 class hxGeomAlgo__Tess2_ActiveRegion:
     _hx_class_name = "hxGeomAlgo._Tess2.ActiveRegion"
-    __slots__ = ("eUp", "nodeUp", "windingNumber", "inside", "sentinel", "dirty", "fixUpperEdge")
-    _hx_fields = ["eUp", "nodeUp", "windingNumber", "inside", "sentinel", "dirty", "fixUpperEdge"]
+    __slots__ = ("eUp", "nodeUp", "windingNumber", "inside",
+                 "sentinel", "dirty", "fixUpperEdge")
+    _hx_fields = ["eUp", "nodeUp", "windingNumber",
+                  "inside", "sentinel", "dirty", "fixUpperEdge"]
 
     def __init__(self):
         self.fixUpperEdge = False
@@ -2384,7 +2435,8 @@ class hxGeomAlgo__Tess2_Sweep:
             if (not ((reg.eUp.Org == org))):
                 break
         if reg.fixUpperEdge:
-            e = tess.mesh.connect(hxGeomAlgo__Tess2_Sweep.regionBelow(reg).eUp.Sym, reg.eUp.Lnext)
+            e = tess.mesh.connect(
+                hxGeomAlgo__Tess2_Sweep.regionBelow(reg).eUp.Sym, reg.eUp.Lnext)
             if (e is None):
                 return None
             hxGeomAlgo__Tess2_Sweep.fixUpperEdge(tess, reg, e)
@@ -2432,8 +2484,10 @@ class hxGeomAlgo__Tess2_Sweep:
 
     @staticmethod
     def computeWinding(tess, reg):
-        reg.windingNumber = (hxGeomAlgo__Tess2_Sweep.regionAbove(reg).windingNumber + reg.eUp.winding)
-        reg.inside = hxGeomAlgo__Tess2_Sweep.isWindingInside(tess, reg.windingNumber)
+        reg.windingNumber = (hxGeomAlgo__Tess2_Sweep.regionAbove(
+            reg).windingNumber + reg.eUp.winding)
+        reg.inside = hxGeomAlgo__Tess2_Sweep.isWindingInside(
+            tess, reg.windingNumber)
 
     @staticmethod
     def finishRegion(tess, reg):
@@ -2480,7 +2534,8 @@ class hxGeomAlgo__Tess2_Sweep:
             if (not ((e != eLast))):
                 break
         if (eTopLeft is None):
-            eTopLeft = hxGeomAlgo__Tess2_Sweep.regionBelow(regUp).eUp.get_Rprev()
+            eTopLeft = hxGeomAlgo__Tess2_Sweep.regionBelow(
+                regUp).eUp.get_Rprev()
         regPrev = regUp
         ePrev = eTopLeft
         while True:
@@ -2492,7 +2547,8 @@ class hxGeomAlgo__Tess2_Sweep:
                 tess.mesh.splice(e.get_Oprev(), e)
                 tess.mesh.splice(ePrev.get_Oprev(), e)
             reg.windingNumber = (regPrev.windingNumber - e.winding)
-            reg.inside = hxGeomAlgo__Tess2_Sweep.isWindingInside(tess, reg.windingNumber)
+            reg.inside = hxGeomAlgo__Tess2_Sweep.isWindingInside(
+                tess, reg.windingNumber)
             regPrev.dirty = True
             if ((not firstTime) and hxGeomAlgo__Tess2_Sweep.checkForRightSplice(tess, regPrev)):
                 hxGeomAlgo__Tess2_Sweep.addWinding(e, ePrev)
@@ -2517,25 +2573,31 @@ class hxGeomAlgo__Tess2_Sweep:
         w1 = ((0.5 * t1) / ((t1 + t2)))
         _hx_local_0 = isect.coords
         _hx_local_1 = 0
-        _hx_local_2 = (_hx_local_0[_hx_local_1] if _hx_local_1 >= 0 and _hx_local_1 < len(_hx_local_0) else None)
+        _hx_local_2 = (_hx_local_0[_hx_local_1] if _hx_local_1 >=
+                       0 and _hx_local_1 < len(_hx_local_0) else None)
         python_internal_ArrayImpl._set(_hx_local_0, _hx_local_1,
                                        (_hx_local_2 + (((w0 * (org.coords[0] if 0 < len(org.coords) else None)) +
                                                         ((w1 * (dst.coords[0] if 0 < len(dst.coords) else None)))))))
-        (_hx_local_0[_hx_local_1] if _hx_local_1 >= 0 and _hx_local_1 < len(_hx_local_0) else None)
+        (_hx_local_0[_hx_local_1] if _hx_local_1 >=
+         0 and _hx_local_1 < len(_hx_local_0) else None)
         _hx_local_3 = isect.coords
         _hx_local_4 = 1
-        _hx_local_5 = (_hx_local_3[_hx_local_4] if _hx_local_4 >= 0 and _hx_local_4 < len(_hx_local_3) else None)
+        _hx_local_5 = (_hx_local_3[_hx_local_4] if _hx_local_4 >=
+                       0 and _hx_local_4 < len(_hx_local_3) else None)
         python_internal_ArrayImpl._set(_hx_local_3, _hx_local_4,
                                        (_hx_local_5 + (((w0 * (org.coords[1] if 1 < len(org.coords) else None)) +
                                                         ((w1 * (dst.coords[1] if 1 < len(dst.coords) else None)))))))
-        (_hx_local_3[_hx_local_4] if _hx_local_4 >= 0 and _hx_local_4 < len(_hx_local_3) else None)
+        (_hx_local_3[_hx_local_4] if _hx_local_4 >=
+         0 and _hx_local_4 < len(_hx_local_3) else None)
         _hx_local_6 = isect.coords
         _hx_local_7 = 2
-        _hx_local_8 = (_hx_local_6[_hx_local_7] if _hx_local_7 >= 0 and _hx_local_7 < len(_hx_local_6) else None)
+        _hx_local_8 = (_hx_local_6[_hx_local_7] if _hx_local_7 >=
+                       0 and _hx_local_7 < len(_hx_local_6) else None)
         python_internal_ArrayImpl._set(_hx_local_6, _hx_local_7,
                                        (_hx_local_8 + (((w0 * (org.coords[2] if 2 < len(org.coords) else None)) +
                                                         ((w1 * (dst.coords[2] if 2 < len(dst.coords) else None)))))))
-        (_hx_local_6[_hx_local_7] if _hx_local_7 >= 0 and _hx_local_7 < len(_hx_local_6) else None)
+        (_hx_local_6[_hx_local_7] if _hx_local_7 >=
+         0 and _hx_local_7 < len(_hx_local_6) else None)
 
     @staticmethod
     def getIntersectData(tess, isect, orgUp, dstUp, orgLo, dstLo):
@@ -2574,7 +2636,8 @@ class hxGeomAlgo__Tess2_Sweep:
                 regUp.dirty = _hx_local_0()
             elif (eUp.Org != eLo.Org):
                 tess.pq.delete(eUp.Org.pqHandle)
-                hxGeomAlgo__Tess2_Sweep.spliceMergeVertices(tess, eLo.get_Oprev(), eUp)
+                hxGeomAlgo__Tess2_Sweep.spliceMergeVertices(
+                    tess, eLo.get_Oprev(), eUp)
         else:
             if (hxGeomAlgo__Tess2_Geom.edgeSign(eUp.get_Dst(), eLo.Org, eUp.Org) < 0):
                 return False
@@ -2594,7 +2657,8 @@ class hxGeomAlgo__Tess2_Sweep:
         eUp = regUp.eUp
         eLo = regLo.eUp
         e = None
-        cond = (not hxGeomAlgo__Tess2_Geom.vertEq(eUp.get_Dst(), eLo.get_Dst()))
+        cond = (not hxGeomAlgo__Tess2_Geom.vertEq(
+            eUp.get_Dst(), eLo.get_Dst()))
         if hxGeomAlgo__Tess2_Geom.vertLeq(eUp.get_Dst(), eLo.get_Dst()):
             if (hxGeomAlgo__Tess2_Geom.edgeSign(eUp.get_Dst(), eLo.get_Dst(), eUp.Org) < 0):
                 return False
@@ -2633,16 +2697,20 @@ class hxGeomAlgo__Tess2_Sweep:
         isect = hxGeomAlgo__Tess2_TessVertex()
         e = None
         cond = (not hxGeomAlgo__Tess2_Geom.vertEq(dstLo, dstUp))
-        cond1 = (hxGeomAlgo__Tess2_Geom.edgeSign(dstUp, tess.event, orgUp) <= 0)
-        cond2 = (hxGeomAlgo__Tess2_Geom.edgeSign(dstLo, tess.event, orgLo) >= 0)
+        cond1 = (hxGeomAlgo__Tess2_Geom.edgeSign(
+            dstUp, tess.event, orgUp) <= 0)
+        cond2 = (hxGeomAlgo__Tess2_Geom.edgeSign(
+            dstLo, tess.event, orgLo) >= 0)
         if (orgUp == orgLo):
             return False
         a = orgUp.t
         b = dstUp.t
-        tMinUp = (a if (python_lib_Math.isnan(a)) else (b if (python_lib_Math.isnan(b)) else min(a, b)))
+        tMinUp = (a if (python_lib_Math.isnan(a)) else (
+            b if (python_lib_Math.isnan(b)) else min(a, b)))
         a1 = orgLo.t
         b1 = dstLo.t
-        tMaxLo = (a1 if (python_lib_Math.isnan(a1)) else (b1 if (python_lib_Math.isnan(b1)) else max(a1, b1)))
+        tMaxLo = (a1 if (python_lib_Math.isnan(a1)) else (
+            b1 if (python_lib_Math.isnan(b1)) else max(a1, b1)))
         if (tMinUp > tMaxLo):
             return False
         if hxGeomAlgo__Tess2_Geom.vertLeq(orgUp, orgLo):
@@ -2671,7 +2739,8 @@ class hxGeomAlgo__Tess2_Sweep:
         if hxGeomAlgo__Tess2_Geom.vertLeq(isect, tess.event):
             isect.s = tess.event.s
             isect.t = tess.event.t
-        orgMin = (orgUp if (hxGeomAlgo__Tess2_Geom.vertLeq(orgUp, orgLo)) else orgLo)
+        orgMin = (
+            orgUp if (hxGeomAlgo__Tess2_Geom.vertLeq(orgUp, orgLo)) else orgLo)
         if hxGeomAlgo__Tess2_Geom.vertLeq(orgMin, isect):
             isect.s = orgMin.s
             isect.t = orgMin.t
@@ -2687,8 +2756,10 @@ class hxGeomAlgo__Tess2_Sweep:
                 tess.mesh.splice(eLo.Sym, eUp)
                 regUp = hxGeomAlgo__Tess2_Sweep.topLeftRegion(tess, regUp)
                 eUp = hxGeomAlgo__Tess2_Sweep.regionBelow(regUp).eUp
-                hxGeomAlgo__Tess2_Sweep.finishLeftRegions(tess, hxGeomAlgo__Tess2_Sweep.regionBelow(regUp), regLo)
-                hxGeomAlgo__Tess2_Sweep.addRightEdges(tess, regUp, eUp.get_Oprev(), eUp, eUp, True)
+                hxGeomAlgo__Tess2_Sweep.finishLeftRegions(
+                    tess, hxGeomAlgo__Tess2_Sweep.regionBelow(regUp), regLo)
+                hxGeomAlgo__Tess2_Sweep.addRightEdges(
+                    tess, regUp, eUp.get_Oprev(), eUp, eUp, True)
                 return True
             if (dstUp == tess.event):
                 tess.mesh.splitEdge(eLo.Sym)
@@ -2697,8 +2768,10 @@ class hxGeomAlgo__Tess2_Sweep:
                 regUp = hxGeomAlgo__Tess2_Sweep.topRightRegion(regUp)
                 e = hxGeomAlgo__Tess2_Sweep.regionBelow(regUp).eUp.get_Rprev()
                 regLo.eUp = eLo.get_Oprev()
-                eLo = hxGeomAlgo__Tess2_Sweep.finishLeftRegions(tess, regLo, None)
-                hxGeomAlgo__Tess2_Sweep.addRightEdges(tess, regUp, eLo.Onext, eUp.get_Rprev(), e, True)
+                eLo = hxGeomAlgo__Tess2_Sweep.finishLeftRegions(
+                    tess, regLo, None)
+                hxGeomAlgo__Tess2_Sweep.addRightEdges(
+                    tess, regUp, eLo.Onext, eUp.get_Rprev(), e, True)
                 return True
             if (hxGeomAlgo__Tess2_Geom.edgeSign(dstUp, tess.event, isect) >= 0):
 
@@ -2706,7 +2779,8 @@ class hxGeomAlgo__Tess2_Sweep:
                     regUp.dirty = True
                     return regUp.dirty
 
-                hxGeomAlgo__Tess2_Sweep.regionAbove(regUp).dirty = _hx_local_0()
+                hxGeomAlgo__Tess2_Sweep.regionAbove(
+                    regUp).dirty = _hx_local_0()
                 tess.mesh.splitEdge(eUp.Sym)
                 eUp.Org.s = tess.event.s
                 eUp.Org.t = tess.event.t
@@ -2727,7 +2801,8 @@ class hxGeomAlgo__Tess2_Sweep:
         eUp.Org.s = isect.s
         eUp.Org.t = isect.t
         eUp.Org.pqHandle = tess.pq.insert(eUp.Org)
-        hxGeomAlgo__Tess2_Sweep.getIntersectData(tess, eUp.Org, orgUp, dstUp, orgLo, dstLo)
+        hxGeomAlgo__Tess2_Sweep.getIntersectData(
+            tess, eUp.Org, orgUp, dstUp, orgLo, dstLo)
 
         def _hx_local_3():
 
@@ -2772,7 +2847,7 @@ class hxGeomAlgo__Tess2_Sweep:
                         eUp = regUp.eUp
             if (eUp.Org != eLo.Org):
                 if ((((eUp.get_Dst() != eLo.get_Dst()) and (not regUp.fixUpperEdge)) and (not regLo.fixUpperEdge)) and
-                    (((eUp.get_Dst() == tess.event) or ((eLo.get_Dst() == tess.event))))):
+                        (((eUp.get_Dst() == tess.event) or ((eLo.get_Dst() == tess.event))))):
                     if hxGeomAlgo__Tess2_Sweep.checkForIntersect(tess, regUp):
                         return
                 else:
@@ -2797,21 +2872,25 @@ class hxGeomAlgo__Tess2_Sweep:
             tess.mesh.splice(eTopLeft.get_Oprev(), eUp)
             regUp = hxGeomAlgo__Tess2_Sweep.topLeftRegion(tess, regUp)
             eTopLeft = hxGeomAlgo__Tess2_Sweep.regionBelow(regUp).eUp
-            hxGeomAlgo__Tess2_Sweep.finishLeftRegions(tess, hxGeomAlgo__Tess2_Sweep.regionBelow(regUp), regLo)
+            hxGeomAlgo__Tess2_Sweep.finishLeftRegions(
+                tess, hxGeomAlgo__Tess2_Sweep.regionBelow(regUp), regLo)
             degenerate = True
         if hxGeomAlgo__Tess2_Geom.vertEq(eLo.Org, tess.event):
             tess.mesh.splice(eBottomLeft, eLo.get_Oprev())
-            eBottomLeft = hxGeomAlgo__Tess2_Sweep.finishLeftRegions(tess, regLo, None)
+            eBottomLeft = hxGeomAlgo__Tess2_Sweep.finishLeftRegions(
+                tess, regLo, None)
             degenerate = True
         if degenerate:
-            hxGeomAlgo__Tess2_Sweep.addRightEdges(tess, regUp, eBottomLeft.Onext, eTopLeft, eTopLeft, True)
+            hxGeomAlgo__Tess2_Sweep.addRightEdges(
+                tess, regUp, eBottomLeft.Onext, eTopLeft, eTopLeft, True)
             return
         if hxGeomAlgo__Tess2_Geom.vertLeq(eLo.Org, eUp.Org):
             eNew = eLo.get_Oprev()
         else:
             eNew = eUp
         eNew = tess.mesh.connect(eBottomLeft.get_Lprev(), eNew)
-        hxGeomAlgo__Tess2_Sweep.addRightEdges(tess, regUp, eNew, eNew.Onext, eNew.Onext, False)
+        hxGeomAlgo__Tess2_Sweep.addRightEdges(
+            tess, regUp, eNew, eNew.Onext, eNew.Onext, False)
         eNew.Sym.activeRegion.fixUpperEdge = True
         hxGeomAlgo__Tess2_Sweep.walkDirtyRegions(tess, regUp)
 
@@ -2841,7 +2920,8 @@ class hxGeomAlgo__Tess2_Sweep:
         tess.mesh.splice(vEvent.anEdge, eTopRight)
         if (not hxGeomAlgo__Tess2_Geom.edgeGoesLeft(eTopLeft)):
             eTopLeft = None
-        hxGeomAlgo__Tess2_Sweep.addRightEdges(tess, regUp, eTopRight.Onext, eLast, eTopLeft, True)
+        hxGeomAlgo__Tess2_Sweep.addRightEdges(
+            tess, regUp, eTopRight.Onext, eLast, eTopLeft, True)
 
     @staticmethod
     def connectLeftVertex(tess, vEvent):
@@ -2857,20 +2937,24 @@ class hxGeomAlgo__Tess2_Sweep:
         if (hxGeomAlgo__Tess2_Geom.edgeSign(eUp.get_Dst(), vEvent, eUp.Org) == 0.0):
             hxGeomAlgo__Tess2_Sweep.connectLeftDegenerate(tess, regUp, vEvent)
             return
-        reg = (regUp if (hxGeomAlgo__Tess2_Geom.vertLeq(eLo.get_Dst(), eUp.get_Dst())) else regLo)
+        reg = (regUp if (hxGeomAlgo__Tess2_Geom.vertLeq(
+            eLo.get_Dst(), eUp.get_Dst())) else regLo)
         if (regUp.inside or reg.fixUpperEdge):
             if (reg == regUp):
                 eNew = tess.mesh.connect(vEvent.anEdge.Sym, eUp.Lnext)
             else:
-                tempHalfEdge = tess.mesh.connect(eLo.get_Dnext(), vEvent.anEdge)
+                tempHalfEdge = tess.mesh.connect(
+                    eLo.get_Dnext(), vEvent.anEdge)
                 eNew = tempHalfEdge.Sym
             if reg.fixUpperEdge:
                 hxGeomAlgo__Tess2_Sweep.fixUpperEdge(tess, reg, eNew)
             else:
-                hxGeomAlgo__Tess2_Sweep.computeWinding(tess, hxGeomAlgo__Tess2_Sweep.addRegionBelow(tess, regUp, eNew))
+                hxGeomAlgo__Tess2_Sweep.computeWinding(
+                    tess, hxGeomAlgo__Tess2_Sweep.addRegionBelow(tess, regUp, eNew))
             hxGeomAlgo__Tess2_Sweep.sweepEvent(tess, vEvent)
         else:
-            hxGeomAlgo__Tess2_Sweep.addRightEdges(tess, regUp, vEvent.anEdge, vEvent.anEdge, None, True)
+            hxGeomAlgo__Tess2_Sweep.addRightEdges(
+                tess, regUp, vEvent.anEdge, vEvent.anEdge, None, True)
 
     @staticmethod
     def sweepEvent(tess, vEvent):
@@ -2885,11 +2969,14 @@ class hxGeomAlgo__Tess2_Sweep:
         regUp = hxGeomAlgo__Tess2_Sweep.topLeftRegion(tess, e.activeRegion)
         reg = hxGeomAlgo__Tess2_Sweep.regionBelow(regUp)
         eTopLeft = reg.eUp
-        eBottomLeft = hxGeomAlgo__Tess2_Sweep.finishLeftRegions(tess, reg, None)
+        eBottomLeft = hxGeomAlgo__Tess2_Sweep.finishLeftRegions(
+            tess, reg, None)
         if (eBottomLeft.Onext == eTopLeft):
-            hxGeomAlgo__Tess2_Sweep.connectRightVertex(tess, regUp, eBottomLeft)
+            hxGeomAlgo__Tess2_Sweep.connectRightVertex(
+                tess, regUp, eBottomLeft)
         else:
-            hxGeomAlgo__Tess2_Sweep.addRightEdges(tess, regUp, eBottomLeft.Onext, eTopLeft, eTopLeft, True)
+            hxGeomAlgo__Tess2_Sweep.addRightEdges(
+                tess, regUp, eBottomLeft.Onext, eTopLeft, eTopLeft, True)
 
     @staticmethod
     def addSentinel(tess, smin, smax, t):
@@ -2910,9 +2997,12 @@ class hxGeomAlgo__Tess2_Sweep:
 
     @staticmethod
     def initEdgeDict(tess):
-        tess.dict = hxGeomAlgo__Tess2_Dict(tess, hxGeomAlgo__Tess2_Sweep.edgeLeq)
-        w = ((tess.bmax[0] if 0 < len(tess.bmax) else None) - (tess.bmin[0] if 0 < len(tess.bmin) else None))
-        h = ((tess.bmax[1] if 1 < len(tess.bmax) else None) - (tess.bmin[1] if 1 < len(tess.bmin) else None))
+        tess.dict = hxGeomAlgo__Tess2_Dict(
+            tess, hxGeomAlgo__Tess2_Sweep.edgeLeq)
+        w = ((tess.bmax[0] if 0 < len(tess.bmax) else None) -
+             (tess.bmin[0] if 0 < len(tess.bmin) else None))
+        h = ((tess.bmax[1] if 1 < len(tess.bmax) else None) -
+             (tess.bmin[1] if 1 < len(tess.bmin) else None))
         smin = ((tess.bmin[0] if 0 < len(tess.bmin) else None) - w)
         smax = ((tess.bmax[0] if 0 < len(tess.bmax) else None) + w)
         tmin = ((tess.bmin[1] if 1 < len(tess.bmin) else None) - h)
@@ -2969,7 +3059,8 @@ class hxGeomAlgo__Tess2_Sweep:
         vertexCount = (vertexCount + 8)
 
         def _hx_local_2():
-            tess.pq = hxGeomAlgo__Tess2_PriorityQ(vertexCount, hxGeomAlgo__Tess2_Geom.vertLeq)
+            tess.pq = hxGeomAlgo__Tess2_PriorityQ(
+                vertexCount, hxGeomAlgo__Tess2_Geom.vertLeq)
             return tess.pq
 
         pq = _hx_local_2()
@@ -3019,7 +3110,8 @@ class hxGeomAlgo__Tess2_Sweep:
                 if ((vNext is None) or (not hxGeomAlgo__Tess2_Geom.vertEq(vNext, v))):
                     break
                 vNext = tess.pq.extractMin()
-                hxGeomAlgo__Tess2_Sweep.spliceMergeVertices(tess, v.anEdge, vNext.anEdge)
+                hxGeomAlgo__Tess2_Sweep.spliceMergeVertices(
+                    tess, v.anEdge, vNext.anEdge)
             hxGeomAlgo__Tess2_Sweep.sweepEvent(tess, v)
         tess.event = tess.dict.min().key.eUp.Org
         hxGeomAlgo__Tess2_Sweep.debugEvent(tess)
@@ -3072,30 +3164,40 @@ class hxGeomAlgo_Tesselator:
         _hx_len = ((((v[0] if 0 < len(v) else None) * (v[0] if 0 < len(v) else None)) +
                     (((v[1] if 1 < len(v) else None) * (v[1] if 1 < len(v) else None)))) +
                    (((v[2] if 2 < len(v) else None) * (v[2] if 2 < len(v) else None))))
-        _hx_len = (Math.NaN if ((_hx_len < 0)) else python_lib_Math.sqrt(_hx_len))
+        _hx_len = (Math.NaN if ((_hx_len < 0))
+                   else python_lib_Math.sqrt(_hx_len))
         _hx_local_0 = v
         _hx_local_1 = 0
-        _hx_local_2 = (_hx_local_0[_hx_local_1] if _hx_local_1 >= 0 and _hx_local_1 < len(_hx_local_0) else None)
-        python_internal_ArrayImpl._set(_hx_local_0, _hx_local_1, (_hx_local_2 / _hx_len))
-        (_hx_local_0[_hx_local_1] if _hx_local_1 >= 0 and _hx_local_1 < len(_hx_local_0) else None)
+        _hx_local_2 = (_hx_local_0[_hx_local_1] if _hx_local_1 >=
+                       0 and _hx_local_1 < len(_hx_local_0) else None)
+        python_internal_ArrayImpl._set(
+            _hx_local_0, _hx_local_1, (_hx_local_2 / _hx_len))
+        (_hx_local_0[_hx_local_1] if _hx_local_1 >=
+         0 and _hx_local_1 < len(_hx_local_0) else None)
         _hx_local_3 = v
         _hx_local_4 = 1
-        _hx_local_5 = (_hx_local_3[_hx_local_4] if _hx_local_4 >= 0 and _hx_local_4 < len(_hx_local_3) else None)
-        python_internal_ArrayImpl._set(_hx_local_3, _hx_local_4, (_hx_local_5 / _hx_len))
-        (_hx_local_3[_hx_local_4] if _hx_local_4 >= 0 and _hx_local_4 < len(_hx_local_3) else None)
+        _hx_local_5 = (_hx_local_3[_hx_local_4] if _hx_local_4 >=
+                       0 and _hx_local_4 < len(_hx_local_3) else None)
+        python_internal_ArrayImpl._set(
+            _hx_local_3, _hx_local_4, (_hx_local_5 / _hx_len))
+        (_hx_local_3[_hx_local_4] if _hx_local_4 >=
+         0 and _hx_local_4 < len(_hx_local_3) else None)
         _hx_local_6 = v
         _hx_local_7 = 2
-        _hx_local_8 = (_hx_local_6[_hx_local_7] if _hx_local_7 >= 0 and _hx_local_7 < len(_hx_local_6) else None)
-        python_internal_ArrayImpl._set(_hx_local_6, _hx_local_7, (_hx_local_8 / _hx_len))
-        (_hx_local_6[_hx_local_7] if _hx_local_7 >= 0 and _hx_local_7 < len(_hx_local_6) else None)
+        _hx_local_8 = (_hx_local_6[_hx_local_7] if _hx_local_7 >=
+                       0 and _hx_local_7 < len(_hx_local_6) else None)
+        python_internal_ArrayImpl._set(
+            _hx_local_6, _hx_local_7, (_hx_local_8 / _hx_len))
+        (_hx_local_6[_hx_local_7] if _hx_local_7 >=
+         0 and _hx_local_7 < len(_hx_local_6) else None)
 
     def longAxis_(self, v):
         i = 0
         if (Reflect.field(Math, "fabs")((v[1] if 1 < len(v) else None)) > Reflect.field(Math, "fabs")(
-            (v[0] if 0 < len(v) else None))):
+                (v[0] if 0 < len(v) else None))):
             i = 1
         if (Reflect.field(Math, "fabs")((v[2] if 2 < len(v) else None)) > Reflect.field(Math, "fabs")(
-            (v[i] if i >= 0 and i < len(v) else None))):
+                (v[i] if i >= 0 and i < len(v) else None))):
             i = 2
         return i
 
@@ -3156,14 +3258,14 @@ class hxGeomAlgo_Tesselator:
             v = v.next
         i = 0
         if (((maxVal[1] if 1 < len(maxVal) else None) - (minVal[1] if 1 < len(minVal) else None)) >
-            (((maxVal[0] if 0 < len(maxVal) else None) - (minVal[0] if 0 < len(minVal) else None)))):
+                (((maxVal[0] if 0 < len(maxVal) else None) - (minVal[0] if 0 < len(minVal) else None)))):
             i = 1
         if (((maxVal[2] if 2 < len(maxVal) else None) - (minVal[2] if 2 < len(minVal) else None)) >
             (((maxVal[i] if i >= 0 and i < len(maxVal) else None) -
               (minVal[i] if i >= 0 and i < len(minVal) else None)))):
             i = 2
         if ((minVal[i] if i >= 0 and i < len(minVal) else None) >=
-            (maxVal[i] if i >= 0 and i < len(maxVal) else None)):
+                (maxVal[i] if i >= 0 and i < len(maxVal) else None)):
             python_internal_ArrayImpl._set(norm, 0, 0)
             python_internal_ArrayImpl._set(norm, 1, 0)
             python_internal_ArrayImpl._set(norm, 2, 1)
@@ -3179,13 +3281,20 @@ class hxGeomAlgo_Tesselator:
                                                (v2.coords[2] if 2 < len(v2.coords) else None)))
         v = vHead.next
         while (v != vHead):
-            d2_0 = ((v.coords[0] if 0 < len(v.coords) else None) - (v2.coords[0] if 0 < len(v2.coords) else None))
-            d2_1 = ((v.coords[1] if 1 < len(v.coords) else None) - (v2.coords[1] if 1 < len(v2.coords) else None))
-            d2_2 = ((v.coords[2] if 2 < len(v.coords) else None) - (v2.coords[2] if 2 < len(v2.coords) else None))
-            tNorm_0 = (((d1[1] if 1 < len(d1) else None) * d2_2) - (((d1[2] if 2 < len(d1) else None) * d2_1)))
-            tNorm_1 = (((d1[2] if 2 < len(d1) else None) * d2_0) - (((d1[0] if 0 < len(d1) else None) * d2_2)))
-            tNorm_2 = (((d1[0] if 0 < len(d1) else None) * d2_1) - (((d1[1] if 1 < len(d1) else None) * d2_0)))
-            tLen2 = (((tNorm_0 * tNorm_0) + ((tNorm_1 * tNorm_1))) + ((tNorm_2 * tNorm_2)))
+            d2_0 = ((v.coords[0] if 0 < len(v.coords) else None) -
+                    (v2.coords[0] if 0 < len(v2.coords) else None))
+            d2_1 = ((v.coords[1] if 1 < len(v.coords) else None) -
+                    (v2.coords[1] if 1 < len(v2.coords) else None))
+            d2_2 = ((v.coords[2] if 2 < len(v.coords) else None) -
+                    (v2.coords[2] if 2 < len(v2.coords) else None))
+            tNorm_0 = (((d1[1] if 1 < len(d1) else None) * d2_2) -
+                       (((d1[2] if 2 < len(d1) else None) * d2_1)))
+            tNorm_1 = (((d1[2] if 2 < len(d1) else None) * d2_0) -
+                       (((d1[0] if 0 < len(d1) else None) * d2_2)))
+            tNorm_2 = (((d1[0] if 0 < len(d1) else None) * d2_1) -
+                       (((d1[1] if 1 < len(d1) else None) * d2_0)))
+            tLen2 = (((tNorm_0 * tNorm_0) + ((tNorm_1 * tNorm_1))) +
+                     ((tNorm_2 * tNorm_2)))
             if (tLen2 > maxLen2):
                 maxLen2 = tLen2
                 python_internal_ArrayImpl._set(norm, 0, tNorm_0)
@@ -3219,7 +3328,8 @@ class hxGeomAlgo_Tesselator:
                 f = f.next
                 continue
             while True:
-                area = (area + ((((e.Org.s - e.get_Dst().s)) * ((e.Org.t + e.get_Dst().t)))))
+                area = (area + ((((e.Org.s - e.get_Dst().s))
+                        * ((e.Org.t + e.get_Dst().t)))))
                 e = e.Lnext
                 if (not ((e != f.anEdge))):
                     break
@@ -3229,29 +3339,38 @@ class hxGeomAlgo_Tesselator:
             while (v != vHead):
                 v.t = -v.t
                 v = v.next
-            python_internal_ArrayImpl._set(self.tUnit, 0, -(self.tUnit[0] if 0 < len(self.tUnit) else None))
-            python_internal_ArrayImpl._set(self.tUnit, 1, -(self.tUnit[1] if 1 < len(self.tUnit) else None))
-            python_internal_ArrayImpl._set(self.tUnit, 2, -(self.tUnit[2] if 2 < len(self.tUnit) else None))
+            python_internal_ArrayImpl._set(
+                self.tUnit, 0, -(self.tUnit[0] if 0 < len(self.tUnit) else None))
+            python_internal_ArrayImpl._set(
+                self.tUnit, 1, -(self.tUnit[1] if 1 < len(self.tUnit) else None))
+            python_internal_ArrayImpl._set(
+                self.tUnit, 2, -(self.tUnit[2] if 2 < len(self.tUnit) else None))
 
     def projectPolygon_(self):
         vHead = self.mesh.vHead
         norm = [.0, .0, .0]
         computedNormal = False
-        python_internal_ArrayImpl._set(norm, 0, (self.normal[0] if 0 < len(self.normal) else None))
-        python_internal_ArrayImpl._set(norm, 1, (self.normal[1] if 1 < len(self.normal) else None))
-        python_internal_ArrayImpl._set(norm, 2, (self.normal[2] if 2 < len(self.normal) else None))
+        python_internal_ArrayImpl._set(
+            norm, 0, (self.normal[0] if 0 < len(self.normal) else None))
+        python_internal_ArrayImpl._set(
+            norm, 1, (self.normal[1] if 1 < len(self.normal) else None))
+        python_internal_ArrayImpl._set(
+            norm, 2, (self.normal[2] if 2 < len(self.normal) else None))
         if ((((norm[0] if 0 < len(norm) else None) == 0.0) and (((norm[1] if 1 < len(norm) else None) == 0.0))) and
-            (((norm[2] if 2 < len(norm) else None) == 0.0))):
+                (((norm[2] if 2 < len(norm) else None) == 0.0))):
             self.computeNormal_(norm)
             computedNormal = True
         sUnit = self.sUnit
         tUnit = self.tUnit
         i = self.longAxis_(norm)
         python_internal_ArrayImpl._set(sUnit, i, 0)
-        python_internal_ArrayImpl._set(sUnit, HxOverrides.mod(((i + 1)), 3), 1.0)
-        python_internal_ArrayImpl._set(sUnit, HxOverrides.mod(((i + 2)), 3), 0.0)
+        python_internal_ArrayImpl._set(
+            sUnit, HxOverrides.mod(((i + 1)), 3), 1.0)
+        python_internal_ArrayImpl._set(
+            sUnit, HxOverrides.mod(((i + 2)), 3), 0.0)
         python_internal_ArrayImpl._set(tUnit, i, 0)
-        python_internal_ArrayImpl._set(tUnit, HxOverrides.mod(((i + 1)), 3), 0.0)
+        python_internal_ArrayImpl._set(
+            tUnit, HxOverrides.mod(((i + 1)), 3), 0.0)
         python_internal_ArrayImpl._set(tUnit, HxOverrides.mod(((i + 2)), 3),
                                        (1.0 if (((norm[i] if i >= 0 and i < len(norm) else None) > 0)) else -1.0))
         v = vHead.next
@@ -3475,8 +3594,10 @@ class hxGeomAlgo_Tesselator:
         while (v != mesh.vHead):
             if (v.n != -1):
                 idx = (v.n * vertexDim)
-                python_internal_ArrayImpl._set(self.vertices, idx, (v.coords[0] if 0 < len(v.coords) else None))
-                python_internal_ArrayImpl._set(self.vertices, (idx + 1), (v.coords[1] if 1 < len(v.coords) else None))
+                python_internal_ArrayImpl._set(
+                    self.vertices, idx, (v.coords[0] if 0 < len(v.coords) else None))
+                python_internal_ArrayImpl._set(
+                    self.vertices, (idx + 1), (v.coords[1] if 1 < len(v.coords) else None))
                 if (vertexDim > 2):
                     python_internal_ArrayImpl._set(self.vertices, (idx + 2),
                                                    (v.coords[2] if 2 < len(v.coords) else None))
@@ -3512,7 +3633,8 @@ class hxGeomAlgo_Tesselator:
                 while True:
                     tmp2 = nel
                     nel = (nel + 1)
-                    python_internal_ArrayImpl._set(self.elements, tmp2, self.getNeighbourFace_(edge))
+                    python_internal_ArrayImpl._set(
+                        self.elements, tmp2, self.getNeighbourFace_(edge))
                     edge = edge.Lnext
                     if (not ((edge != f.anEdge))):
                         break
@@ -3574,10 +3696,12 @@ class hxGeomAlgo_Tesselator:
             while True:
                 tmp = nv
                 nv = (nv + 1)
-                python_internal_ArrayImpl._set(self.vertices, tmp, python_internal_ArrayImpl._get(edge.Org.coords, 0))
+                python_internal_ArrayImpl._set(
+                    self.vertices, tmp, python_internal_ArrayImpl._get(edge.Org.coords, 0))
                 tmp1 = nv
                 nv = (nv + 1)
-                python_internal_ArrayImpl._set(self.vertices, tmp1, python_internal_ArrayImpl._get(edge.Org.coords, 1))
+                python_internal_ArrayImpl._set(
+                    self.vertices, tmp1, python_internal_ArrayImpl._get(edge.Org.coords, 1))
                 if (vertexDim > 2):
                     tmp2 = nv
                     nv = (nv + 1)
@@ -3585,7 +3709,8 @@ class hxGeomAlgo_Tesselator:
                                                    python_internal_ArrayImpl._get(edge.Org.coords, 2))
                 tmp3 = nvi
                 nvi = (nvi + 1)
-                python_internal_ArrayImpl._set(self.vertexIndices, tmp3, edge.Org.idx)
+                python_internal_ArrayImpl._set(
+                    self.vertexIndices, tmp3, edge.Org.idx)
                 vertCount = (vertCount + 1)
                 edge = edge.Lnext
                 if (not ((edge != start))):
@@ -3615,10 +3740,13 @@ class hxGeomAlgo_Tesselator:
             else:
                 self.mesh.splitEdge(e)
                 e = e.Lnext
-            python_internal_ArrayImpl._set(e.Org.coords, 0, (vertices[i] if i >= 0 and i < len(vertices) else None))
-            python_internal_ArrayImpl._set(e.Org.coords, 1, python_internal_ArrayImpl._get(vertices, (i + 1)))
+            python_internal_ArrayImpl._set(
+                e.Org.coords, 0, (vertices[i] if i >= 0 and i < len(vertices) else None))
+            python_internal_ArrayImpl._set(
+                e.Org.coords, 1, python_internal_ArrayImpl._get(vertices, (i + 1)))
             if (vertexDim > 2):
-                python_internal_ArrayImpl._set(e.Org.coords, 2, python_internal_ArrayImpl._get(vertices, (i + 2)))
+                python_internal_ArrayImpl._set(
+                    e.Org.coords, 2, python_internal_ArrayImpl._get(vertices, (i + 2)))
             else:
                 python_internal_ArrayImpl._set(e.Org.coords, 2, 0.0)
 
@@ -3639,9 +3767,12 @@ class hxGeomAlgo_Tesselator:
         self.vertexIndices = []
         self.vertexIndexCounter = 0
         if (normal is not None):
-            python_internal_ArrayImpl._set(self.normal, 0, (normal[0] if 0 < len(normal) else None))
-            python_internal_ArrayImpl._set(self.normal, 1, (normal[1] if 1 < len(normal) else None))
-            python_internal_ArrayImpl._set(self.normal, 2, (normal[2] if 2 < len(normal) else None))
+            python_internal_ArrayImpl._set(
+                self.normal, 0, (normal[0] if 0 < len(normal) else None))
+            python_internal_ArrayImpl._set(
+                self.normal, 1, (normal[1] if 1 < len(normal) else None))
+            python_internal_ArrayImpl._set(
+                self.normal, 2, (normal[2] if 2 < len(normal) else None))
         self.windingRule = windingRule
         if (vertexDim < 2):
             vertexDim = 2
@@ -3735,14 +3866,16 @@ class python_Boot:
                     _g2 = []
                     _g11 = 0
                     while (_g11 < len(fields)):
-                        f = (fields[_g11] if _g11 >= 0 and _g11 < len(fields) else None)
+                        f = (fields[_g11] if _g11 >=
+                             0 and _g11 < len(fields) else None)
                         _g11 = (_g11 + 1)
                         x = ((("" + ("null" if f is None else f)) + " : ") + HxOverrides.stringOrNull(
                             python_Boot.toString1(python_Boot.simpleField(o, f),
                                                   (("null" if s is None else s) + "\t"))))
                         _g2.append(x)
                     fieldsStr = _g2
-                    toStr = (("{ " + HxOverrides.stringOrNull(", ".join([x1 for x1 in fieldsStr]))) + " }")
+                    toStr = (
+                        ("{ " + HxOverrides.stringOrNull(", ".join([x1 for x1 in fieldsStr]))) + " }")
                 except Exception as _hx_e:
                     _hx_e1 = _hx_e
                     e2 = _hx_e1
@@ -3778,7 +3911,8 @@ class python_Boot:
                     _g4 = []
                     _g13 = 0
                     while (_g13 < len(fields1)):
-                        f1 = (fields1[_g13] if _g13 >= 0 and _g13 < len(fields1) else None)
+                        f1 = (fields1[_g13] if _g13 >=
+                              0 and _g13 < len(fields1) else None)
                         _g13 = (_g13 + 1)
                         x1 = ((("" + ("null" if f1 is None else f1)) + " : ") + HxOverrides.stringOrNull(
                             python_Boot.toString1(python_Boot.simpleField(o, f1),
@@ -3793,7 +3927,8 @@ class python_Boot:
                     _g5 = []
                     _g14 = 0
                     while (_g14 < len(fields2)):
-                        f2 = (fields2[_g14] if _g14 >= 0 and _g14 < len(fields2) else None)
+                        f2 = (fields2[_g14] if _g14 >=
+                              0 and _g14 < len(fields2) else None)
                         _g14 = (_g14 + 1)
                         x2 = ((("" + ("null" if f2 is None else f2)) + " : ") + HxOverrides.stringOrNull(
                             python_Boot.toString1(python_Boot.simpleField(o, f2),
@@ -4119,7 +4254,8 @@ class python_internal_ArrayImpl:
     @staticmethod
     def indexOf(a, x, fromIndex=None):
         _hx_len = len(a)
-        l = (0 if ((fromIndex is None)) else ((_hx_len + fromIndex) if ((fromIndex < 0)) else fromIndex))
+        l = (0 if ((fromIndex is None)) else (
+            (_hx_len + fromIndex) if ((fromIndex < 0)) else fromIndex))
         if (l < 0):
             l = 0
         _g = l
@@ -4335,7 +4471,8 @@ class HxString:
             return s.rfind(_hx_str, 0, len(s))
         else:
             i = s.rfind(_hx_str, 0, (startIndex + 1))
-            startLeft = (max(0, ((startIndex + 1) - len(_hx_str))) if ((i == -1)) else (i + 1))
+            startLeft = (max(0, ((startIndex + 1) - len(_hx_str)))
+                         if ((i == -1)) else (i + 1))
             check = s.find(_hx_str, startLeft, len(s))
             if ((check > i) and ((check <= startIndex))):
                 return check
@@ -4395,7 +4532,8 @@ Math.NaN = float("nan")
 Math.PI = python_lib_Math.pi
 
 hxGeomAlgo_HomogCoord.INFINITY = hxGeomAlgo_HomogCoord()
-hxGeomAlgo__HxPoint_HxPoint_Impl_.EMPTY = hxGeomAlgo__HxPoint_HxPoint_Impl_._new(Math.NaN, Math.NaN)
+hxGeomAlgo__HxPoint_HxPoint_Impl_.EMPTY = hxGeomAlgo__HxPoint_HxPoint_Impl_._new(
+    Math.NaN, Math.NaN)
 hxGeomAlgo_PolyTools.point = hxGeomAlgo__HxPoint_HxPoint_Impl_._new()
 hxGeomAlgo_PolyTools.zero = hxGeomAlgo__HxPoint_HxPoint_Impl_._new(0, 0)
 hxGeomAlgo_PolyTools.EPSILON = .00000001

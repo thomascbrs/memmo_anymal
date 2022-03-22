@@ -34,6 +34,7 @@ import ctypes
 
 from walkgen_surface_planner.tools.optimisation import quadprog_solve_qp
 
+
 class MapHeader(ctypes.Structure):
     _fields_ = [
         ("size_x", ctypes.c_int),
@@ -47,7 +48,7 @@ class MapHeader(ctypes.Structure):
 
 class Heightmap:
 
-    def __init__(self, n_x, n_y, x_lim, y_lim, offset = 0.):
+    def __init__(self, n_x, n_y, x_lim, y_lim, offset=0.):
         """
         :param n_x number of samples in x
         :param n_y number of samples in y
@@ -68,14 +69,14 @@ class Heightmap:
         self.y_init = y_lim[0]
         self.y_end = y_lim[1]
 
-        self.dx = (self.x_end - self.x_init)/(self.n_x -1)
-        self.dy = (self.y_end - self.y_init)/(self.n_y -1)
+        self.dx = (self.x_end - self.x_init)/(self.n_x - 1)
+        self.dy = (self.y_end - self.y_init)/(self.n_y - 1)
 
-        self.heightmap_fit_length = 0.3 # Length of half the heightmap fit in a direction
-        self.heightmap_fit_size =  10 # Number of points on each axis in the heightmap fit
+        self.heightmap_fit_length = 0.3  # Length of half the heightmap fit in a direction
+        self.heightmap_fit_size = 10  # Number of points on each axis in the heightmap fit
 
         self.A = np.ones((self.heightmap_fit_size ** 2, 3))
-        self.b = np.zeros((self.heightmap_fit_size ** 2,1))
+        self.b = np.zeros((self.heightmap_fit_size ** 2, 1))
 
         self.offset = offset
 
@@ -109,7 +110,7 @@ class Heightmap:
         else:
             return int((y - self.y_init)/self.dy)
 
-    def get_height(self,x,y):
+    def get_height(self, x, y):
         """ Get height given a 2D position
 
         Parameters:
@@ -121,9 +122,9 @@ class Heightmap:
         if iX == -1 or iY == -1:
             return self.offset
         else:
-            return self.z[iX,iY] + self.offset
+            return self.z[iX, iY] + self.offset
 
-    def fit_surface(self,x,y):
+    def fit_surface(self, x, y):
         """
         Update the surface equation to fit the heightmap, [a,b,c] such as ax + by -z +c = 0 for a given 2D position
 
@@ -131,17 +132,20 @@ class Heightmap:
             x (float) x-axis position
             y (float) y-axis position
         """
-        xVector = np.linspace(x - self.heightmap_fit_length, x + self.heightmap_fit_length, self.heightmap_fit_size)
-        yVector = np.linspace(y - self.heightmap_fit_length, y + self.heightmap_fit_length, self.heightmap_fit_size)
+        xVector = np.linspace(x - self.heightmap_fit_length,
+                              x + self.heightmap_fit_length, self.heightmap_fit_size)
+        yVector = np.linspace(y - self.heightmap_fit_length,
+                              y + self.heightmap_fit_length, self.heightmap_fit_size)
         index = 0
         for i in range(0, self.heightmap_fit_size):
-            for j in range(0,self.heightmap_fit_size):
+            for j in range(0, self.heightmap_fit_size):
                 self.A[index, 0] = xVector[i]
                 self.A[index, 1] = yVector[j]
                 self.b[index] = self.get_height(xVector[i], yVector[j])
                 index += 1
 
-        fit = quadprog_solve_qp(np.dot(self.A.T, self.A), (-np.dot(self.A.T, self.b)).reshape((3)))
+        fit = quadprog_solve_qp(np.dot(self.A.T, self.A),
+                                (-np.dot(self.A.T, self.b)).reshape((3)))
 
         return fit
 
@@ -157,7 +161,8 @@ class Heightmap:
         """
 
         arr_bytes = self.z.astype(ctypes.c_double).tobytes()
-        h = MapHeader(self.n_x, self.n_y, self.x[0], self.x[-1], self.y[0], self.y[-1])
+        h = MapHeader(self.n_x, self.n_y,
+                      self.x[0], self.x[-1], self.y[0], self.y[-1])
         h_bytes = bytearray(h)
 
         with open(filename, "ab") as f:
@@ -187,7 +192,8 @@ class Heightmap:
                         for triangle_list in affordance:
                             triangle = [np.array(p) for p in triangle_list]
                             if intersect_line_triangle(segment, triangle):
-                                intersections.append(get_point_intersect_line_triangle(segment, triangle)[2])
+                                intersections.append(
+                                    get_point_intersect_line_triangle(segment, triangle)[2])
 
                 if len(intersections) != 0:
                     self.z[i, j] = np.max(np.array(intersections))
@@ -245,9 +251,12 @@ def intersect_line_triangle(segment, triangle):
     s2 = signed_tetra_volume(segment[1], triangle[0], triangle[1], triangle[2])
 
     if s1 != s2:
-        s3 = signed_tetra_volume(segment[0], segment[1], triangle[0], triangle[1])
-        s4 = signed_tetra_volume(segment[0], segment[1], triangle[1], triangle[2])
-        s5 = signed_tetra_volume(segment[0], segment[1], triangle[2], triangle[0])
+        s3 = signed_tetra_volume(
+            segment[0], segment[1], triangle[0], triangle[1])
+        s4 = signed_tetra_volume(
+            segment[0], segment[1], triangle[1], triangle[2])
+        s5 = signed_tetra_volume(
+            segment[0], segment[1], triangle[2], triangle[0])
 
         if s3 == s4 and s4 == s5:
             return True
@@ -262,25 +271,32 @@ def get_point_intersect_line_triangle(segment, triangle):
     s2 = signed_tetra_volume(segment[1], triangle[0], triangle[1], triangle[2])
 
     if s1 != s2:
-        s3 = signed_tetra_volume(segment[0], segment[1], triangle[0], triangle[1])
-        s4 = signed_tetra_volume(segment[0], segment[1], triangle[1], triangle[2])
-        s5 = signed_tetra_volume(segment[0], segment[1], triangle[2], triangle[0])
+        s3 = signed_tetra_volume(
+            segment[0], segment[1], triangle[0], triangle[1])
+        s4 = signed_tetra_volume(
+            segment[0], segment[1], triangle[1], triangle[2])
+        s5 = signed_tetra_volume(
+            segment[0], segment[1], triangle[2], triangle[0])
 
         if s3 == s4 and s4 == s5:
             n = np.cross(triangle[1] - triangle[0], triangle[2] - triangle[0])
-            t = np.dot(triangle[0] - segment[0], n) / np.dot(segment[1] - segment[0], n)
+            t = np.dot(triangle[0] - segment[0], n) / \
+                np.dot(segment[1] - segment[0], n)
             return segment[0] + t * (segment[1] - segment[0])
         else:
             return np.zeros(3)
     else:
         return np.zeros(3)
 
-def load_heightmap(heightmap_path, offset = 0., fit_length = 0.3, fit_size = 10):
+
+def load_heightmap(heightmap_path, offset=0., fit_length=0.3, fit_size=10):
     """ Returns Heightmap class from path.
     """
     with open(heightmap_path, 'rb') as fs:
         loaded_model = pickle.load(fs)
     loaded_model.offset = offset
-    loaded_model.heightmap_fit_length = fit_length # Length of half the heightmap fit in a direction
-    loaded_model.heightmap_fit_size =  fit_size # Number of points on each axis in the heightmap fit
+    # Length of half the heightmap fit in a direction
+    loaded_model.heightmap_fit_length = fit_length
+    # Number of points on each axis in the heightmap fit
+    loaded_model.heightmap_fit_size = fit_size
     return loaded_model

@@ -63,17 +63,20 @@ params.min_area = 0.03
 h_init = -0.06
 
 # Process surfaces
-surface_processing = SurfaceProcessing(initial_height= h_init, params = params)
+surface_processing = SurfaceProcessing(initial_height=h_init, params=params)
 
 # Surface Planer initialization with params.
-surface_planner = SurfacePlanner(params = params)
+surface_planner = SurfacePlanner(params=params)
 
 # Initial config
 initial_config = np.array([0.2, 0.5, 0., 0., 0., 0., 1.])
-q = np.array([0., 0., 0., 0., 0., 0., 1., -0.1, 0.7, -1., -0.1, -0.7, 1., 0.1, 0.7, -1., 0.1, -.7, 1.])
+q = np.array([0., 0., 0., 0., 0., 0., 1., -0.1, 0.7, -1., -
+             0.1, -0.7, 1., 0.1, 0.7, -1., 0.1, -.7, 1.])
 q[:3] = initial_config[:3]
-init_vertices = np.array([[0.65, -1, h_init], [0.65, 1., h_init], [-0.65, 1., h_init], [-0.65, -1, h_init]]).T
-surface_planner._init_surface.vertices = init_vertices  # No need to update A, b, recomputed by SL1M
+init_vertices = np.array(
+    [[0.65, -1, h_init], [0.65, 1., h_init], [-0.65, 1., h_init], [-0.65, -1, h_init]]).T
+# No need to update A, b, recomputed by SL1M
+surface_planner._init_surface.vertices = init_vertices
 
 # Reference velocity
 bvref = np.zeros(6)
@@ -82,7 +85,8 @@ bvref[5] = 0.
 
 # Order : [LF, RF, LH, RH]
 GAITS = {}
-GAITS["walk"] = np.array([[0., 1., 1., 1.], [1., 0., 1., 1.], [1., 1., 0., 1.], [1., 1., 1., 0.]])
+GAITS["walk"] = np.array([[0., 1., 1., 1.], [1., 0., 1., 1.], [
+                         1., 1., 0., 1.], [1., 1., 1., 0.]])
 GAITS["trot"] = np.array([[1., 0., 1., 0.], [0., 1., 0., 1.]])
 gait_pattern = GAITS[params.typeGait]
 
@@ -100,14 +104,16 @@ all_surfaces = surface_processing.run(initial_config[:3], array_markers)
 surface_planner.set_surfaces(all_surfaces)
 
 # order ['LF_FOOT', 'RF_FOOT', 'LH_FOOT', 'RH_FOOT']
-current_contacts = np.array([[0.37, 0.37, -0.37, -0.37], [0.2, -0.2, 0.2, -0.2], [0., 0., 0., 0.]])
+current_contacts = np.array(
+    [[0.37, 0.37, -0.37, -0.37], [0.2, -0.2, 0.2, -0.2], [0., 0., 0., 0.]])
 for k in range(4):
     current_contacts[:, k] += q[:3]
 current_contacts[2, :] = h_init
 
 # Run MIP problem.
 t0 = clock()
-selected_surfaces = surface_planner.run(q, gait_pattern, bvref, current_contacts)
+selected_surfaces = surface_planner.run(
+    q, gait_pattern, bvref, current_contacts)
 t1 = clock()
 print("Run MIP [ms]", 1000. * (t1 - t0))
 
@@ -123,4 +129,5 @@ ax = plt.axes(projection='3d')
 plt.title("SL1M result")
 for value in surface_planner.all_surfaces.values():
     plot.plot_surface(np.array(value).T, ax)
-plot.plot_planner_result(surface_planner.pb_data.all_feet_pos, coms=surface_planner.pb_data.coms, ax=ax, show=True)
+plot.plot_planner_result(surface_planner.pb_data.all_feet_pos,
+                         coms=surface_planner.pb_data.coms, ax=ax, show=True)

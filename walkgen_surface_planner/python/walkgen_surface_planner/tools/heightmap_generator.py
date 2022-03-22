@@ -52,15 +52,19 @@ X_BOUNDS = [-1.5, 4.0]
 Y_BOUNDS = [-1.5, 1.0]
 
 # Initialize HPP with solo_robot, a robot is needed to initialize the collision tool.
-rom_names = ['solo_LFleg_rom', 'solo_RFleg_rom', 'solo_LHleg_rom', 'solo_RHleg_rom']
+rom_names = ['solo_LFleg_rom', 'solo_RFleg_rom',
+             'solo_LHleg_rom', 'solo_RHleg_rom']
 others = ['FL_FOOT', 'FR_FOOT', 'HL_FOOT', 'HR_FOOT']
-LIMBS = ['solo_RHleg_rom', 'solo_LHleg_rom', 'solo_LFleg_rom', 'solo_RFleg_rom']
+LIMBS = ['solo_RHleg_rom', 'solo_LHleg_rom',
+         'solo_LFleg_rom', 'solo_RFleg_rom']
 paths = [
-    os.environ["INSTALL_HPP_DIR"] + "/solo-rbprm/com_inequalities/feet_quasi_flat/",
+    os.environ["INSTALL_HPP_DIR"] +
+    "/solo-rbprm/com_inequalities/feet_quasi_flat/",
     os.environ["INSTALL_HPP_DIR"] + "/solo-rbprm/relative_effector_positions/"
 ]
 
-COLORS = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+COLORS = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728',
+          '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 # --------------------------------- METHODS ---------------------------------------------------------------
 
 

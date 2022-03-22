@@ -33,6 +33,8 @@ from shapely.geometry import Polygon
 """
 Usefull structure to work on surface decomposition.
 """
+
+
 class SurfaceData():
     """Store the data related to a 3D surface.
 
@@ -100,8 +102,10 @@ class SurfaceData():
             - array x3: The normal of the surface.
         """
         # Computes normal surface
-        S_normal = np.cross(vertices[:, 0] - vertices[:, 1], vertices[:, 0] - vertices[:, 2])
-        if np.dot(S_normal, np.array([0., 0., 1.])) < 0.:  # Check orientation of the normal
+        S_normal = np.cross(
+            vertices[:, 0] - vertices[:, 1], vertices[:, 0] - vertices[:, 2])
+        # Check orientation of the normal
+        if np.dot(S_normal, np.array([0., 0., 1.])) < 0.:
             S_normal = -S_normal
 
         norm = np.linalg.norm(S_normal)
@@ -117,14 +121,14 @@ class SurfaceData():
             - list: The list containing the vertices of the contour line such as
                             [x0,y0,x1,y1, ... , xn,yn].
         """
-        contour = [] # Contour representation [x0,y0,x1,y1, ... , xn,yn]
+        contour = []  # Contour representation [x0,y0,x1,y1, ... , xn,yn]
         for k in range(vertices.shape[1]):
-            contour.append(vertices[0,k])
-            contour.append(vertices[1,k])
+            contour.append(vertices[0, k])
+            contour.append(vertices[1, k])
 
         return contour
 
-    def _get_Polygon(self,contour):
+    def _get_Polygon(self, contour):
         ''' Get Polygon object from a contour.
 
         Returns:
@@ -132,7 +136,7 @@ class SurfaceData():
         '''
         poly = []
 
-        for k in range(0,len(contour),2):
-            poly.append((contour[k],contour[k+1]))
+        for k in range(0, len(contour), 2):
+            poly.append((contour[k], contour[k+1]))
 
         return Polygon(poly)

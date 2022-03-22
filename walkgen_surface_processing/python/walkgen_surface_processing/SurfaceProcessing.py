@@ -96,18 +96,21 @@ class SurfaceProcessing:
             - param1 (Dictionnary): Dictionnary type containing the new surfaces with an unique id.
         """
         vertices = [[position[0] - self._dx, position[1] + self._dy, self._initial_height],
-                    [position[0] - self._dx, position[1] - self._dy, self._initial_height],
-                    [position[0] + self._dx, position[1] - self._dy, self._initial_height],
+                    [position[0] - self._dx, position[1] -
+                        self._dy, self._initial_height],
+                    [position[0] + self._dx, position[1] -
+                        self._dy, self._initial_height],
                     [position[0] + self._dx, position[1] + self._dy, self._initial_height]]
 
         # Reduce and sort incoming data
-        surfaces_reduced = reduce_surfaces(markerArray, margin=self._margin, n_points=self._n_points)
+        surfaces_reduced = reduce_surfaces(
+            markerArray, margin=self._margin, n_points=self._n_points)
 
         # Apply proccess to filter and decompose the surfaces to avoid overlap
         surfaces_processed = remove_overlap_surfaces(surfaces_reduced,
-                                                          polySize=self._poly_size,
-                                                          method=self._method_id,
-                                                          min_area=self._min_area,
-                                                          initial_floor=np.array(vertices).T)
+                                                     polySize=self._poly_size,
+                                                     method=self._method_id,
+                                                     min_area=self._min_area,
+                                                     initial_floor=np.array(vertices).T)
 
-        return dict(zip([str(k) for k in range(len(surfaces_processed))], [sf.T.tolist() for sf in surfaces_processed] ))
+        return dict(zip([str(k) for k in range(len(surfaces_processed))], [sf.T.tolist() for sf in surfaces_processed]))

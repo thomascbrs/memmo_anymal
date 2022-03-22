@@ -30,14 +30,15 @@
 import pinocchio as pin
 import numpy as np
 
-rom_names = ['anymal_LFleg_rom', 'anymal_RFleg_rom', 'anymal_LHleg_rom', 'anymal_RHleg_rom']
+rom_names = ['anymal_LFleg_rom', 'anymal_RFleg_rom',
+             'anymal_LHleg_rom', 'anymal_RHleg_rom']
 
 
 class SurfaceDetector:
     """ Class to extract convex surfaces from an URDF file.
     """
 
-    def __init__(self, path, margin = 0.01, q0 = None, initial_height=0.):
+    def __init__(self, path, margin=0.01, q0=None, initial_height=0.):
         """ Initialize the surface detector.
 
         Args:
@@ -53,7 +54,8 @@ class SurfaceDetector:
             self._q0[-1] = 1
         else:
             if len(q0) != 7:
-                raise AttributeError("Initial configuration should be size 7, [position, quaternion]")
+                raise AttributeError(
+                    "Initial configuration should be size 7, [position, quaternion]")
             self._q0 = q0
 
         # Import hpp rbprm here to avoid dependency problems with the module.
@@ -65,7 +67,8 @@ class SurfaceDetector:
         from anymal_rbprm.anymal_abstract import Robot as AnymalAbstract
 
         self._anymal_abstract = AnymalAbstract()
-        self._anymal_abstract.setJointBounds("root_joint", [-5., 5., -5., 5., 0.241, 1.5])
+        self._anymal_abstract.setJointBounds(
+            "root_joint", [-5., 5., -5., 5., 0.241, 1.5])
         self._anymal_abstract.boundSO3([-3.14, 3.14, -0.01, 0.01, -0.01, 0.01])
         self._anymal_abstract.setFilter(rom_names)
         for limb in rom_names:
@@ -93,7 +96,8 @@ class SurfaceDetector:
         for name in all_names:
             self._vf.moveObstacle(name, self.worldPose.tolist())
 
-        self._all_surfaces = getAllSurfacesDict_inner(getAllSurfacesDict(self._afftool), margin=margin)
+        self._all_surfaces = getAllSurfacesDict_inner(
+            getAllSurfacesDict(self._afftool), margin=margin)
 
     def extract_surfaces(self):
         """ Extract surfaces from the URDF file.
@@ -102,4 +106,3 @@ class SurfaceDetector:
             - param1 (dict): Dictionnary type containing all the surfaces ("unique id" : [vertices]).
         """
         return dict(zip(self._all_surfaces.keys(), [value[0] for value in self._all_surfaces.values()]))
-

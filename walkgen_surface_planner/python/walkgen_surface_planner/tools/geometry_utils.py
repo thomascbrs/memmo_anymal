@@ -30,6 +30,7 @@
 import numpy as np
 from scipy.spatial import ConvexHull
 
+
 def norm(sq):
     """
     Computes b=norm
@@ -52,8 +53,10 @@ def compute_inner_inequalities(vertices, margin):
     nb_vert = vertices.shape[0]
 
     # Computes normal surface
-    S_normal = np.cross(vertices[0, :] - vertices[1, :], vertices[0, :] - vertices[2, :])
-    if np.dot(S_normal, np.array([0., 0., 1.])) < 0.:  # Check orientation of the normal
+    S_normal = np.cross(vertices[0, :] - vertices[1, :],
+                        vertices[0, :] - vertices[2, :])
+    # Check orientation of the normal
+    if np.dot(S_normal, np.array([0., 0., 1.])) < 0.:
         S_normal = -S_normal
 
     normal = S_normal / np.linalg.norm(S_normal)
@@ -62,7 +65,8 @@ def compute_inner_inequalities(vertices, margin):
     ineq_vect_inner = np.zeros((nb_vert + 1))
 
     ineq_inner[-1, :] = normal
-    ineq_vect_inner[-1] = -(-normal[0] * vertices[0, 0] - normal[1] * vertices[0, 1] - normal[2] * vertices[0, 2])
+    ineq_vect_inner[-1] = -(-normal[0] * vertices[0, 0] -
+                            normal[1] * vertices[0, 1] - normal[2] * vertices[0, 2])
 
     for i in range(nb_vert):
 
@@ -127,6 +131,7 @@ def compute_inner_vertices(vertices, ineq_inner, ineq_vect_inner):
     vertices_inner = np.array(S_inner)
     return vertices_inner
 
+
 def getAllSurfacesDict_inner(all_surfaces, margin):
     '''
     Computes the inner vertices of the given convex surface, with a margin.
@@ -141,8 +146,10 @@ def getAllSurfacesDict_inner(all_surfaces, margin):
     surfaces = []
     for name_surface in all_surfaces:
         vertices = order(np.array(all_surfaces.get(name_surface)[0]))
-        ineq_inner, ineq_inner_vect, normal = compute_inner_inequalities(vertices, margin)
-        vertices_inner = compute_inner_vertices(vertices, ineq_inner, ineq_inner_vect)
+        ineq_inner, ineq_inner_vect, normal = compute_inner_inequalities(
+            vertices, margin)
+        vertices_inner = compute_inner_vertices(
+            vertices, ineq_inner, ineq_inner_vect)
 
         # Save inner vertices
         all_names.append(name_surface)
@@ -151,7 +158,9 @@ def getAllSurfacesDict_inner(all_surfaces, margin):
     surfaces_dict = dict(zip(all_names, surfaces))
     return surfaces_dict
 
-## TODO, from stackoverflow, find reference
+# TODO, from stackoverflow, find reference
+
+
 def order(vertices, method="convexHull"):
     """
     Order the array of vertice in counterclock wise using convex Hull method
@@ -175,7 +184,7 @@ def order(vertices, method="convexHull"):
     return vert
 
 
-## TODO, from stackoverflow, find reference
+# TODO, from stackoverflow, find reference
 def plane_intersect(P1, P2):
     """
     Reference:
@@ -200,7 +209,7 @@ def plane_intersect(P1, P2):
     return p_inter[0], (p_inter + aXb_vec)[0]
 
 
-## TODO, from stackoverflow, find reference
+# TODO, from stackoverflow, find reference
 def LinePlaneCollision(P, A, B, epsilon=1e-6):
     """
     Reference:

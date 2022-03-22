@@ -1,5 +1,4 @@
 # memmo_anymal
-
 Workspace containing the works related to memmo project and the anymal demo.
 
 --> PlaneSeg and SL1M integration.
@@ -37,13 +36,11 @@ The compilation option are the following:
 ---
 
 ## Surface planner processing
-
 Tools to post-process the data from planeseg or extract
 
 ---
 
 ## Footstep planner
-
 This module is used to interface with the caracal library. It allows to update the trajectory of the feet at each time step by sending to the Caracal MPC the new polynomial coefficients of the trajectory. It contains :
 - FootstepManager : Wrapper class to interface with Caracal.
 - GaitManager : Allow creation and delation of Contact Schedule. Get the informations of the current gait to send to the surface planner.
@@ -60,7 +57,6 @@ It should works with python2. Check at the end of the README.me to install the d
 ---
 
 ## Surface planner
-
 This module run SL1M algorithm to select the surfaces. There are 2 version of the code, by turning on/off the boolean planeseg in the config file :
 
 - Planseg : Use perception to detect the surfaces. The convex surfaces are received from planseg as a ros markerArray message. There are post-processed (see notebook for explanation) and then used in sl1m algorithm.
@@ -101,7 +97,6 @@ $ python3 tools/heightmap_generator.py
 ```
 
 #### Example
-
 Example of the SurfacePlanner with the convex patches returned by planeseg. Run :
 ```
 python3 -m walkgen_surface_planner.stand_alone_scenarios.anymal_stairs_planeseg
@@ -117,7 +112,6 @@ python3 -m walkgen_surface_planner.stand_alone_scenarios.anymal_stairs_urdf
 ```
 
 #### Unitest
-
 To test with planeseg data, run:
 ```
 python3 -m walkgen_surface_planner.tests.surface_planner_planeseg
@@ -137,7 +131,6 @@ python3 -m walkgen_surface_planner.tests.surface_planner_urdf
 ---
 
 ## Ros interface
-
 The module walkgen_ros allows to interface with ros message. It contains publisher interfaces, reading and transform ros messages for both modules Surface and Footstep planner. Memmo_planner_ros should be installed to run ros experiments, on feature-walkgen branch : https://github.com/thomascbrs/memmo_planner_ros/tree/feature-walkgen
 
 #### Dependencies
@@ -148,7 +141,6 @@ visualization_msgs
 geometry_msgs
 footstep_msgs (Memmo_planner_ros)
 std_msgs
-
 
 ---
 ## Installation dependencies
@@ -178,6 +170,5 @@ sudo apt install robotpkg-py38-hpp-rbprm-corba
 ```
 
 ## TODO
-
 - Generate a heightmap from the ros msg MarkerArray for SL1M in order to rotate the inequalities.
 -  Bezier curves.

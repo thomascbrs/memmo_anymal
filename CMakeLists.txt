@@ -85,4 +85,3 @@ endif()
 if(ROS_INTERFACE)
   ADD_SUBDIRECTORY("${ROS_INTERFACE_NAME}/python")
 endif()
-

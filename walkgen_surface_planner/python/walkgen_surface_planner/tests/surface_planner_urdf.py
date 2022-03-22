@@ -39,7 +39,8 @@ params = SurfacePlannerParams()
 params.planeseg = False
 
 # Extract surfaces from URDF file.
-surface_detector = SurfaceDetector(params.path + params.urdf, params.margin, q0=None, initial_height=0.)
+surface_detector = SurfaceDetector(
+    params.path + params.urdf, params.margin, q0=None, initial_height=0.)
 all_surfaces = surface_detector.extract_surfaces()
 
 # path = os.path.dirname(os.path.abspath(__file__)) + "/../data/"
@@ -47,7 +48,8 @@ all_surfaces = surface_detector.extract_surfaces()
 # params.urdf = path + "urdf/lab_scene.urdf"
 
 # State of the robot
-q = np.array([0., 0., 0.4792, 0., 0., 0., 1., -0.1, 0.7, -1., -0.1, -0.7, 1., 0.1, 0.7, -1., 0.1, -0.7, 1.])
+q = np.array([0., 0., 0.4792, 0., 0., 0., 1., -0.1, 0.7, -
+             1., -0.1, -0.7, 1., 0.1, 0.7, -1., 0.1, -0.7, 1.])
 # Reference velocity
 bvref = np.zeros(6)
 bvref[0] = 0.05
@@ -55,7 +57,8 @@ bvref[5] = 0.
 
 # Order : [LF, RF, LH, RH]
 GAITS = {}
-GAITS["walk"] = np.array([[0., 1., 1., 1.], [1., 0., 1., 1.], [1., 1., 0., 1.], [1., 1., 1., 0.]])
+GAITS["walk"] = np.array([[0., 1., 1., 1.], [1., 0., 1., 1.], [
+                         1., 1., 0., 1.], [1., 1., 1., 0.]])
 GAITS["trot"] = np.array([[1., 0., 1., 0.], [0., 1., 0., 1.]])
 
 params.N_phase = 6
@@ -63,7 +66,7 @@ params.typeGait = "walk"
 params.com = False
 gait_pattern = GAITS[params.typeGait]
 
-surface_planner = SurfacePlanner(params = params)
+surface_planner = SurfacePlanner(params=params)
 
 
 class SurfacePlannerTest(unittest.TestCase):
@@ -79,7 +82,8 @@ class SurfacePlannerTest(unittest.TestCase):
         surface_planner.set_surfaces(all_surfaces)
 
         # Run MIP problem.
-        selected_surfaces = surface_planner.run(q, gait_pattern, bvref, surface_planner._current_position)
+        selected_surfaces = surface_planner.run(
+            q, gait_pattern, bvref, surface_planner._current_position)
         results = surface_planner.pb_data
         self.assertTrue(results.success)
 
@@ -94,7 +98,8 @@ class SurfacePlannerTest(unittest.TestCase):
         surface_planner.set_surfaces(all_surfaces)
 
         # Run MIP problem.
-        selected_surfaces = surface_planner.run(q, gait_pattern, bvref, surface_planner._current_position)
+        selected_surfaces = surface_planner.run(
+            q, gait_pattern, bvref, surface_planner._current_position)
         results = surface_planner.pb_data
         self.assertTrue(results.success)
 
@@ -109,7 +114,8 @@ class SurfacePlannerTest(unittest.TestCase):
         surface_planner.set_surfaces(all_surfaces)
 
         # Run MIP problem.
-        selected_surfaces = surface_planner.run(q, gait_pattern, bvref, surface_planner._current_position)
+        selected_surfaces = surface_planner.run(
+            q, gait_pattern, bvref, surface_planner._current_position)
         results = surface_planner.pb_data
         self.assertTrue(results.success)
 
@@ -124,7 +130,8 @@ class SurfacePlannerTest(unittest.TestCase):
         surface_planner.set_surfaces(all_surfaces)
 
         # Run MIP problem.
-        selected_surfaces = surface_planner.run(q, gait_pattern, bvref, surface_planner._current_position)
+        selected_surfaces = surface_planner.run(
+            q, gait_pattern, bvref, surface_planner._current_position)
         results = surface_planner.pb_data
         self.assertTrue(results.success)
 

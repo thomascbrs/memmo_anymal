@@ -50,7 +50,8 @@ class FootStepPlannerParams:
         self.N_ds = 70
         self.N_uds = 0
         self.N_uss = 0
-        self.horizon = None  # (int or None), use the lenght of the gait (None) or a defined horizon (int)
+        # (int or None), use the lenght of the gait (None) or a defined horizon (int)
+        self.horizon = None
         self.nsteps = 1  # Number of iteration.
         self.stepHeight = 0.15  # Step height [m]
 

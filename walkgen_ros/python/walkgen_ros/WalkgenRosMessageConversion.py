@@ -51,11 +51,13 @@ class StepManagerPublisher():
 
     def __init__(self, topic, queue_size=10):
         # Initializing the publisher
-        self._pub = rospy.Publisher(topic, GaitStatusOnNewPhase, queue_size=queue_size)
+        self._pub = rospy.Publisher(
+            topic, GaitStatusOnNewPhase, queue_size=queue_size)
         self._stepmanager_iface = StepManagerInterface()
 
     def publish(self, t, gait, target_foostep, q_filter):
-        msg = self._stepmanager_iface.writeToMessage(t, gait, target_foostep, q_filter)
+        msg = self._stepmanager_iface.writeToMessage(
+            t, gait, target_foostep, q_filter)
         self._pub.publish(msg)
 
 
@@ -122,7 +124,8 @@ class SurfacePlannerInterface():
                 jv = sf.vertices.layout.dim[1].size
                 L.append(
                     Surface(
-                        np.array(sf.A.data).reshape((ia, ja), order="C"), np.array(sf.b),
+                        np.array(sf.A.data).reshape(
+                            (ia, ja), order="C"), np.array(sf.b),
                         np.array(sf.vertices.data).reshape((iv, jv), order="C")))
             set_surfaces[foot_surfaces.name] = L
 
@@ -133,7 +136,8 @@ class StepManagerInterface():
 
     def __init__(self):
         self._msg = GaitStatusOnNewPhase()
-        self._contact_names = ['LF_FOOT', 'RF_FOOT', 'LH_FOOT', 'RH_FOOT']  # Order of the feet in the surface planner.
+        # Order of the feet in the surface planner.
+        self._contact_names = ['LF_FOOT', 'RF_FOOT', 'LH_FOOT', 'RH_FOOT']
 
     def writeToMessage(self, t, gait, foot_pos, q_filter):
         """ Write data to ROS message FootStepStateSL1M.

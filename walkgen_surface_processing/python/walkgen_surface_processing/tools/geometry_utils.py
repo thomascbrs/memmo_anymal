@@ -75,7 +75,8 @@ def reduce_surfaces(markerArray, margin=0., n_points=None):
         # Marker structure :
         # [Pt1,Pt2,Pt2,Pt3,Pt3,Pt4, ... , Ptn-1, Ptn, Pt1, Ptn] !Warning order at the end
         # if id != 6 :
-        pts = [[pt.x, pt.y, pt.z] for pt in marker.points]  # List not sorted, with duplicates
+        pts = [[pt.x, pt.y, pt.z]
+               for pt in marker.points]  # List not sorted, with duplicates
         vertices = order(np.array(pts))  # Sorted, no duplicates
 
         if n_points is None:
@@ -89,9 +90,12 @@ def reduce_surfaces(markerArray, margin=0., n_points=None):
             surface_list.append(vertices_vw.T)
 
         else:
-            ineq_inner, ineq_inner_vect, normal = compute_inner_inequalities(vertices_vw, margin)
-            vertices_inner = compute_inner_vertices(vertices_vw, ineq_inner, ineq_inner_vect)
-            vertices_inner = order(vertices_inner)  # If margin create intersection, need to be sorted
+            ineq_inner, ineq_inner_vect, normal = compute_inner_inequalities(
+                vertices_vw, margin)
+            vertices_inner = compute_inner_vertices(
+                vertices_vw, ineq_inner, ineq_inner_vect)
+            # If margin create intersection, need to be sorted
+            vertices_inner = order(vertices_inner)
 
             surface_list.append(vertices_inner.T)
 
@@ -152,7 +156,8 @@ def remove_overlap_surfaces(surfacesIn, polySize=10, method=0, min_area=0., init
     # Run the list of surfaces starting with the lowest.
     while len(surfaces) > 1:
         h_mean = [sf.h_mean for sf in surfaces]
-        id_ = np.argmin(h_mean)  # Get id of the lowest surface remaining and process it.
+        # Get id of the lowest surface remaining and process it.
+        id_ = np.argmin(h_mean)
 
         # Get the list of contour that intersect the surface.
         contours_intersect.clear()
@@ -177,23 +182,28 @@ def remove_overlap_surfaces(surfacesIn, polySize=10, method=0, min_area=0., init
                 contours_intersect.clear()  # Redefine the contour for the difference
                 vertices_union = np.zeros((1, 2))
                 for sf in surfaces_intersect:
-                    vertices_union = np.vstack([vertices_union, sf.vertices[:2, :].T])
+                    vertices_union = np.vstack(
+                        [vertices_union, sf.vertices[:2, :].T])
                 convexHUll = ConvexHull(vertices_union[1:, :])
                 vert_2D = np.zeros((2, 1))
                 for j in convexHUll.vertices:
-                    vert_2D = np.hstack([vert_2D, convexHUll.points[j, :].reshape((2, 1), order="F")])
+                    vert_2D = np.hstack(
+                        [vert_2D, convexHUll.points[j, :].reshape((2, 1), order="F")])
 
                 contours_intersect.clear()
                 contours_intersect = [get_contour(vert_2D[:, 1:])]
                 if initial_floor_intersection:
                     contours_intersect.append(initial_floor_data.contour)
 
-        if len(contours_intersect) == 0:  # No surface overllaping, keep initial surface.
+        # No surface overllaping, keep initial surface.
+        if len(contours_intersect) == 0:
             surfaces[id_].vertices_reshaped2D = [surfaces[id_].vertices[:2, :]]
 
-        if len(contours_intersect) != 0:  # Surface overllaping, decompose the surface.
+        # Surface overllaping, decompose the surface.
+        if len(contours_intersect) != 0:
 
-            res = tess.difference([surfaces[id_].contour], contours_intersect, polySize=polySize)
+            res = tess.difference([surfaces[id_].contour],
+                                  contours_intersect, polySize=polySize)
             surface_processed = process_tess_results(res, polySize)
 
             if surface_processed is None:  # no surface left after intersection.
@@ -242,7 +252,8 @@ def process_tess_results(res, poly_numbers):
     vertices_Ids = []
     surfaces = []
     for i in range(res.elementCount):
-        list_Id = [id for id in res.elements[poly_numbers * i:poly_numbers * (i + 1)] if id != -1]
+        list_Id = [id for id in res.elements[poly_numbers *
+                                             i:poly_numbers * (i + 1)] if id != -1]
         vertices_Ids.append(list_Id)
 
     # Get 2D surfaces
@@ -308,8 +319,10 @@ def get_normal(vertices):
         - array x3: The normal of the surface.
     """
     # Computes normal surface
-    S_normal = np.cross(vertices[:, 0] - vertices[:, 1], vertices[:, 0] - vertices[:, 2])
-    if np.dot(S_normal, np.array([0., 0., 1.])) < 0.:  # Check orientation of the normal
+    S_normal = np.cross(vertices[:, 0] - vertices[:, 1],
+                        vertices[:, 0] - vertices[:, 2])
+    # Check orientation of the normal
+    if np.dot(S_normal, np.array([0., 0., 1.])) < 0.:
         S_normal = -S_normal
 
     norm = np.linalg.norm(S_normal)
@@ -329,8 +342,10 @@ def projection_surface(vertices2D, equation):
                                [z0, z1, ... , zn]]).
     """
     if equation[2] < 10e-5:
-        raise ValueError('The surface is vertical, cannot project 2D vectors inside.')
-    z = (1 / equation[2]) * (-equation[3] - np.dot(equation[:2], vertices2D[:2, :]))
+        raise ValueError(
+            'The surface is vertical, cannot project 2D vectors inside.')
+    z = (1 / equation[2]) * (-equation[3] -
+                             np.dot(equation[:2], vertices2D[:2, :]))
     return np.vstack([vertices2D[:2, :], z])
 
 
@@ -356,8 +371,10 @@ def compute_inner_inequalities(vertices, margin):
     nb_vert = vertices.shape[0]
 
     # Computes normal surface
-    S_normal = np.cross(vertices[0, :] - vertices[1, :], vertices[0, :] - vertices[2, :])
-    if np.dot(S_normal, np.array([0., 0., 1.])) < 0.:  # Check orientation of the normal
+    S_normal = np.cross(vertices[0, :] - vertices[1, :],
+                        vertices[0, :] - vertices[2, :])
+    # Check orientation of the normal
+    if np.dot(S_normal, np.array([0., 0., 1.])) < 0.:
         S_normal = -S_normal
 
     normal = S_normal / np.linalg.norm(S_normal)
@@ -366,7 +383,8 @@ def compute_inner_inequalities(vertices, margin):
     ineq_vect_inner = np.zeros((nb_vert + 1))
 
     ineq_inner[-1, :] = normal
-    ineq_vect_inner[-1] = -(-normal[0] * vertices[0, 0] - normal[1] * vertices[0, 1] - normal[2] * vertices[0, 2])
+    ineq_vect_inner[-1] = -(-normal[0] * vertices[0, 0] -
+                            normal[1] * vertices[0, 1] - normal[2] * vertices[0, 2])
 
     for i in range(nb_vert):
 
@@ -431,6 +449,7 @@ def compute_inner_vertices(vertices, ineq_inner, ineq_vect_inner):
     vertices_inner = np.array(S_inner)
     return vertices_inner
 
+
 def getAllSurfacesDict_inner(all_surfaces, margin):
     '''
     Computes the inner vertices of the given convex surface, with a margin.
@@ -445,8 +464,10 @@ def getAllSurfacesDict_inner(all_surfaces, margin):
     surfaces = []
     for name_surface in all_surfaces:
         vertices = order(np.array(all_surfaces.get(name_surface)[0]))
-        ineq_inner, ineq_inner_vect, normal = compute_inner_inequalities(vertices, margin)
-        vertices_inner = compute_inner_vertices(vertices, ineq_inner, ineq_inner_vect)
+        ineq_inner, ineq_inner_vect, normal = compute_inner_inequalities(
+            vertices, margin)
+        vertices_inner = compute_inner_vertices(
+            vertices, ineq_inner, ineq_inner_vect)
 
         # Save inner vertices
         all_names.append(name_surface)
@@ -455,7 +476,9 @@ def getAllSurfacesDict_inner(all_surfaces, margin):
     surfaces_dict = dict(zip(all_names, surfaces))
     return surfaces_dict
 
-## TODO, from stackoverflow, find reference
+# TODO, from stackoverflow, find reference
+
+
 def order(vertices, method="convexHull"):
     """
     Order the array of vertice in counterclock wise using convex Hull method
@@ -479,7 +502,7 @@ def order(vertices, method="convexHull"):
     return vert
 
 
-## TODO, from stackoverflow, find reference
+# TODO, from stackoverflow, find reference
 def plane_intersect(P1, P2):
     """
     Reference:
@@ -504,7 +527,7 @@ def plane_intersect(P1, P2):
     return p_inter[0], (p_inter + aXb_vec)[0]
 
 
-## TODO, from stackoverflow, find reference
+# TODO, from stackoverflow, find reference
 def LinePlaneCollision(P, A, B, epsilon=1e-6):
     """
     Reference:

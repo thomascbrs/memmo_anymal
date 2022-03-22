@@ -62,12 +62,16 @@ class SurfacePlannerParams:
         #                 having small surfaces between the upper surfaces.
         #       - AREA_CONVEX (3): Both 1 and 2 methods. -->
         self.method_id = 3
-        self.poly_size = 10  # Maximum size of the polygon for the convex decomposition.
-        self.min_area = 0.03  # Area under which the remaining surfaces is delated.
+        # Maximum size of the polygon for the convex decomposition.
+        self.poly_size = 10
+        # Area under which the remaining surfaces is delated.
+        self.min_area = 0.03
 
         # SurfacePlanner parameters.
-        self.N_phase = 3  # Number of step to proceed (--> N_phase * n_gait step in SL1M)
-        self.N_phase_return = 3  # Number of step to return (N_phase_return surfaces for each foot)
+        # Number of step to proceed (--> N_phase * n_gait step in SL1M)
+        self.N_phase = 3
+        # Number of step to return (N_phase_return surfaces for each foot)
+        self.N_phase_return = 3
         self.com = False  # Optimisation of the CoM
 
         # Gait parameters
