@@ -1,2 +1,2 @@
-from .SurfaceProcessing import SurfaceProcessing
-from .SurfaceDetector import SurfaceDetector
+from .surface_detector import SurfaceDetector
+from .surface_processing import SurfaceProcessing

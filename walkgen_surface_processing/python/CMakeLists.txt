@@ -28,9 +28,9 @@
 
 SET(${SURFACE_PROCESSING_NAME}_SOURCES
   __init__.py
-  SurfaceProcessing.py
-  SurfaceDetector.py
-  )
+  surface_processing.py
+  surface_detector.py
+)
 
 SET(${SURFACE_PROCESSING_NAME}_TOOLS_SOURCES
   __init__.py
