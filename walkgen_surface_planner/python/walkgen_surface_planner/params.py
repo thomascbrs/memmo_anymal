@@ -83,9 +83,9 @@ class SurfacePlannerParams:
         self.N_uss = 0
 
         if filename is not None:
-            self.parseFile(filename)
+            self.parse_file(filename)
 
-    def parseFile(self, filename):
+    def parse_file(self, filename):
         """ Parse yaml config file to setup the parameters.
 
         Args:

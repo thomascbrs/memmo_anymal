@@ -35,7 +35,7 @@ import unittest
 from walkgen_surface_planner.SurfacePlanner import SurfacePlanner
 from walkgen_surface_planner.params import SurfacePlannerParams
 
-from walkgen_surface_processing.SurfaceProcessing import SurfaceProcessing
+from walkgen_surface_processing.surface_processing import SurfaceProcessing
 
 # Load Marker array class example extracted from rosbag.
 path = os.path.dirname(os.path.abspath(__file__)) + "/../data/"

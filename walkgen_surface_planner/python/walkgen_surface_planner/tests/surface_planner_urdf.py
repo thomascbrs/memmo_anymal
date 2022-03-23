@@ -32,7 +32,7 @@ import unittest
 from walkgen_surface_planner.SurfacePlanner import SurfacePlanner
 from walkgen_surface_planner.params import SurfacePlannerParams
 
-from walkgen_surface_processing.SurfaceDetector import SurfaceDetector
+from walkgen_surface_processing.surface_detector import SurfaceDetector
 
 
 params = SurfacePlannerParams()

@@ -35,7 +35,7 @@ import matplotlib.pyplot as plt
 
 from walkgen_surface_planner.SurfacePlanner import SurfacePlanner
 from walkgen_surface_planner.params import SurfacePlannerParams
-from walkgen_surface_processing.SurfaceDetector import SurfaceDetector
+from walkgen_surface_processing.surface_detector import SurfaceDetector
 
 
 # Walkgen parameters.
@@ -44,7 +44,7 @@ params = SurfacePlannerParams()
 params.planeseg = True
 params.N_phase = 10
 params.typeGait = "trot"
-params.com = True
+params.com = False
 params.margin = 0.01
 
 # Extract surfaces from URDF file.
@@ -86,7 +86,7 @@ print(current_contacts)
 # Run MIP problem.
 t0 = clock()
 selected_surfaces = surface_planner.run(
-    q, gait_pattern, bvref, current_contacts)
+    q[:7], gait_pattern, bvref, current_contacts)
 t1 = clock()
 print("Run MIP [ms]", 1000. * (t1 - t0))
 

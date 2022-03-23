@@ -39,7 +39,7 @@ from walkgen_surface_planner.SurfacePlanner import SurfacePlanner
 from walkgen_surface_planner.params import SurfacePlannerParams
 
 from walkgen_surface_processing.tools.plot_tools import plot_marker_surface
-from walkgen_surface_processing.SurfaceProcessing import SurfaceProcessing
+from walkgen_surface_processing.surface_processing import SurfaceProcessing
 
 # Load Planeseg data, MarkerArray class example extracted from rosbag.
 path = os.path.dirname(os.path.abspath(__file__)) + "/../data/"
@@ -113,7 +113,7 @@ current_contacts[2, :] = h_init
 # Run MIP problem.
 t0 = clock()
 selected_surfaces = surface_planner.run(
-    q, gait_pattern, bvref, current_contacts)
+    q[:7], gait_pattern, bvref, current_contacts)
 t1 = clock()
 print("Run MIP [ms]", 1000. * (t1 - t0))
 
