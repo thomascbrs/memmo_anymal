@@ -348,7 +348,7 @@ class SurfacePlanner():
         for i in range(self._N_total):
             config = np.zeros(7)
             # Delay of 1 phase of contact for MIP
-            dt_config = self._step_duration * (i + 1)
+            dt_config = self._step_duration * (i + 2)
 
             if abs(bvref[5]) >= 0.01:
                 config[0] = (bvref[0] * np.sin(bvref[5] * dt_config) + bvref[1] *
@@ -540,9 +540,12 @@ class SurfacePlanner():
             configs, bvref)
         shoulder_position = self._compute_shoulder_positions(configs)
         com_positions = self._compute_com_positions(configs)
+        feet_r = dict(zip([2,3],[1,0]))
 
         costs = {
-            "effector_positions_3D": [0.1, shoulder_position],
+            "height_first_phase_cost": [0.1, feet_r],
+            "height_first_phase_cost2": [1.0, pin.rpy.matrixToRpy(pin.Quaternion(configs[0][3:]).toRotationMatrix())[1] ],
+            # "effector_positions_3D": [0.1, shoulder_position],
             "effector_positions_xy": [1.0, effector_positions],
             "coms_xy": [0.5, com_positions],
             "coms_z": [0.05, com_positions]

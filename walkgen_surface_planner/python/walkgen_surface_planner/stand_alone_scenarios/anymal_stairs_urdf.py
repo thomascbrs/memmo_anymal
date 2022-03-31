@@ -57,14 +57,14 @@ surface_planner = SurfacePlanner(params=params)
 surface_planner.set_surfaces(all_surfaces)
 
 # Initial config
-initial_config = np.array([0.25, 0., 0., 0., 0., 0., 1.])
+initial_config = np.array([0.4, 0., 0., 0., 0., 0., 1.])
 q = np.array([0., 0., 0., 0., 0., 0., 1., -0.1, 0.7, -1., -
              0.1, -0.7, 1., 0.1, 0.7, -1., 0.1, -.7, 1.])
 q[:3] = initial_config[:3]
 
 # Reference velocity
 bvref = np.zeros(6)
-bvref[0] = 0.05
+bvref[0] = 0.12
 bvref[5] = 0.
 
 # Order : [LF, RF, LH, RH]
