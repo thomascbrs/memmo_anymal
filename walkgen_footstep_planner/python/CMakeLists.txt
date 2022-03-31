@@ -31,6 +31,7 @@ SET(${FOOTSTEP_PLANNER_NAME}_SOURCES
     __init__.py
     FootStepPlanner.py
     FootStepTrajectory.py
+    FootStepTrajectoryBezier.py
     GaitManager.py
     FootStepManager.py
     params.py
