@@ -28,22 +28,22 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 SET(${ROS_INTERFACE_NAME}_SOURCES
-  __init__.py
-  WalkgenRosMessageConversion.py
-  WalkgenRosVisualization.py
-  )
+    __init__.py
+    WalkgenRosMessageConversion.py
+    WalkgenRosVisualization.py
+    )
 
 SET(${ROS_INTERFACE_NAME}_TOOLS_SOURCES
-  __init__.py
-  Surface.py
-  )
+    __init__.py
+    Surface.py
+    )
 
 FOREACH(src ${${ROS_INTERFACE_NAME}_SOURCES})
-  PYTHON_INSTALL_ON_SITE(${ROS_INTERFACE_NAME} ${src})
+PYTHON_INSTALL_ON_SITE(${ROS_INTERFACE_NAME} ${src})
 ENDFOREACH(src ${ROS_INTERFACE_NAME}_SOURCES)
 
 FOREACH(src ${${ROS_INTERFACE_NAME}_TOOLS_SOURCES})
-  PYTHON_INSTALL_ON_SITE(${ROS_INTERFACE_NAME}/tools ${src})
+PYTHON_INSTALL_ON_SITE(${ROS_INTERFACE_NAME}/tools ${src})
 ENDFOREACH(src ${ROS_INTERFACE_NAME}_TOOLS_SOURCES)
 
 ADD_LIBRARY(${ROS_INTERFACE_NAME} INTERFACE)

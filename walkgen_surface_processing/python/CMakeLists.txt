@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-#
 # Copyright 2022 University of Edinburgh
 # All rights reserved.
 #
@@ -28,26 +26,28 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 
-class Surface():
+SET(${SURFACE_PROCESSING_NAME}_SOURCES
+  __init__.py
+  surface_processing.py
+  surface_detector.py
+)
 
-    def __init__(self, A, b, vertices):
-        """Initialize the surface.
+SET(${SURFACE_PROCESSING_NAME}_TOOLS_SOURCES
+  __init__.py
+  plot_tools.py
+  Tess2.py
+  geometry_utils.py
+  SurfaceData.py
+  )
 
-        Args :
-        - A (array nx3): Inequality matrix.
-        - b (array x n): Inequality vector.
-        - vertices (array 3 x n): Vertices with the format:
-                                array([[x0, x1, ... , xn],
-                                       [y0, y1, ... , yn],
-                                       [z0, z1, ... , zn]])
-        """
-        if A.shape[1] != 3:
-            raise ArithmeticError(
-                "Number column of the inequality array should be 3.")
-        if vertices.shape[0] != 3:
-            raise ArithmeticError(
-                "Number of rows of the vertice array should be 3.")
 
-        self.A = A
-        self.b = b
-        self.vertices = vertices
+FOREACH(src ${${SURFACE_PROCESSING_NAME}_SOURCES})
+  PYTHON_INSTALL_ON_SITE(${SURFACE_PROCESSING_NAME} ${src})
+ENDFOREACH(src ${SURFACE_PROCESSING_NAME}_SOURCES)
+
+FOREACH(src ${${SURFACE_PROCESSING_NAME}_TOOLS_SOURCES})
+  PYTHON_INSTALL_ON_SITE(${SURFACE_PROCESSING_NAME}/tools ${src})
+ENDFOREACH(src ${SURFACE_PROCESSING_NAME}_TOOLS_SOURCES)
+
+ADD_LIBRARY(${SURFACE_PROCESSING_NAME} INTERFACE)
+INSTALL(TARGETS ${SURFACE_PROCESSING_NAME} EXPORT ${TARGETS_EXPORT_NAME} DESTINATION lib)

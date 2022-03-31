@@ -67,14 +67,12 @@ SET(${SURFACE_PLANNER_NAME}_SOURCES
 
 SET(${SURFACE_PLANNER_NAME}_TOOLS_SOURCES
   __init__.py
-  plot_tools.py
-  Tess2.py
   geometry_utils.py
   heightmap.py
   heightmap_generator.py
   optimisation.py
   Surface.py
-  SurfaceData.py
+  collisions_utils.py
   )
 
 SET(${SURFACE_PLANNER_NAME}_STANDALONE_SCENARIOS_SOURCES

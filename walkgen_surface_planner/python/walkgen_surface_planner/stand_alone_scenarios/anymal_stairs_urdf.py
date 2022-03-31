@@ -35,23 +35,31 @@ import matplotlib.pyplot as plt
 
 from walkgen_surface_planner.SurfacePlanner import SurfacePlanner
 from walkgen_surface_planner.params import SurfacePlannerParams
+from walkgen_surface_processing.surface_detector import SurfaceDetector
 
 
 # Walkgen parameters.
 params = SurfacePlannerParams()
 
-params.planeseg = False
+params.planeseg = True
 params.N_phase = 10
-params.typeGait = "walk"
-params.com = True
+params.typeGait = "trot"
+params.com = False
 params.margin = 0.01
 
+# Extract surfaces from URDF file.
+surface_detector = SurfaceDetector(
+    params.path + params.urdf, params.margin, q0=None, initial_height=0.)
+all_surfaces = surface_detector.extract_surfaces()
+
 # Surface Planer initialization with params.
-surface_planner = SurfacePlanner(params = params)
+surface_planner = SurfacePlanner(params=params)
+surface_planner.set_surfaces(all_surfaces)
 
 # Initial config
 initial_config = np.array([0.25, 0., 0., 0., 0., 0., 1.])
-q = np.array([0., 0., 0., 0., 0., 0., 1., -0.1, 0.7, -1., -0.1, -0.7, 1., 0.1, 0.7, -1., 0.1, -.7, 1.])
+q = np.array([0., 0., 0., 0., 0., 0., 1., -0.1, 0.7, -1., -
+             0.1, -0.7, 1., 0.1, 0.7, -1., 0.1, -.7, 1.])
 q[:3] = initial_config[:3]
 
 # Reference velocity
@@ -61,24 +69,31 @@ bvref[5] = 0.
 
 # Order : [LF, RF, LH, RH]
 GAITS = {}
-GAITS["walk"] = np.array([[0., 1., 1., 1.], [1., 0., 1., 1.], [1., 1., 0., 1.], [1., 1., 1., 0.]])
+GAITS["walk"] = np.array([[0., 1., 1., 1.], [1., 0., 1., 1.], [
+                         1., 1., 0., 1.], [1., 1., 1., 0.]])
 GAITS["trot"] = np.array([[1., 0., 1., 0.], [0., 1., 0., 1.]])
 gait_pattern = GAITS[params.typeGait]
 
 
 # order ['LF_FOOT', 'RF_FOOT', 'LH_FOOT', 'RH_FOOT']
-current_contacts = np.array([[0.37, 0.37, -0.37, -0.37],[0.2, -0.2, 0.2, -0.2],[0., 0., 0., 0.]])
+current_contacts = np.array(
+    [[0.37, 0.37, -0.37, -0.37], [0.2, -0.2, 0.2, -0.2], [0., 0., 0., 0.]])
 for k in range(4):
-    current_contacts[:,k] += q[:3]
+    current_contacts[:, k] += q[:3]
 
 print(current_contacts)
 
 # Run MIP problem.
 t0 = clock()
-selected_surfaces = surface_planner.run(q, gait_pattern, bvref, current_contacts)
+selected_surfaces = surface_planner.run(
+    q[:7], gait_pattern, bvref, current_contacts)
 t1 = clock()
 print("Run MIP [ms]", 1000. * (t1 - t0))
 
-# # Plot SL1M results
-ax = plot.draw_whole_scene(surface_planner._all_surfaces)
-plot.plot_planner_result(surface_planner.pb_data.all_feet_pos, coms=surface_planner.pb_data.coms, ax=ax, show=True)
+# Plot SL1M results
+fig = plt.figure(figsize=(10, 6))
+ax = plt.axes(projection='3d')
+for value in surface_planner.all_surfaces.values():
+    plot.plot_surface(np.array(value).T, ax)
+plot.plot_planner_result(surface_planner.pb_data.all_feet_pos,
+                         coms=surface_planner.pb_data.coms, ax=ax, show=True)

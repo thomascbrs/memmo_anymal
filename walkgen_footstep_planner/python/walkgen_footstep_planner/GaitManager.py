@@ -33,7 +33,6 @@ import copy
 from walkgen_footstep_planner.FootStepTrajectory import FootStepTrajectory
 from caracal import ContactPhase, ContactSchedule
 from walkgen_footstep_planner.params import FootStepPlannerParams
-import warnings
 
 
 class GaitManager:
@@ -71,7 +70,8 @@ class GaitManager:
 
         lf, lh, rf, rh = "LF_FOOT", "LH_FOOT", "RF_FOOT", "RH_FOOT"
         self._contactNames = [lf, lh, rf, rh]
-        self._contact_names_SL1M = [lf, rf, lh, rh]  # Contact order name for SL1M
+        # Contact order name for SL1M
+        self._contact_names_SL1M = [lf, rf, lh, rh]
 
         # SurfacePlanner parameters
         self._N_phase_return = self._params.N_phase_return
@@ -129,10 +129,12 @@ class GaitManager:
                                          startPhase=False,
                                          endPhase=False))
         else:
-            raise SyntaxError("Unknown gait type in the config file. Try Trot or Walk.")
+            raise SyntaxError(
+                "Unknown gait type in the config file. Try Trot or Walk.")
 
         if self._params.horizon is None:
-            self._horizon = copy.deepcopy(self._default_cs.T)  # horizon of one gait.
+            # horizon of one gait.
+            self._horizon = copy.deepcopy(self._default_cs.T)
         else:
             self._horizon = self._params.horizon
 
@@ -160,11 +162,9 @@ class GaitManager:
             )
 
         if not self.check_returned_phases():
-            warnings.warn(
-                "There cannot be more phases of contact in the horizon planned than the number of contact returned by the ConvexPatch Planner. The horizon needs to be carefully checked with the type of gait selected.")
-            # raise AttributeError(
-            #     "There cannot be more phases of contact in the horizon planned than the number of contact returned by the ConvexPatch Planner."
-            # )
+            raise AttributeError(
+                "There cannot be more phases of contact in the horizon planned than the number of contact returned by the ConvexPatch Planner."
+            )
 
         # Initialize switches list
         self.initialize_switches(self._default_cs)
@@ -231,29 +231,35 @@ class GaitManager:
                     if switch_active > 0.:
                         if not switch_active in switches:
                             if (T_active + T_inactive - 1) == cs.T - 1:
-                                switches[switch_active] = self._evaluate_config(cs, 0)
+                                switches[switch_active] = self._evaluate_config(
+                                    cs, 0)
                             else:
-                                switches[switch_active] = self._evaluate_config(cs, T_active + T_inactive - 1)
+                                switches[switch_active] = self._evaluate_config(
+                                    cs, T_active + T_inactive - 1)
                     if switch_inactive > 0.:
                         if not switch_inactive in switches:
-                            switches[switch_inactive] = self._evaluate_config(cs, T_active - 1)
+                            switches[switch_inactive] = self._evaluate_config(
+                                cs, T_active - 1)
                 phase_index += T_active + T_inactive
 
         s_list = np.sort([t for t in switches])
         for t in s_list:
-            if switches[t] == [1., 1., 1., 1.]:  # Remove 4 feet on the ground, useless for SL1M.
+            # Remove 4 feet on the ground, useless for SL1M.
+            if switches[t] == [1., 1., 1., 1.]:
                 switches.pop(t)
 
         # Usefull list to get quickly the current configuration
         list_sorted = np.sort([t for t in switches])
         self._timelines_list = list_sorted.tolist()
-        self._timelines_array_double = np.concatenate([list_sorted, list_sorted])
+        self._timelines_array_double = np.concatenate(
+            [list_sorted, list_sorted])
         if self._typeGait == "trot":
             self._n_gait = 2
         elif self._typeGait == "walk":
             self._n_gait = 4
         else:
-            raise SyntaxError("Unknown gait type in the config file. Try Trot or Walk.")
+            raise SyntaxError(
+                "Unknown gait type in the config file. Try Trot or Walk.")
 
         self.switches = switches
 
@@ -315,11 +321,13 @@ class GaitManager:
             if self._is_first_gait:  # Double support phase added for the first gait
                 if (self._timeline - self._N_ds) in self.switches:
                     self._new_step = True
-                    self._surface_planner_gait = self._retrieve_gait(self._timeline - self._N_ds)
+                    self._surface_planner_gait = self._retrieve_gait(
+                        self._timeline - self._N_ds)
             else:
                 if self._timeline in self.switches:
                     self._new_step = True
-                    self._surface_planner_gait = self._retrieve_gait(self._timeline)
+                    self._surface_planner_gait = self._retrieve_gait(
+                        self._timeline)
 
         return addContact
 
@@ -379,19 +387,23 @@ class GaitManager:
                         if switch_active > self._timeline:
                             if not switch_active in switches:
                                 if (T_active + T_inactive - 1) == cs.T - 1:
-                                    switches[switch_active] = self._evaluate_config(cs, 0)
+                                    switches[switch_active] = self._evaluate_config(
+                                        cs, 0)
                                 else:
-                                    switches[switch_active] = self._evaluate_config(cs, T_active + T_inactive - 1)
+                                    switches[switch_active] = self._evaluate_config(
+                                        cs, T_active + T_inactive - 1)
                         if switch_inactive > self._timeline:
                             if not switch_inactive in switches:
-                                switches[switch_inactive] = self._evaluate_config(cs, T_active - 1)
+                                switches[switch_inactive] = self._evaluate_config(
+                                    cs, T_active - 1)
                     phase_index += T_active + T_inactive
             index_cs += 1
 
         s_list = np.sort([t for t in switches])
 
         for k in range(len(s_list)):
-            if switches[s_list[k]] != [1., 1., 1., 1.]:  # Remove 4 feet on the ground, useless for SL1M.
+            # Remove 4 feet on the ground, useless for SL1M.
+            if switches[s_list[k]] != [1., 1., 1., 1.]:
                 gait.append(switches[s_list[k]])
 
         return np.array(gait)
@@ -452,10 +464,14 @@ class QuadrupedalGaitGenerator:
             N = N_0 + N_ds + 4 * N_ss - 2 * N_uss - N_uds
         gait = ContactSchedule(self._dt, N, self._S, self._contactNames)
         lf, lh, rf, rh = self._contactNames
-        lfSwingTraj = FootStepTrajectory(self._dt, N_ss, stepHeight, contacts[0][lf], contacts[1][lf])
-        lhSwingTraj = FootStepTrajectory(self._dt, N_ss, stepHeight, contacts[0][lh], contacts[1][lh])
-        rfSwingTraj = FootStepTrajectory(self._dt, N_ss, stepHeight, contacts[0][rf], contacts[1][rf])
-        rhSwingTraj = FootStepTrajectory(self._dt, N_ss, stepHeight, contacts[0][rh], contacts[1][rh])
+        lfSwingTraj = FootStepTrajectory(
+            self._dt, N_ss, stepHeight, contacts[0][lf], contacts[1][lf])
+        lhSwingTraj = FootStepTrajectory(
+            self._dt, N_ss, stepHeight, contacts[0][lh], contacts[1][lh])
+        rfSwingTraj = FootStepTrajectory(
+            self._dt, N_ss, stepHeight, contacts[0][rf], contacts[1][rf])
+        rhSwingTraj = FootStepTrajectory(
+            self._dt, N_ss, stepHeight, contacts[0][rh], contacts[1][rh])
         gait.addSchedule(
             lh, [ContactPhase(N_0),
                  ContactPhase(N_ss, trajectory=lhSwingTraj),
@@ -487,10 +503,14 @@ class QuadrupedalGaitGenerator:
             N = N_0 + 2 * N_ss - N_uss
         gait = ContactSchedule(self._dt, N, self._S, self._contactNames)
         lf, lh, rf, rh = self._contactNames
-        lfSwingTraj = FootStepTrajectory(self._dt, N_ss, stepHeight, contacts[0][lf], contacts[1][lf])
-        lhSwingTraj = FootStepTrajectory(self._dt, N_ss, stepHeight, contacts[0][lh], contacts[1][lh])
-        rfSwingTraj = FootStepTrajectory(self._dt, N_ss, stepHeight, contacts[0][rf], contacts[1][rf])
-        rhSwingTraj = FootStepTrajectory(self._dt, N_ss, stepHeight, contacts[0][rh], contacts[1][rh])
+        lfSwingTraj = FootStepTrajectory(
+            self._dt, N_ss, stepHeight, contacts[0][lf], contacts[1][lf])
+        lhSwingTraj = FootStepTrajectory(
+            self._dt, N_ss, stepHeight, contacts[0][lh], contacts[1][lh])
+        rfSwingTraj = FootStepTrajectory(
+            self._dt, N_ss, stepHeight, contacts[0][rf], contacts[1][rf])
+        rhSwingTraj = FootStepTrajectory(
+            self._dt, N_ss, stepHeight, contacts[0][rh], contacts[1][rh])
         gait.addSchedule(
             lh, [ContactPhase(N_0),
                  ContactPhase(N_ss, trajectory=lhSwingTraj),

@@ -44,7 +44,7 @@ from walkgen_surface_planner.tools.geometry_utils import getAllSurfacesDict_inne
 
 # --------------------------------- PROBLEM DEFINITION -----------------------------------------------------
 
-environment_urdf = os.getcwd() + "/data/urdf/one_step.urdf"
+environment_urdf = os.getcwd() + "/data/urdf/two_step.urdf"
 
 N_X = 100
 N_Y = 100
@@ -52,15 +52,19 @@ X_BOUNDS = [-1.5, 4.0]
 Y_BOUNDS = [-1.5, 1.0]
 
 # Initialize HPP with solo_robot, a robot is needed to initialize the collision tool.
-rom_names = ['solo_LFleg_rom', 'solo_RFleg_rom', 'solo_LHleg_rom', 'solo_RHleg_rom']
+rom_names = ['solo_LFleg_rom', 'solo_RFleg_rom',
+             'solo_LHleg_rom', 'solo_RHleg_rom']
 others = ['FL_FOOT', 'FR_FOOT', 'HL_FOOT', 'HR_FOOT']
-LIMBS = ['solo_RHleg_rom', 'solo_LHleg_rom', 'solo_LFleg_rom', 'solo_RFleg_rom']
+LIMBS = ['solo_RHleg_rom', 'solo_LHleg_rom',
+         'solo_LFleg_rom', 'solo_RFleg_rom']
 paths = [
-    os.environ["INSTALL_HPP_DIR"] + "/solo-rbprm/com_inequalities/feet_quasi_flat/",
+    os.environ["INSTALL_HPP_DIR"] +
+    "/solo-rbprm/com_inequalities/feet_quasi_flat/",
     os.environ["INSTALL_HPP_DIR"] + "/solo-rbprm/relative_effector_positions/"
 ]
 
-COLORS = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+COLORS = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728',
+          '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 # --------------------------------- METHODS ---------------------------------------------------------------
 
 
@@ -150,7 +154,7 @@ if __name__ == "__main__":
     heightmap.build(affordances)
     # heightmap.save_binary(os.environ["SOLO3D_ENV_DIR"] + params.environment_heightmap)
 
-    heightmap_path = os.getcwd() + "/data/one_step.dat"
+    heightmap_path = os.getcwd() + "/data/two_step.dat"
     heightmap.save_pickle(heightmap_path)
     # save_pickle(heightmap,heightmap_path)
 

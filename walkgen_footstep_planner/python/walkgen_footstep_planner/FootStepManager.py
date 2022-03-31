@@ -72,16 +72,21 @@ class FootStepManager:
         self._contactNames = [lf, lh, rf, rh]
 
         # Initial selected surface, rectangle of 4dxdy m2 around the initial position.
-        dx = 1.5 # Distance on x-axis around the initial position.
-        dy = 1.5 # Distance on y-axis around the initial position.
+        dx = 1.5  # Distance on x-axis around the initial position.
+        dy = 1.5  # Distance on y-axis around the initial position.
         # Assume 4 feet are on the ground
         lfeet = ["LF_FOOT", "LH_FOOT", "RF_FOOT", "RH_FOOT"]
-        height = np.mean([self._gait_manager.cs0[lfeet[k]].translation[2] for k in range(4)])
+        height = np.mean(
+            [self._gait_manager.cs0[lfeet[k]].translation[2] for k in range(4)])
         epsilon = 10e-6
-        A = [[-1., 0., 0.], [0., -1., 0.], [0., 1., 0.], [1., 0., 0.], [0., 0., 1.], [-0., -0., -1.]]
-        b = [dx - q[0], dy - q[1], dy + q[1], dx + q[0], height + epsilon, -height + epsilon]
-        vertices = [[q[0]-dx, q[1]+dy, height], [q[0]-dx, q[1]-dy, height], [q[0]+dx, q[1]-dy, height], [q[0]+dx, q[1]+dy, height]]
-        self._init_surface = Surface(np.array(A), np.array(b), np.array(vertices).T)
+        A = [[-1., 0., 0.], [0., -1., 0.], [0., 1., 0.],
+             [1., 0., 0.], [0., 0., 1.], [-0., -0., -1.]]
+        b = [dx - q[0], dy - q[1], dy + q[1], dx +
+             q[0], height + epsilon, -height + epsilon]
+        vertices = [[q[0]-dx, q[1]+dy, height], [q[0]-dx, q[1]-dy, height],
+                    [q[0]+dx, q[1]-dy, height], [q[0]+dx, q[1]+dy, height]]
+        self._init_surface = Surface(
+            np.array(A), np.array(b), np.array(vertices).T)
 
         # Add initial surface to the result structure.
         self._selected_surfaces = dict()
@@ -104,7 +109,8 @@ class FootStepManager:
         self._firstIteration = True
         self._coeffs = []
         self.initialize_default_cs()
-        self._foostep_planner = FootStepPlanner(model, q, self._params, debug, self._params.dt * self._default_cs.T)  # Foostep planner
+        self._foostep_planner = FootStepPlanner(
+            model, q, self._params, debug, self._params.dt * self._default_cs.T)  # Foostep planner
 
     def initialize_default_cs(self):
         """ Create a default contact schedule compatible with Caracal CS.
@@ -114,41 +120,41 @@ class FootStepManager:
         if self._typeGait == "trot":
             self._initial_cs = copy.deepcopy(
                 gait_generator.trot(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
-                                         N_ds=self._N_ds,
-                                         N_ss=self._N_ss,
-                                         N_uss=self._N_uss,
-                                         N_uds=self._N_uds,
-                                         stepHeight=self._stepHeight,
-                                         startPhase=True,
-                                         endPhase=False))
+                                    N_ds=self._N_ds,
+                                    N_ss=self._N_ss,
+                                    N_uss=self._N_uss,
+                                    N_uds=self._N_uds,
+                                    stepHeight=self._stepHeight,
+                                    startPhase=True,
+                                    endPhase=False))
             self._default_cs = copy.deepcopy(
                 gait_generator.trot(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
-                                         N_ds=self._N_ds,
-                                         N_ss=self._N_ss,
-                                         N_uss=self._N_uss,
-                                         N_uds=self._N_uds,
-                                         stepHeight=self._stepHeight,
-                                         startPhase=False,
-                                         endPhase=False))
+                                    N_ds=self._N_ds,
+                                    N_ss=self._N_ss,
+                                    N_uss=self._N_uss,
+                                    N_uds=self._N_uds,
+                                    stepHeight=self._stepHeight,
+                                    startPhase=False,
+                                    endPhase=False))
         elif self._typeGait == "walk":
             self._initial_cs = copy.deepcopy(
                 gait_generator.walk(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
-                                         N_ds=self._N_ds,
-                                         N_ss=self._N_ss,
-                                         N_uss=self._N_uss,
-                                         N_uds=self._N_uds,
-                                         stepHeight=self._stepHeight,
-                                         startPhase=True,
-                                         endPhase=False))
+                                    N_ds=self._N_ds,
+                                    N_ss=self._N_ss,
+                                    N_uss=self._N_uss,
+                                    N_uds=self._N_uds,
+                                    stepHeight=self._stepHeight,
+                                    startPhase=True,
+                                    endPhase=False))
             self._default_cs = copy.deepcopy(
                 gait_generator.walk(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
-                                         N_ds=self._N_ds,
-                                         N_ss=self._N_ss,
-                                         N_uss=self._N_uss,
-                                         N_uds=self._N_uds,
-                                         stepHeight=self._stepHeight,
-                                         startPhase=False,
-                                         endPhase=False))
+                                    N_ds=self._N_ds,
+                                    N_ss=self._N_ss,
+                                    N_uss=self._N_uss,
+                                    N_uds=self._N_uds,
+                                    stepHeight=self._stepHeight,
+                                    startPhase=False,
+                                    endPhase=False))
         self._initial_cs.updateSwitches()
         self._default_cs.updateSwitches()
 
@@ -173,7 +179,8 @@ class FootStepManager:
         else:
             self._addContact = self._gait_manager.update()
 
-        if self._gait_manager.is_new_step():  # Get results from optimisation during the previous phase.
+        # Get results from optimisation during the previous phase.
+        if self._gait_manager.is_new_step():
             # New step beginning, get the surfaces computed by SL1M during the previous flying phase.
             self._selected_surfaces = copy.deepcopy(self._new_surfaces)
 
@@ -244,6 +251,11 @@ class FootStepManager:
         """
         return self._gait_sl1m
 
+    def get_q_filter(self):
+        """ Returns the state filtered. (x 18)
+        """
+        return self._foostep_planner.q_f
+
 
 if __name__ == "__main__":
     """ Run a simple example of the FootStepManager wrapper.
@@ -256,7 +268,8 @@ if __name__ == "__main__":
     bvref[5] = 0.06
     bvref[0] = 0.06
 
-    filepath = os.path.dirname(os.path.abspath(__file__)) + "/config/params.yaml"
+    filepath = os.path.dirname(os.path.abspath(
+        __file__)) + "/config/params.yaml"
 
     # Load Anymal model to get the current feet position by forward kinematic.
     ANYmalLoader.free_flyer = True

@@ -31,23 +31,24 @@ import copy
 import pinocchio
 import numpy as np
 
+
 class FootStepTrajectory():
 
     def __init__(self, dt, N, stepHeight, M_current, M_next):
-            # Stored swing-trajectory properties
-            self._dt = copy.deepcopy(dt)
-            self._N = copy.deepcopy(N)
-            self._stepHeight = copy.deepcopy(stepHeight)
-            self._M_current = copy.deepcopy(M_current)
-            self._M_next = copy.deepcopy(M_next)
+        # Stored swing-trajectory properties
+        self._dt = copy.deepcopy(dt)
+        self._N = copy.deepcopy(N)
+        self._stepHeight = copy.deepcopy(stepHeight)
+        self._M_current = copy.deepcopy(M_current)
+        self._M_next = copy.deepcopy(M_next)
 
-            # Polynomial coefficients
-            self.Ax = [0.] * 7  # x-axis
-            self.Ay = [0.] * 7  # y-axis
-            self.Az = [0.] * 7  # z-axis
+        # Polynomial coefficients
+        self.Ax = [0.] * 7  # x-axis
+        self.Ay = [0.] * 7  # y-axis
+        self.Az = [0.] * 7  # z-axis
 
-            # Create polynomial curve
-            self._createPolynomialCurve()
+        # Create polynomial curve
+        self._createPolynomialCurve()
 
     def position(self, k):
         if k >= self._N:
@@ -68,20 +69,24 @@ class FootStepTrajectory():
     def _createPolynomialCurve(self):
         x0 = self._M_current.translation
         xf = self._M_next.translation
-        self._updatePolyCoeff_XY(x0, np.zeros(3), np.zeros(3), xf, 0., self._N * self._dt)
-        self._updatePolyCoeff_Z(x0, np.zeros(3), np.zeros(3), xf, 0., self._N * self._dt, self._stepHeight )
+        self._updatePolyCoeff_XY(x0, np.zeros(
+            3), np.zeros(3), xf, 0., self._N * self._dt)
+        self._updatePolyCoeff_Z(x0, np.zeros(3), np.zeros(
+            3), xf, 0., self._N * self._dt, xf[2] + self._stepHeight)
 
         return 0
 
-
-    def update(self,x0,v0, xf, t0, feedback=False):
+    def update(self, x0, v0, xf, t0, feedback=False):
         if feedback:
-            self._updatePolyCoeff_XY(x0, self._evaluate(1,t0), self._evaluate(2,t0), xf, t0, self._N * self._dt)
+            self._updatePolyCoeff_XY(x0, self._evaluate(
+                1, t0), self._evaluate(2, t0), xf, t0, self._N * self._dt)
         else:
-            self._updatePolyCoeff_XY(self._evaluate(0,t0), self._evaluate(1,t0), self._evaluate(2,t0), xf, t0, self._N * self._dt)
+            self._updatePolyCoeff_XY(self._evaluate(0, t0), self._evaluate(
+                1, t0), self._evaluate(2, t0), xf, t0, self._N * self._dt)
         if t0 == 0.:
             h = xf[2] + self._stepHeight
-            self._updatePolyCoeff_Z(x0,  np.zeros(3), np.zeros(3), xf, t0, self._N * self._dt,h)
+            self._updatePolyCoeff_Z(x0,  np.zeros(
+                3), np.zeros(3), xf, t0, self._N * self._dt, h)
 
         return 0
 
@@ -97,11 +102,10 @@ class FootStepTrajectory():
         if stepHeight == None and M_current == None and M_next == None:
             print("Warning: we don't set any reference, all the terms are None")
             return
-        self.update(self._M_current.translation, np.zeros(3), self._M_next.translation, 0.)
+        self.update(self._M_current.translation, np.zeros(3),
+                    self._M_next.translation, 0.)
 
-
-
-    def _updatePolyCoeff_XY(self,x_init, v_init, a_init, x_end,  t0, t1):
+    def _updatePolyCoeff_XY(self, x_init, v_init, a_init, x_end,  t0, t1):
         ''' Update internal coefficients for 5D polynomial curve, X and Y trajectory. Vel, Acc final is nulle.
 
         Args:
@@ -119,30 +123,30 @@ class FootStepTrajectory():
 
         # compute polynoms coefficients for x and y
         self.Ax[5] = (ddx0*t0**2 - 2*ddx0*t0*t1 - 6*dx0*t0 + ddx0*t1**2 + 6*dx0*t1 + 12 *
-                            x0 - 12*x1)/(2*(t0 - t1)**2*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
+                      x0 - 12*x1)/(2*(t0 - t1)**2*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
         self.Ax[4] = (30*t0*x1 - 30*t0*x0 - 30*t1*x0 + 30*t1*x1 - 2*t0**3*ddx0 - 3*t1**3*ddx0 + 14*t0**2*dx0 - 16*t1**2*dx0 +
-                            2*t0*t1*dx0 + 4*t0*t1**2*ddx0 + t0**2*t1*ddx0)/(2*(t0 - t1)**2*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
+                      2*t0*t1*dx0 + 4*t0*t1**2*ddx0 + t0**2*t1*ddx0)/(2*(t0 - t1)**2*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
         self.Ax[3] = (t0**4*ddx0 + 3*t1**4*ddx0 - 8*t0**3*dx0 + 12*t1**3*dx0 + 20*t0**2*x0 - 20*t0**2*x1 + 20*t1**2*x0 - 20*t1**2*x1 + 80*t0*t1*x0 - 80*t0 *
-                            t1*x1 + 4*t0**3*t1*ddx0 + 28*t0*t1**2*dx0 - 32*t0**2*t1*dx0 - 8*t0**2*t1**2*ddx0)/(2*(t0 - t1)**2*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
+                      t1*x1 + 4*t0**3*t1*ddx0 + 28*t0*t1**2*dx0 - 32*t0**2*t1*dx0 - 8*t0**2*t1**2*ddx0)/(2*(t0 - t1)**2*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
         self.Ax[2] = -(t1**5*ddx0 + 4*t0*t1**4*ddx0 + 3*t0**4*t1*ddx0 + 36*t0*t1**3*dx0 - 24*t0**3*t1*dx0 + 60*t0*t1**2*x0 + 60*t0**2*t1*x0 - 60*t0*t1 **
-                            2*x1 - 60*t0**2*t1*x1 - 8*t0**2*t1**3*ddx0 - 12*t0**2*t1**2*dx0)/(2*(t0**2 - 2*t0*t1 + t1**2)*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
+                       2*x1 - 60*t0**2*t1*x1 - 8*t0**2*t1**3*ddx0 - 12*t0**2*t1**2*dx0)/(2*(t0**2 - 2*t0*t1 + t1**2)*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
         self.Ax[1] = -(2*t1**5*dx0 - 2*t0*t1**5*ddx0 - 10*t0*t1**4*dx0 + t0**2*t1**4*ddx0 + 4*t0**3*t1**3*ddx0 - 3*t0**4*t1**2*ddx0 - 16*t0**2 *
-                            t1**3*dx0 + 24*t0**3*t1**2*dx0 - 60*t0**2*t1**2*x0 + 60*t0**2*t1**2*x1)/(2*(t0 - t1)**2*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
+                       t1**3*dx0 + 24*t0**3*t1**2*dx0 - 60*t0**2*t1**2*x0 + 60*t0**2*t1**2*x1)/(2*(t0 - t1)**2*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
         self.Ax[0] = (2*x1*t0**5 - ddx0*t0**4*t1**3 - 10*x1*t0**4*t1 + 2*ddx0*t0**3*t1**4 + 8*dx0*t0**3*t1**3 + 20*x1*t0**3*t1**2 - ddx0*t0**2*t1**5 - 10*dx0*t0 **
-                            2*t1**4 - 20*x0*t0**2*t1**3 + 2*dx0*t0*t1**5 + 10*x0*t0*t1**4 - 2*x0*t1**5)/(2*(t0**2 - 2*t0*t1 + t1**2)*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
+                      2*t1**4 - 20*x0*t0**2*t1**3 + 2*dx0*t0*t1**5 + 10*x0*t0*t1**4 - 2*x0*t1**5)/(2*(t0**2 - 2*t0*t1 + t1**2)*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
 
         self.Ay[5] = (ddy0*t0**2 - 2*ddy0*t0*t1 - 6*dy0*t0 + ddy0*t1**2 + 6*dy0*t1 + 12 *
-                            y0 - 12*y1)/(2*(t0 - t1)**2*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
+                      y0 - 12*y1)/(2*(t0 - t1)**2*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
         self.Ay[4] = (30*t0*y1 - 30*t0*y0 - 30*t1*y0 + 30*t1*y1 - 2*t0**3*ddy0 - 3*t1**3*ddy0 + 14*t0**2*dy0 - 16*t1**2*dy0 +
-                            2*t0*t1*dy0 + 4*t0*t1**2*ddy0 + t0**2*t1*ddy0)/(2*(t0 - t1)**2*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
+                      2*t0*t1*dy0 + 4*t0*t1**2*ddy0 + t0**2*t1*ddy0)/(2*(t0 - t1)**2*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
         self.Ay[3] = (t0**4*ddy0 + 3*t1**4*ddy0 - 8*t0**3*dy0 + 12*t1**3*dy0 + 20*t0**2*y0 - 20*t0**2*y1 + 20*t1**2*y0 - 20*t1**2*y1 + 80*t0*t1*y0 - 80*t0 *
-                            t1*y1 + 4*t0**3*t1*ddy0 + 28*t0*t1**2*dy0 - 32*t0**2*t1*dy0 - 8*t0**2*t1**2*ddy0)/(2*(t0 - t1)**2*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
+                      t1*y1 + 4*t0**3*t1*ddy0 + 28*t0*t1**2*dy0 - 32*t0**2*t1*dy0 - 8*t0**2*t1**2*ddy0)/(2*(t0 - t1)**2*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
         self.Ay[2] = -(t1**5*ddy0 + 4*t0*t1**4*ddy0 + 3*t0**4*t1*ddy0 + 36*t0*t1**3*dy0 - 24*t0**3*t1*dy0 + 60*t0*t1**2*y0 + 60*t0**2*t1*y0 - 60*t0*t1 **
-                            2*y1 - 60*t0**2*t1*y1 - 8*t0**2*t1**3*ddy0 - 12*t0**2*t1**2*dy0)/(2*(t0**2 - 2*t0*t1 + t1**2)*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
+                       2*y1 - 60*t0**2*t1*y1 - 8*t0**2*t1**3*ddy0 - 12*t0**2*t1**2*dy0)/(2*(t0**2 - 2*t0*t1 + t1**2)*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
         self.Ay[1] = -(2*t1**5*dy0 - 2*t0*t1**5*ddy0 - 10*t0*t1**4*dy0 + t0**2*t1**4*ddy0 + 4*t0**3*t1**3*ddy0 - 3*t0**4*t1**2*ddy0 - 16*t0**2 *
-                            t1**3*dy0 + 24*t0**3*t1**2*dy0 - 60*t0**2*t1**2*y0 + 60*t0**2*t1**2*y1)/(2*(t0 - t1)**2*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
+                       t1**3*dy0 + 24*t0**3*t1**2*dy0 - 60*t0**2*t1**2*y0 + 60*t0**2*t1**2*y1)/(2*(t0 - t1)**2*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
         self.Ay[0] = (2*y1*t0**5 - ddy0*t0**4*t1**3 - 10*y1*t0**4*t1 + 2*ddy0*t0**3*t1**4 + 8*dy0*t0**3*t1**3 + 20*y1*t0**3*t1**2 - ddy0*t0**2*t1**5 - 10*dy0*t0 **
-                            2*t1**4 - 20*y0*t0**2*t1**3 + 2*dy0*t0*t1**5 + 10*y0*t0*t1**4 - 2*y0*t1**5)/(2*(t0**2 - 2*t0*t1 + t1**2)*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
+                      2*t1**4 - 20*y0*t0**2*t1**3 + 2*dy0*t0*t1**5 + 10*y0*t0*t1**4 - 2*y0*t1**5)/(2*(t0**2 - 2*t0*t1 + t1**2)*(t0**3 - 3*t0**2*t1 + 3*t0*t1**2 - t1**3))
 
         return 0
 
@@ -185,12 +189,15 @@ class FootStepTrajectory():
         x, y, z = 0., 0., 0.
         for id, coeff in enumerate(self.Ax):
             if id >= indice:
-                x += (np.math.factorial(id) / np.math.factorial(id - indice)) * coeff * (t**(id - indice))
+                x += (np.math.factorial(id) / np.math.factorial(id -
+                      indice)) * coeff * (t**(id - indice))
         for id, coeff in enumerate(self.Ay):
             if id >= indice:
-                y += (np.math.factorial(id) / np.math.factorial(id - indice)) * coeff * (t**(id - indice))
+                y += (np.math.factorial(id) / np.math.factorial(id -
+                      indice)) * coeff * (t**(id - indice))
         for id, coeff in enumerate(self.Az):
             if id >= indice:
-                z += (np.math.factorial(id) / np.math.factorial(id - indice)) * coeff * (t**(id - indice))
+                z += (np.math.factorial(id) / np.math.factorial(id -
+                      indice)) * coeff * (t**(id - indice))
 
         return np.array([x, y, z])

@@ -2,7 +2,8 @@
 ///
 /// \brief This is the header for FootTrajectoryGenerator class
 ///
-/// \details This class generates a reference trajectory for the swing foot, in position, velocity
+/// \details This class generates a reference trajectory for the swing foot, in
+/// position, velocity
 ///           and acceleration
 ///
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -10,11 +11,11 @@
 #ifndef TRAJGEN_BEZIER_H_INCLUDED
 #define TRAJGEN_BEZIER_H_INCLUDED
 
-
-#include <ostream>
 #include <iostream>
+#include <ostream>
+
 class FootTrajectoryBezier {
- public:
+public:
   ////////////////////////////////////////////////////////////////////////////////////////////////
   ///
   /// \brief Constructor
@@ -27,13 +28,9 @@ class FootTrajectoryBezier {
   /// \brief Destructor.
   ///
   ////////////////////////////////////////////////////////////////////////////////////////////////
-  ~FootTrajectoryBezier(){};  // Empty constructor
+  ~FootTrajectoryBezier(){}; // Empty constructor
 
-
-  void print_ok(int const& k);
-
-
+  void print_ok(int const &k);
 };
 
-
-#endif  // TRAJGEN_H_INCLUDED
+#endif // TRAJGEN_H_INCLUDED
