@@ -310,17 +310,17 @@ def get_normal(vertices):
     """ Compute normal of a surface.
 
     Args:
-        - vertices (array 3xn):  Surface is defined using the vertices positions:
-                                array([[x0, x1, ... , xn],
-                                       [y0, y1, ... , yn],
-                                       [z0, z1, ... , zn]]).
+        - vertices (array or list nx3):  Surface is defined using the vertices positions:
+                                        array([[x0, y0, z0],
+                                                  ...
+                                                [xn, yn, zn]]).
 
     Returns:
         - array x3: The normal of the surface.
     """
     # Computes normal surface
-    S_normal = np.cross(vertices[:, 0] - vertices[:, 1],
-                        vertices[:, 0] - vertices[:, 2])
+    S_normal = np.cross(vertices[0] - vertices[1],
+                        vertices[0] - vertices[2])
     # Check orientation of the normal
     if np.dot(S_normal, np.array([0., 0., 1.])) < 0.:
         S_normal = -S_normal
@@ -476,9 +476,31 @@ def getAllSurfacesDict_inner(all_surfaces, margin):
     surfaces_dict = dict(zip(all_names, surfaces))
     return surfaces_dict
 
+def align_points(vertices):
+    """ Align points to ensure convexity of the surface. 3 first point kept and the others projected into the 2D surface.
+
+    Args:
+        - vertices (array or list n x 3): vertices in 3D.
+
+    Returns:
+        - param1 (array n x 3): vertices in 3D aliggned.
+    """
+    vertices_projected = []
+    vertices_projected.append(vertices[0])
+    vertices_projected.append(vertices[1])
+    vertices_projected.append(vertices[2])
+    if len(vertices) == 3:
+        return np.array(vertices_projected)
+    else:
+        normal = get_normal(vertices)
+        # Projection of the other vertices into the surface obtained by the 3 first vertices
+        # to ensure convexity of the surfaces.
+        for k in range(3,len(vertices)):
+            vertices_projected.append(vertices[k] - np.dot( np.dot( (vertices[k] - vertices[0]), normal ) , normal))
+        return np.array(vertices_projected)
+
+
 # TODO, from stackoverflow, find reference
-
-
 def order(vertices, method="convexHull"):
     """
     Order the array of vertice in counterclock wise using convex Hull method

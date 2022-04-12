@@ -105,3 +105,12 @@ def plot_surface2D(surface, ax=None, color="b"):
     ax.plot(xs, ys, color=color)
 
     return ax
+
+def plot_surface(points, ax, color="b"):
+    """
+    Plot a 3D surface.
+    """
+    xs = np.append(points[0, :], points[0, 0]).tolist()
+    ys = np.append(points[1, :], points[1, 0]).tolist()
+    zs = np.append(points[2, :], points[2, 0]).tolist()
+    ax.plot(xs, ys, zs, color=color)
