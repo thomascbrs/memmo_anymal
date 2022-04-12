@@ -29,28 +29,35 @@
 
 import numpy as np
 from time import perf_counter as clock
+import os
+import pickle
 
 import sl1m.tools.plot_tools as plot
 import matplotlib.pyplot as plt
 
 from walkgen_surface_planner.SurfacePlanner import SurfacePlanner
 from walkgen_surface_planner.params import SurfacePlannerParams
-from walkgen_surface_processing.surface_detector import SurfaceDetector
 
+# Using walkgen_surface_processing.
+# from walkgen_surface_processing.surface_detector import SurfaceDetector
+# from walkgen_surface_processing.params import SurfaceProcessingParams
+# params_processing = SurfaceProcessingParams()
+# params_processing.margin = 0.01 # 1cm
+# surface_detector = SurfaceDetector(
+#     params_processing.path + params_processing.stl, np.identity(3), np.zeros(3), params_processing.margin, "obstacles_")
+# all_surfaces = surface_detector.extract_surfaces()
+
+# Load an exemple of surfaces extracted using walkgen_surface_processing.
+path = os.path.dirname(os.path.abspath(__file__)) + "/../data/"
+filename = path + "example_environment.pickle"
+with open(filename, 'rb') as file2:
+    all_surfaces = pickle.load(file2)
 
 # Walkgen parameters.
 params = SurfacePlannerParams()
-
-params.planeseg = True
 params.N_phase = 10
 params.typeGait = "trot"
-params.com = False
-params.margin = 0.01
-
-# Extract surfaces from URDF file.
-surface_detector = SurfaceDetector(
-    params.path + params.urdf, params.margin, q0=None, initial_height=0.)
-all_surfaces = surface_detector.extract_surfaces()
+params.com = True
 
 # Surface Planer initialization with params.
 surface_planner = SurfacePlanner(params=params)

@@ -39,35 +39,6 @@ class SurfacePlannerParams:
         Args:
             - filename (string): path to the config file.
         """
-        # Use URDF of the environment or planeseg visualisation.
-        self.planeseg = False
-
-        # URDF and heightmap environment without planeseg.
-        self.path = os.path.dirname(os.path.abspath(__file__))
-        self.urdf = "/data/urdf/lab_scene.urdf"  # Env URDF path
-        self.stl = "/data/meshes/lab_scene.stl"  # Env URDF path
-        self.heightmap = "/data/lab_scene.dat"  # Heightmap path
-
-        # Planeseg parameters for postprocessing.
-        self.n_points = 6  # Maximum Number of points for for each convex surface
-        self.margin = 0.06  # Margin in [m] inside the convex surfaces
-        # Method to remove the overlapping between surfaces :
-        #   1. Run the list of surfaces starting with the lowest.
-        #   2. Decomposes the lowest surface in set of convex ones by removing the upper surfaces that overlap it. (Tesselation algorithm).
-        #   3. Delate some of the remaining surfaces from the list and continue using one of the following method.
-        #       - BASIC (0): Intersect the lowest polygon with all the upper polygon that overlay and keep all remaining surfaces.
-        #       - AREA (1): After difference and decomposition with the upper polygons, select only the remining polygon
-        #               whose area is superior to min_area arg.
-        #       - CONVEX (2): Apply the difference with the convex hull of the upper surfaces that intersect, to avoid
-        #                 having small surfaces between the upper surfaces.
-        #       - AREA_CONVEX (3): Both 1 and 2 methods. -->
-        self.method_id = 3
-        # Maximum size of the polygon for the convex decomposition.
-        self.poly_size = 10
-        # Area under which the remaining surfaces is delated.
-        self.min_area = 0.03
-
-        # SurfacePlanner parameters.
         # Number of step to proceed (--> N_phase * n_gait step in SL1M)
         self.N_phase = 3
         # Number of step to return (N_phase_return surfaces for each foot)
@@ -82,6 +53,11 @@ class SurfacePlannerParams:
         self.N_uds = 0
         self.N_uss = 0
 
+        # Get slope of the terrain to rotate SL1M inequalities.
+        self.fitsize_x = 10
+        self.fitsize_y = 5
+        self.fitlength = 0.3 # half-square size centered around position of the robot.
+
         if filename is not None:
             self.parse_file(filename)
 
@@ -92,20 +68,9 @@ class SurfacePlannerParams:
             - filename (string): path to the config file.
         """
         config = yaml.load(open(filename, 'r'), Loader=yaml.FullLoader)
-        self.path = config["walkgen_params"]["world"]["path"]
-        if self.path == "":
-            self.path = os.path.dirname(os.path.abspath(__file__))
-        self.planeseg = config["walkgen_params"]["planeseg"]
-        self.urdf = config["walkgen_params"]["world"]["urdf"]
-        self.heightmap = config["walkgen_params"]["world"]["heightmap"]
-        self.n_points = config["walkgen_params"]["params"]["n_points"]
-        self.method_id = config["walkgen_params"]["params"]["method_id"]
-        self.poly_size = config["walkgen_params"]["params"]["poly_size"]
-        self.min_area = config["walkgen_params"]["params"]["min_area"]
         self.N_phase = config["walkgen_params"]["params"]["N_phase"]
         self.N_phase_return = config["walkgen_params"]["params"]["N_phase_return"]
         self.com = config["walkgen_params"]["params"]["com"]
-        self.margin = config["walkgen_params"]["params"]["margin"]
         self.typeGait = config["walkgen_params"]["gait"]["type"]
         self.dt = config["walkgen_params"]["gait"]["dt"]
         self.N_ds = config["walkgen_params"]["gait"][self.typeGait]["N_ds"]

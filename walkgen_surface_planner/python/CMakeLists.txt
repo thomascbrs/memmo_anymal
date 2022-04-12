@@ -43,22 +43,6 @@ if (NOT ${EXIT_CODE} EQUAL 0)
   )
 endif()
 
-
-# ---------Visvalingamwyatt --------------
-execute_process(
-    COMMAND ${PYTHON_EXECUTABLE} -c "import visvalingamwyatt"
-    RESULT_VARIABLE EXIT_CODE
-    OUTPUT_QUIET
-)
-
-if (NOT ${EXIT_CODE} EQUAL 0)
-  message(
-          FATAL_ERROR
-          "\n Visvalingamwyatt package is not installed. Turn off SURFACE_PLANNER option or run : \"pip install visvalingamwyatt\"."
-  )
-endif()
-
-
 SET(${SURFACE_PLANNER_NAME}_SOURCES
   __init__.py
   SurfacePlanner.py
@@ -67,10 +51,6 @@ SET(${SURFACE_PLANNER_NAME}_SOURCES
 
 SET(${SURFACE_PLANNER_NAME}_TOOLS_SOURCES
   __init__.py
-  geometry_utils.py
-  heightmap.py
-  heightmap_generator.py
-  optimisation.py
   Surface.py
   collisions_utils.py
   )
@@ -78,7 +58,7 @@ SET(${SURFACE_PLANNER_NAME}_TOOLS_SOURCES
 SET(${SURFACE_PLANNER_NAME}_STANDALONE_SCENARIOS_SOURCES
   __init__.py
   anymal_stairs_planeseg.py
-  anymal_stairs_urdf.py
+  anymal_stairs.py
   )
 
 SET(${SURFACE_PLANNER_NAME}_TESTS_SOURCES
