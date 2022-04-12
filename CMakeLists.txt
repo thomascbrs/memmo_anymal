@@ -46,6 +46,7 @@ SET(PROJECT_URL "https://github.com/thomascbrs/memmo_anymal")
 option(SUFFIX_SO_VERSION "Suffix library name with its version" ON)
 option(FOOTSTEP_PLANNER "Install foostep planner library" ON)
 option(SURFACE_PLANNER "Install surface planner library" ON)
+option(SURFACE_PROCESSING "Install surface processing library" ON)
 option(ROS_INTERFACE "Install the ros interface" ON)
 
 # Check if the submodule cmake have been initialized
@@ -79,6 +80,9 @@ endif()
 
 if(SURFACE_PLANNER)
   ADD_SUBDIRECTORY("${SURFACE_PLANNER_NAME}")
+endif()
+
+if(SURFACE_PROCESSING)
   ADD_SUBDIRECTORY("${SURFACE_PROCESSING_NAME}")
 endif()
 
