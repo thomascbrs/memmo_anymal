@@ -44,9 +44,9 @@ class FootStepTrajectoryBezier():
         self._M_next = copy.deepcopy(M_next)
 
         # Bezier parameters
-        x_margin_max_ = 0.08  # 4cm margin
-        t_margin_ = 0.35  # 15% of the curve around critical point
-        z_margin_ = 0.06  # 1% of the curve after the critical point
+        x_margin_max_ = 0.1  # 4cm margin
+        t_margin_ = 0.3  # 15% of the curve around critical point
+        z_margin_ = 0.04  # 1% of the curve after the critical point
         N_sample = 10  # Number of sample in the least square optimisation for Bezier coeffs
         N_sample_ineq = 8  # Number of sample while browsing the curve
         degree = 7  # Degree of the Bezier curve
