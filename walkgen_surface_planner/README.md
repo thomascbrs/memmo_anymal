@@ -32,3 +32,4 @@ python3 -m walkgen_surface_planner.stand_alone_scenarios.anymal_stairs_planeseg
 - pinocchio (python): ```sudo apt install -qqy robotpkg-py38-pinocchio```
 - eiquadprog (cpp): ```sudo apt install robotpkg-eiquadprogs```
 - hpp-fcl (cpp+python): ```sudo apt install robotpkg-py38-hpp-fcl```
+- anymal-rbprm (Environment variable INSTALL_HPP_DIR): https://github.com/humanoid-path-planner/anymal-rbprm

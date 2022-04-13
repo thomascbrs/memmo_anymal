@@ -53,3 +53,8 @@ Tools to post-process the data from planeseg or extract support surfaces from .s
 
 ### Ros interface :
 Allow to interface with ros message. It contains publisher interfaces, reading and transform ros messages for both modules Surface and Footstep planner. Memmo_planner_ros should be installed to run ros experiments, on feature-walkgen branch : https://github.com/thomascbrs/memmo_planner_ros/tree/feature-walkgen
+
+---
+### Pipeline :
+
+![](./doc/pipeline.png)
