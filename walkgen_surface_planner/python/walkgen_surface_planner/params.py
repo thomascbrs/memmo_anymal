@@ -57,6 +57,7 @@ class SurfacePlannerParams:
         self.fitsize_x = 10
         self.fitsize_y = 5
         self.fitlength = 0.3 # half-square size centered around position of the robot.
+        self.recompute_slope = False # Recompute the slope of the terrain for each contact phase configuration.
 
         if filename is not None:
             self.parse_file(filename)
@@ -77,3 +78,7 @@ class SurfacePlannerParams:
         self.N_ss = config["walkgen_params"]["gait"][self.typeGait]["N_ss"]
         self.N_uds = config["walkgen_params"]["gait"][self.typeGait]["N_uds"]
         self.N_uss = config["walkgen_params"]["gait"][self.typeGait]["N_uss"]
+        self.fitsize_x = config["walkgen_params"]["heightmap"]["fitsize_x"]
+        self.fitsize_y = config["walkgen_params"]["heightmap"]["fitsize_y"]
+        self.fitlength = config["walkgen_params"]["heightmap"]["fitlength"]
+        self.recompute_slope = config["walkgen_params"]["heightmap"]["recompute_slope"]

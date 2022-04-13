@@ -82,6 +82,7 @@ class SurfacePlanner():
         self._box = hppfcl.Box(np.array([4., 2., 4]))  # Reduce number of surfaces for the terrain evaluation.
         self._tf = hppfcl.Transform3f()
         self._terrain = TerrainSlope(self._params.fitsize_x, self._params.fitsize_y, self._params.fitlength)
+        self._recompute_slope = self._params.recompute_slope
 
         # Gait parameters
         self._set_gait_param(self._params)
@@ -263,11 +264,11 @@ class SurfacePlanner():
             config[:2] += q[:2]  # Add initial 2D position
 
             # Recompute the orientation according to the heightmap for each configuration.
-            # if not self.planeseg:
-            fit_ = self._terrain.get_slope(config[:2], rotation, collision_points)
-            rpyMap_ = np.zeros(3)
-            rpyMap_[0] = np.arctan2(fit_[1], 1.)
-            rpyMap_[1] = -np.arctan2(fit_[0], 1.)
+            if self._recompute_slope :
+                fit_ = self._terrain.get_slope(config[:2], rotation, collision_points)
+                rpyMap_ = np.zeros(3)
+                rpyMap_[0] = np.arctan2(fit_[1], 1.)
+                rpyMap_[1] = -np.arctan2(fit_[0], 1.)
 
 
             config[2] = fit_[0] * config[0] + fit_[1] * \
