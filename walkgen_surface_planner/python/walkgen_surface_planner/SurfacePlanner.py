@@ -433,22 +433,24 @@ class SurfacePlanner():
         # feet_r = dict(zip([2, 3], [1, 0]))
         # else:
         #     feet_r = dict(zip([1,0],[2,3]))
-        if bvref[0] >= 0:
-            feet = [2,3]
-        else:
-            feet = [0,1]
+        # if bvref[0] >= 0:
+        #     feet = [2,3]
+        # else:
+        #     feet = [0,1]
 
         costs = {
+            # Walks costs
             # "height_first_phase_cost": [0.12, feet_r],
             # "height_first_phase_cost2": [
             #     1.0, pin.rpy.matrixToRpy(pin.Quaternion(configs[0][3:]).toRotationMatrix())[1]
             # ],
             # "effector_positions_xy": [1.0, effector_positions],
 
-            "height_first_phase_cost2": [
-                1.0, pin.rpy.matrixToRpy(pin.Quaternion(configs[0][3:]).toRotationMatrix())[1]
-            ],
-            "effector_position_cost_xy_selected": [0.5, [feet, shoulder_position]],
+            # Trot costs
+            # "height_first_phase_cost2": [
+            #     1.0, pin.rpy.matrixToRpy(pin.Quaternion(configs[0][3:]).toRotationMatrix())[1]
+            # ],
+            # "effector_position_cost_xy_selected": [0.5, [feet, shoulder_position]],
             "effector_positions_xy": [1.0, effector_positions],
             "coms_xy": [0.5, com_positions],
             "coms_z": [0.05, com_positions]
