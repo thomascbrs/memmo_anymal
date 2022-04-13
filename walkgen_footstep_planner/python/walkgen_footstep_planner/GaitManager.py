@@ -30,7 +30,7 @@
 import pinocchio as pin
 import numpy as np
 import copy
-from walkgen_footstep_planner.FootStepTrajectory import FootStepTrajectory
+from walkgen_footstep_planner.FootStepTrajectoryBezier import FootStepTrajectoryBezier
 from caracal import ContactPhase, ContactSchedule
 from walkgen_footstep_planner.params import FootStepPlannerParams
 
@@ -267,7 +267,7 @@ class GaitManager:
         """ Get the coefficients of the Queue of contact.
 
         Returns:
-            - params1 (list): List of list of matrix with the coefficients for each foot.
+            - params1 (list): List of list of tuple (matrix, float) with the coefficients for each foot and initial time.
             Example:    Ax = [Ax0, Ax1, Ax2 ... Axn] on x-axis
                         mat_coeff = [Ax.T, Ay.T, Az.T], size degree x 3
                         params1 = [  current _CS,  next_CS,  ...   last_CS_queue ]
@@ -283,10 +283,7 @@ class GaitManager:
                 N_phase = len(phases)
                 for p in range(0, N_phase, 2):
                     if p + 1 < N_phase:  # otherwise no inactive phase
-                        Ax = phases[p + 1].trajectory.Ax
-                        Ay = phases[p + 1].trajectory.Ay
-                        Az = phases[p + 1].trajectory.Az
-                        foot_list.append(np.array([Ax, Ay, Az]))
+                        foot_list.append( (phases[p + 1].trajectory.get_t0() , phases[p + 1].trajectory.get_coefficients()))
                 cs_list.append(foot_list)
             coeffs.append(cs_list)
         return coeffs
@@ -313,7 +310,7 @@ class GaitManager:
             count = 0
             for cs in self._queue_cs:
                 count += cs.T
-            if count - self._timeline < self._horizon:
+            if count - self._timeline < (self._horizon):
                 gait = copy.deepcopy(self._default_cs)
                 gait.updateSwitches()
                 self._queue_cs.insert(0, gait)
@@ -464,13 +461,13 @@ class QuadrupedalGaitGenerator:
             N = N_0 + N_ds + 4 * N_ss - 2 * N_uss - N_uds
         gait = ContactSchedule(self._dt, N, self._S, self._contactNames)
         lf, lh, rf, rh = self._contactNames
-        lfSwingTraj = FootStepTrajectory(
+        lfSwingTraj = FootStepTrajectoryBezier(
             self._dt, N_ss, stepHeight, contacts[0][lf], contacts[1][lf])
-        lhSwingTraj = FootStepTrajectory(
+        lhSwingTraj = FootStepTrajectoryBezier(
             self._dt, N_ss, stepHeight, contacts[0][lh], contacts[1][lh])
-        rfSwingTraj = FootStepTrajectory(
+        rfSwingTraj = FootStepTrajectoryBezier(
             self._dt, N_ss, stepHeight, contacts[0][rf], contacts[1][rf])
-        rhSwingTraj = FootStepTrajectory(
+        rhSwingTraj = FootStepTrajectoryBezier(
             self._dt, N_ss, stepHeight, contacts[0][rh], contacts[1][rh])
         gait.addSchedule(
             lh, [ContactPhase(N_0),
@@ -503,13 +500,13 @@ class QuadrupedalGaitGenerator:
             N = N_0 + 2 * N_ss - N_uss
         gait = ContactSchedule(self._dt, N, self._S, self._contactNames)
         lf, lh, rf, rh = self._contactNames
-        lfSwingTraj = FootStepTrajectory(
+        lfSwingTraj = FootStepTrajectoryBezier(
             self._dt, N_ss, stepHeight, contacts[0][lf], contacts[1][lf])
-        lhSwingTraj = FootStepTrajectory(
+        lhSwingTraj = FootStepTrajectoryBezier(
             self._dt, N_ss, stepHeight, contacts[0][lh], contacts[1][lh])
-        rfSwingTraj = FootStepTrajectory(
+        rfSwingTraj = FootStepTrajectoryBezier(
             self._dt, N_ss, stepHeight, contacts[0][rf], contacts[1][rf])
-        rhSwingTraj = FootStepTrajectory(
+        rhSwingTraj = FootStepTrajectoryBezier(
             self._dt, N_ss, stepHeight, contacts[0][rh], contacts[1][rh])
         gait.addSchedule(
             lh, [ContactPhase(N_0),

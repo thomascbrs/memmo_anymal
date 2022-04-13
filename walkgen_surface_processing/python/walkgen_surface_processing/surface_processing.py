@@ -30,7 +30,7 @@
 import numpy as np
 import copy
 
-from walkgen_surface_planner.params import SurfacePlannerParams
+from walkgen_surface_processing.params import SurfaceProcessingParams
 from walkgen_surface_processing.tools.geometry_utils import reduce_surfaces, remove_overlap_surfaces
 
 
@@ -70,7 +70,7 @@ class SurfaceProcessing:
         if params is not None:
             self._params = copy.deepcopy(params)
         else:
-            self._params = SurfacePlannerParams()
+            self._params = SurfaceProcessingParams()
 
         self._initial_height = initial_height
         self._dx = 1.5  # Distance on y-axis around the current position.

@@ -28,26 +28,23 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import numpy as np
+import os
+import pickle
 import unittest
 from walkgen_surface_planner.SurfacePlanner import SurfacePlanner
 from walkgen_surface_planner.params import SurfacePlannerParams
 
-from walkgen_surface_processing.surface_detector import SurfaceDetector
-
-
 params = SurfacePlannerParams()
-params.planeseg = False
 
-# Extract surfaces from URDF file.
-surface_detector = SurfaceDetector(
-    params.path + params.urdf, params.margin, q0=None, initial_height=0.)
-all_surfaces = surface_detector.extract_surfaces()
-
-# path = os.path.dirname(os.path.abspath(__file__)) + "/../data/"
-# params.heightmap = path + "lab_scene.dat"
-# params.urdf = path + "urdf/lab_scene.urdf"
+# Load an exemple of surfaces extracted using walkgen_surface_processing.
+path = os.path.dirname(os.path.abspath(__file__)) + "/../data/"
+filename = path + "example_environment.pickle"
+with open(filename, 'rb') as file2:
+    all_surfaces = pickle.load(file2)
 
 # State of the robot
+current_contacts = np.array(
+    [[0.37, 0.37, -0.37, -0.37], [0.2, -0.2, 0.2, -0.2], [0., 0., 0., 0.]])
 q = np.array([0., 0., 0.4792, 0., 0., 0., 1., -0.1, 0.7, -
              1., -0.1, -0.7, 1., 0.1, 0.7, -1., 0.1, -0.7, 1.])
 # Reference velocity
@@ -63,7 +60,7 @@ GAITS["trot"] = np.array([[1., 0., 1., 0.], [0., 1., 0., 1.]])
 
 params.N_phase = 6
 params.typeGait = "walk"
-params.com = False
+params.com = True
 gait_pattern = GAITS[params.typeGait]
 
 surface_planner = SurfacePlanner(params=params)
@@ -83,7 +80,7 @@ class SurfacePlannerTest(unittest.TestCase):
 
         # Run MIP problem.
         selected_surfaces = surface_planner.run(
-            q, gait_pattern, bvref, surface_planner._current_position)
+            q[:7], gait_pattern, bvref, current_contacts)
         results = surface_planner.pb_data
         self.assertTrue(results.success)
 
@@ -99,7 +96,7 @@ class SurfacePlannerTest(unittest.TestCase):
 
         # Run MIP problem.
         selected_surfaces = surface_planner.run(
-            q, gait_pattern, bvref, surface_planner._current_position)
+            q[:7], gait_pattern, bvref, current_contacts)
         results = surface_planner.pb_data
         self.assertTrue(results.success)
 
@@ -115,14 +112,14 @@ class SurfacePlannerTest(unittest.TestCase):
 
         # Run MIP problem.
         selected_surfaces = surface_planner.run(
-            q, gait_pattern, bvref, surface_planner._current_position)
+            q[:7], gait_pattern, bvref, current_contacts)
         results = surface_planner.pb_data
         self.assertTrue(results.success)
 
     def test_planner_trot_com(self):
         # parameters for the test
         params.typeGait = "trot"
-        params.com = False
+        params.com = True
         gait_pattern = GAITS[params.typeGait]
 
         # update gait parameters
@@ -131,7 +128,7 @@ class SurfacePlannerTest(unittest.TestCase):
 
         # Run MIP problem.
         selected_surfaces = surface_planner.run(
-            q, gait_pattern, bvref, surface_planner._current_position)
+            q[:7], gait_pattern, bvref, current_contacts)
         results = surface_planner.pb_data
         self.assertTrue(results.success)
 

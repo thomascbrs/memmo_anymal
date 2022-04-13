@@ -27,77 +27,37 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import pinocchio as pin
 import numpy as np
-
-rom_names = ['anymal_LFleg_rom', 'anymal_RFleg_rom',
-             'anymal_LHleg_rom', 'anymal_RHleg_rom']
+from walkgen_surface_processing.tools.geometry_utils import get_normal, order, align_points, getAllSurfacesDict_inner
+from .libwalkgen_surface_processing_pywrap import AffordanceLoader
 
 
 class SurfaceDetector:
     """ Class to extract convex surfaces from an URDF file.
     """
 
-    def __init__(self, path, margin=0.01, q0=None, initial_height=0.):
+    def __init__(self,
+                 filename,
+                 orientation_matrix=np.identity(3),
+                 translation=np.zeros(3),
+                 margin=0.,
+                 prefix="environment_"):
         """ Initialize the surface detector.
 
         Args:
-            - path (str): Path of the urdf file.
+            - filename (str): Path of the stl file.
+            - orientation (array 3x3): Orientation matrix.
+            - translation (array x3): Translation.
             - margin (float): Margin in [m] inside the surfaces.
-            - initial_height (float): Height of the ground.
-            - q0 (array x7): Initial position and orientation in world frame.
-            - params (WalkgenParams): Parameter class.
+            - prefix(str): Prefix of obstacle names.
         """
-
-        if q0 is None:
-            self._q0 = np.zeros(7)
-            self._q0[-1] = 1
-        else:
-            if len(q0) != 7:
-                raise AttributeError(
-                    "Initial configuration should be size 7, [position, quaternion]")
-            self._q0 = q0
-
-        # Import hpp rbprm here to avoid dependency problems with the module.
-        from hpp.corbaserver.affordance.affordance import AffordanceTool
-        from hpp.corbaserver.rbprm.tools.surfaces_from_path import getAllSurfacesDict
-        from hpp.corbaserver.problem_solver import ProblemSolver
-        from hpp.gepetto import ViewerFactory
-        from walkgen_surface_planner.tools.geometry_utils import getAllSurfacesDict_inner
-        from anymal_rbprm.anymal_abstract import Robot as AnymalAbstract
-
-        self._anymal_abstract = AnymalAbstract()
-        self._anymal_abstract.setJointBounds(
-            "root_joint", [-5., 5., -5., 5., 0.241, 1.5])
-        self._anymal_abstract.boundSO3([-3.14, 3.14, -0.01, 0.01, -0.01, 0.01])
-        self._anymal_abstract.setFilter(rom_names)
-        for limb in rom_names:
-            self._anymal_abstract.setAffordanceFilter(limb, ['Support'])
-        self._ps = ProblemSolver(self._anymal_abstract)
-        self._vf = ViewerFactory(self._ps)
-        self._afftool = AffordanceTool()
-        self._afftool.setAffordanceConfig('Support', [0.5, 0.03, 0.00005])
-
-        self._afftool.loadObstacleModel(path, "environment", self._vf)
-        self._ps.selectPathValidation("RbprmPathValidation", 0.05)
-
-        # Height matrix is expressed in o frame, the position and orientation of the robot is known.
-        # pos = (0,0,height_feet = 0.), quat = (0,0,0,1)
-        self._wRo = pin.Quaternion(self._q0[3:]).toRotationMatrix()
-        self._wTo = np.zeros(3)
-        self._wTo[:2] = self._q0[:2]
-        self._wTo[2] = initial_height
-        world_pose = np.zeros(7)
-        world_pose[:3] = self._wTo[:]
-        world_pose[3:] = self._q0[3:]
-
-        # Move the entire environment to follow the initial configuration.
-        all_names = self._afftool.getAffRefObstacles("Support")
-        for name in all_names:
-            self._vf.moveObstacle(name, world_pose.tolist())
-
-        self._all_surfaces = getAllSurfacesDict_inner(
-            getAllSurfacesDict(self._afftool), margin=margin)
+        loader = AffordanceLoader()
+        loader.load(filename, orientation_matrix ,translation)
+        names = [prefix + str(k) for k in range(len(loader.get_affordances()))]
+        affordances = dict(
+            zip(names, [(order(align_points(affordance)).tolist(), get_normal(affordance).tolist())
+                        for affordance in loader.get_affordances()]))
+        self._affordances_reduced = getAllSurfacesDict_inner(affordances, margin)
 
     def extract_surfaces(self):
         """ Extract surfaces from the URDF file.
@@ -105,4 +65,4 @@ class SurfaceDetector:
         Retruns:
             - param1 (dict): Dictionnary type containing all the surfaces ("unique id" : [vertices]).
         """
-        return dict(zip(self._all_surfaces.keys(), [value[0] for value in self._all_surfaces.values()]))
+        return dict(zip(self._affordances_reduced.keys(), [value[0] for value in self._affordances_reduced.values()]))

@@ -32,6 +32,7 @@ import numpy as np
 import pinocchio as pin
 import copy
 
+from walkgen_footstep_planner.libwalkgen_footstep_planner_pywrap import Surface as Surface_cpp
 from walkgen_footstep_planner.tools.Surface import Surface
 from walkgen_footstep_planner.tools.optimisation import quadprog_solve_qp
 from walkgen_footstep_planner.tools.Filter import Filter
@@ -117,7 +118,7 @@ class FootStepPlanner():
         self.v_save = []
         self.q_filter_save = []
 
-    def compute_footstep(self, queue_cs, q, vq, bvref, timeline, selected_surfaces):
+    def compute_footstep(self, queue_cs, q, vq, bvref, timeline, selected_surfaces, previous_surfaces):
         """ Run the queue in reverse order and update the position for each Contact Schedule (CS)
         following the Raibert heuristic, depending on current linear velocity and both desired angular and
         linear velocty.
@@ -163,9 +164,9 @@ class FootStepPlanner():
         # np.save("/home/thomas_cbrs/Desktop/edin/tmp/memmo_anymal_test/CoM_analysis/q_filter_9070", np.array(self.q_filter_save))
 
         # Update position for each CS in the queue.
-        return self.update_position(queue_cs, self.q_f, vq[:6], bvref, timeline, selected_surfaces)
+        return self.update_position(queue_cs, self.q_f, vq[:6], bvref, timeline, selected_surfaces, previous_surfaces)
 
-    def update_position(self, queue_cs, q, bv, bvref, timeline_, selected_surfaces):
+    def update_position(self, queue_cs, q, bv, bvref, timeline_, selected_surfaces, previous_surfaces):
         """ Update the position for a contact schedule.
 
         Args:
@@ -200,11 +201,10 @@ class FootStepPlanner():
         V0 = self._current_velocities.copy()
         timeline = timeline_
         cs_index = 0
-
         foot_timeline = [0, 0, 0, 0]
         target_footstep = np.zeros((3, 4))
         for cs in reversed(queue_cs):
-            if cs_index <= self._horizon:
+            if cs_index <= self._horizon + 2:
                 for c in range(cs.C):
                     name = cs.contactNames[c]
                     j = self._contactNames.index(name)
@@ -215,7 +215,7 @@ class FootStepPlanner():
                         active_phase = phases[0]
                         inactive_phase = phases[1]
 
-                        if cs_index + active_phase.T - timeline <= self._horizon:
+                        if cs_index + active_phase.T - timeline <= self._horizon + 2:
                             # Displacement following the reference velocity compared to current position
                             if active_phase.T + inactive_phase.T - timeline > 0:  # case 1 & 2
                                 if abs(bvref[5]) > 10e-3:
@@ -253,8 +253,6 @@ class FootStepPlanner():
                                     target_footstep[:, self._contact_names_SL1M.index(
                                         name)] = footstep_optim
 
-                                foot_timeline[j] += 1
-
                                 # else: # if heightmap
                                 #     footstep_optim = footstep
                                 #     footstep_optim[2] = self.heightmap.get_height(footstep[0], footstep[1])
@@ -264,6 +262,11 @@ class FootStepPlanner():
                                 # footstep_fb = Rz @ Rz_tmp @ heuristic + q_tmp + Rz @ q_dxdy
                                 # optimVector.append(OptimData(0,name, selected_surfaces.get(name),heuristic, Rz_tmp ))
 
+                                if foot_timeline[j] == 0:
+                                    previous_sf = previous_surfaces.get(name)
+                                else:
+                                    previous_sf = selected_surfaces.get(name)[foot_timeline[j] -1]
+
                                 # Update the trajectory
                                 if active_phase.T - timeline >= 0:
                                     t0 = 0.
@@ -271,21 +274,26 @@ class FootStepPlanner():
                                 else:
                                     t0 = timeline - active_phase.T
 
-                                if t0 <= inactive_phase.T * self._stop_heuristic:
+                                if t0 <= inactive_phase.T * 0.7:
+                                    surface_init = Surface_cpp(previous_sf.A, previous_sf.b, previous_sf.vertices.T)
+                                    surface_end = Surface_cpp(sf.A, sf.b, sf.vertices.T)
+
                                     phases[1].trajectory.update(
-                                        P0[:, j], V0[:, j], footstep_optim, t0 * cs.dt, True)
+                                        P0[:, j], V0[:, j], footstep_optim, t0 * cs.dt, surface_init, surface_end)
 
                                 P0[:, j] = footstep_optim
                                 V0[:, j] = np.zeros(3)
+
+                                foot_timeline[j] += 1
 
                                 if self.debug:
                                     self.footstep[j].append(
                                         footstep_optim.tolist())
 
-                        else:  # case 3
-                            V0[:, j] = np.zeros(3)
-                            if self.debug:
-                                self.footstep[j].append(None)
+                            else:  # case 3
+                                V0[:, j] = np.zeros(3)
+                                if self.debug:
+                                    self.footstep[j].append(None)
             else:
                 break
             cs_index += cs.T - timeline
@@ -342,61 +350,3 @@ class FootStepPlanner():
             self._current_velocities[:, i] = v.linear[:]
 
         return 0
-
-
-if __name__ == "__main__":
-    """ Run a simple example of Footstepplanner.
-    """
-    import os
-    from example_robot_data.robots_loader import ANYmalLoader
-    from walkgen.GaitManager import GaitManager
-
-    # Reference velocity
-    bvref = np.zeros(6)
-    bvref[5] = 0.06
-    bvref[0] = 0.06
-
-    # Timeline
-    timeline = 10
-
-    # Heightmap path
-    heightmap_path = os.getcwd() + "/data/lab_scene.dat"
-
-    # Load Anymal model to get the current feet position by forward kinematic.
-    ANYmalLoader.free_flyer = True
-    anymal = ANYmalLoader().robot
-
-    # FootStepPlanner
-    foostep_planner = FootStepPlanner(anymal.model, anymal.q0, heightmap_path)
-
-    cs1, cs2 = dict(), dict()
-    cs1["LH_FOOT"] = pin.SE3(np.eye(3), np.array([-0.34, 0.33, 0.0083]))
-    cs1["LF_FOOT"] = pin.SE3(np.eye(3), np.array([0.34, 0.23, 0.0083]))
-    cs1["RH_FOOT"] = pin.SE3(np.eye(3), np.array([-0.34, -0.23, 0.0083]))
-    cs1["RF_FOOT"] = pin.SE3(np.eye(3), np.array([0.34, -0.23, 0.0083]))
-    cs2["LH_FOOT"] = pin.SE3(np.eye(3), np.array([0.07, 0.2, 0.0083]))
-    cs2["LF_FOOT"] = pin.SE3(np.eye(3), np.array([0.67, 0.2, 0.0083]))
-    cs2["RH_FOOT"] = pin.SE3(np.eye(3), np.array([0.07, -0.45, 0.0083]))
-    cs2["RF_FOOT"] = pin.SE3(np.eye(3), np.array([0.67, -0.2, 0.0083]))
-
-    gait_manager = GaitManager(anymal.model, anymal.q0)
-
-    # Initial selected surface
-    A = [[-1.0000000, 0.0000000, 0.0000000], [0.0000000, -1.0000000, 0.0000000], [0.0000000, 1.0000000, 0.0000000],
-         [1.0000000, 0.0000000, 0.0000000], [0.0000000, 0.0000000, 1.0000000], [-0.0000000, -0.0000000, -1.0000000]]
-
-    b = [1.3946447, 0.9646447, 0.9646447, 0.2, 0.1, -0.1]
-
-    vertices = [[-1.3946447276978748, 0.9646446609406726, 0.0], [-1.3946447276978748, -0.9646446609406726, 0.0],
-                [0.5346445941834704, -0.9646446609406726, 0.0], [0.5346445941834704, 0.9646446609406726, 0.0]]
-
-    sf = Surface(np.array(A), np.array(b), np.array(vertices).T)
-
-    selected_surfaces = dict()  # Mimic asynchronous behaviour
-    for foot in range(4):
-        # horizon lenght of the Surface is 3.
-        selected_surfaces[foostep_planner._contactNames[foot]] = [sf, sf, sf]
-    foostep_planner.compute_footstep(gait_manager.get_cs(
-    ), anymal.q0, anymal.v0, bvref, timeline, selected_surfaces)
-
-    # TODO Add vizualisation.

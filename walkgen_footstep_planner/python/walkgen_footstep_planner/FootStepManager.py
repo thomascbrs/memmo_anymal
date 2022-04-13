@@ -90,6 +90,7 @@ class FootStepManager:
 
         # Add initial surface to the result structure.
         self._selected_surfaces = dict()
+        self._previous_surfaces = dict()
         # Dictionary type :
         # For each foot is associated a list of surfaces, one foot is moving one time for each gait/phase
         for foot in range(4):
@@ -97,6 +98,7 @@ class FootStepManager:
             for k in range(self._N_phase_return):
                 L.append(copy.deepcopy(self._init_surface))
             self._selected_surfaces[self._contactNames[foot]] = L
+            self._previous_surfaces[self._contactNames[foot]] = copy.deepcopy(self._init_surface)
 
         self._new_surfaces = copy.deepcopy(self._selected_surfaces)
 
@@ -182,12 +184,13 @@ class FootStepManager:
         # Get results from optimisation during the previous phase.
         if self._gait_manager.is_new_step():
             # New step beginning, get the surfaces computed by SL1M during the previous flying phase.
+            self.update_previous_surfaces()
             self._selected_surfaces = copy.deepcopy(self._new_surfaces)
 
         # Run Footstepplanner
         target_foostep = self._foostep_planner.compute_footstep(self._gait_manager.get_cs(), q.copy(), vq.copy(),
                                                                 b_v_ref, self._gait_manager._timeline,
-                                                                self._selected_surfaces)
+                                                                self._selected_surfaces, self._previous_surfaces)
 
         # Check if a new flying phase is starting to trigger SL1M.
         if self._gait_manager.is_new_step():
@@ -206,6 +209,12 @@ class FootStepManager:
                                                                                          _contactNames.index(name)]
 
         self._coeffs = self._gait_manager.get_coefficients()
+
+    def update_previous_surfaces(self):
+        """ Keep in memory the starting surface for the current flying phases. Usefull to plan trajectory avoidance with Bezier curves.
+        """
+        for key in self._previous_surfaces.keys():
+            self._previous_surfaces[key] = copy.deepcopy(self._selected_surfaces[key][0])
 
     def update_surfaces(self, surfaces):
         """ Receive a new set of surfaces. Store it until a new flying phase has started
