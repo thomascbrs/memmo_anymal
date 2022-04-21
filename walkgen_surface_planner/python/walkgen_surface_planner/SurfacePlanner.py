@@ -448,35 +448,62 @@ class SurfacePlanner():
         # Compute the costs
         effector_positions = self._compute_effector_positions(configs, bvref)
         shoulder_position = self._compute_shoulder_positions(configs)
-        com_positions = self._compute_com_positions(configs)
 
-        ## New cost function tests
+        # New cost function tests
         # if bvref[0] > 0:
-        # feet_r = dict(zip([2, 3], [1, 0]))
+        #     feet_r = dict(zip([2, 3], [1, 0]))
+        #     feet = [2,3]
+        #     feet = [0,1]
         # else:
         #     feet_r = dict(zip([1,0],[2,3]))
-        # if bvref[0] >= 0:
-        #     feet = [2,3]
-        # else:
         #     feet = [0,1]
 
-        costs = {
-            # Walks costs
+        # Walking costs
+        # costs = {
             # "height_first_phase_cost": [0.12, feet_r],
             # "height_first_phase_cost2": [
             #     1.0, pin.rpy.matrixToRpy(pin.Quaternion(configs[0][3:]).toRotationMatrix())[1]
             # ],
-            # "effector_positions_xy": [1.0, effector_positions],
+            # "effector_positions_xy": [1.0, effector_positions]
+        # }
 
-            # Trot costs
-            # "height_first_phase_cost2": [
-            #     1.0, pin.rpy.matrixToRpy(pin.Quaternion(configs[0][3:]).toRotationMatrix())[1]
-            # ],
+        # Walking costs (almost working but stay locked in the midlle)
+        # costs = {
+        #     "height_first_phase_cost2": [
+        #         5.0, pin.rpy.matrixToRpy(pin.Quaternion(configs[0][3:]).toRotationMatrix())[1]
+        #     ],
+        #     "effector_position_cost_xy_selected": [2.5, [feet, shoulder_position]],
+        #     "effector_positions_xy": [4.0, effector_positions],
+        #     "height_first_phase_cost2": [
+        #         5.0, pin.rpy.matrixToRpy(pin.Quaternion(configs[0][3:]).toRotationMatrix())[1]
+        #     ]
+        # }
+
+        # Walking cost with new potential surfaces
+        costs = {
             # "effector_position_cost_xy_selected": [0.5, [feet, shoulder_position]],
-            "effector_positions_xy": [1.0, effector_positions],
-            "coms_xy": [0.5, com_positions],
-            "coms_z": [0.05, com_positions]
+            "effector_positions_xy": [1.0, effector_positions]
         }
+
+        # Trotting costs
+        # costs = {
+            # "height_first_phase_cost2": [
+            #     3.0, pin.rpy.matrixToRpy(pin.Quaternion(configs[0][3:]).toRotationMatrix())[1]
+            # ],
+            # "effector_position_cost_xy_selected": [2.5, [feet, shoulder_position]],
+            # "effector_positions_xy": [4.0, effector_positions]
+        # }
+
+        # CoM cost
+        if self._com:
+            com_positions = self._compute_com_positions(configs)
+            costs["coms_xy"] = [0.5, com_positions]
+            costs["coms_z"] = [0.05, com_positions]
+
+        # Regularization cost
+        # if self.pb_data is not None and self.pb_data.success:
+        #     previous_position = self._compute_sl1m_position(self.pb_data)
+        #     costs["regularization_cost"] = [0.2, previous_position]
 
         # Solve MIP
         self.pb_data = solve_MIP(self.pb, costs=costs, com=self._com)
