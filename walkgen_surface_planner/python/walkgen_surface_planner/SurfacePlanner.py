@@ -31,7 +31,10 @@ import pinocchio as pin
 import hppfcl
 import numpy as np
 import os
-from time import perf_counter as clock
+try:
+    from time import perf_counter as clock
+except ImportError:
+    from time import time as clock 
 import copy
 import warnings
 import trimesh
@@ -189,7 +192,7 @@ class SurfacePlanner():
                 rpy[2] = 0.  # Yaw = 0. in horizontal frame
                 Rp = pin.rpy.rpyToMatrix(rpy)[:2, :2]
                 heuristic = 0.5 * t_stance * \
-                    Rp @ bvref[:2] + Rp @ self._shoulders[:2, foot]
+                    np.dot(Rp, bvref[:2]) + np.dot(Rp, self._shoulders[:2, foot])
 
                 # Compute heuristic in world frame, rotation
                 shoulders[0] = heuristic[0] * \
@@ -212,7 +215,7 @@ class SurfacePlanner():
         for phase in self.pb.phaseData:
             for foot in phase.moving:
                 R = pin.Quaternion(configs[phase.id][3:7]).toRotationMatrix()
-                sh = R @ self._shoulders[:, foot] + configs[phase.id][:3]
+                sh = np.dot(R, self._shoulders[:, foot]) + configs[phase.id][:3]
                 shoulder_positions[foot][phase.id] = sh
         return shoulder_positions
 
@@ -271,7 +274,7 @@ class SurfacePlanner():
 
             # Recompute the orientation according to the heightmap for each configuration.
             if self._recompute_slope :
-                rotation =  pin.rpy.rpyToMatrix(np.array([0.,0.,bvref[5] * dt_config])) @ rotation
+                rotation =  np.dot(pin.rpy.rpyToMatrix(np.array([0.,0.,bvref[5] * dt_config])) , rotation)
                 fit_ = self._terrain.get_slope(config[:2], rotation, collision_points)
                 rpyMap_ = np.zeros(3)
                 rpyMap_[0] = np.arctan2(fit_[1], 1.)
@@ -286,7 +289,7 @@ class SurfacePlanner():
 
             Rp = pin.rpy.rpyToMatrix(np.array([roll, pitch, 0.]))
             Ryaw = pin.rpy.rpyToMatrix(np.array([0., 0., yaw]))
-            config[3:] = pin.Quaternion(Rp @ Ryaw).coeffs()
+            config[3:] = pin.Quaternion(np.dot(Rp , Ryaw)).coeffs()
             configs.append(config)
 
         return configs
@@ -482,7 +485,7 @@ class SurfacePlanner():
         # Walking cost with new potential surfaces
         costs = {
             # "effector_position_cost_xy_selected": [0.5, [feet, shoulder_position]],
-            "effector_positions_xy": [1.0, effector_positions]
+            "effector_positions": [1.0, effector_positions]
         }
 
         # Trotting costs
