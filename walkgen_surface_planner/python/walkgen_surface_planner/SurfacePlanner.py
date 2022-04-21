@@ -103,7 +103,15 @@ class SurfacePlanner():
 
         # Load rom .stl objects for collision tools to select only the relevant surfaces.
         path = os.environ["INSTALL_HPP_DIR"] + "/anymal-rbprm/meshes/"
-        obj_stl = [trimesh.load_mesh(path + rom) for rom in rom_names]
+        # obj_stl = [trimesh.load_mesh(path + rom) for rom in rom_names]
+        obj_stl = []
+        for i,rom in enumerate(rom_names):
+            obj = trimesh.load_mesh(path + rom)
+            obj.apply_translation(-self._shoulders[:,i])
+            obj.apply_scale(1.5)
+            obj.apply_translation( self._shoulders[:,i])
+            obj_stl.append(obj)
+
 
         # Dictionnary containing the convex set of roms for collisions.
         self.roms_collision = dict(zip(self._contact_names, [convert_to_convexFcl(obj.vertices) for obj in obj_stl]))
