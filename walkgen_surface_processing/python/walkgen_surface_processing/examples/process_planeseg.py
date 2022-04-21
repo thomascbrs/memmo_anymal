@@ -1,3 +1,6 @@
+import sys
+if sys.version_info.major == 2:
+    raise ValueError("Cannot use with python2. Pickle do not use the appropriate protocole. The rosbag has been registered with python3.")
 import numpy as np
 from time import perf_counter as clock
 import os
