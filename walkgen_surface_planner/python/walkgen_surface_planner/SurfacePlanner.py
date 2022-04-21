@@ -246,8 +246,6 @@ class SurfacePlanner():
         rpyMap_ = np.zeros(3)
         rpyMap_[0] = np.arctan2(fit_[1], 1.)
         rpyMap_[1] = -np.arctan2(fit_[0], 1.)
-        # print("\n rpyMap_ : ", rpyMap_)
-        # print("")
 
         # List of configurations in planned horizon, using the reference velocity.
         configs = []
@@ -273,6 +271,7 @@ class SurfacePlanner():
 
             # Recompute the orientation according to the heightmap for each configuration.
             if self._recompute_slope :
+                rotation =  pin.rpy.rpyToMatrix(np.array([0.,0.,bvref[5] * dt_config])) @ rotation
                 fit_ = self._terrain.get_slope(config[:2], rotation, collision_points)
                 rpyMap_ = np.zeros(3)
                 rpyMap_[0] = np.arctan2(fit_[1], 1.)
@@ -282,9 +281,12 @@ class SurfacePlanner():
             config[2] = fit_[0] * config[0] + fit_[1] * \
                 config[1] + fit_[2] + self._reference_height
             yaw = yaw_init + bvref[5] * dt_config
-            roll = rpyMap_[0] * np.cos(yaw) - rpyMap_[1] * np.sin(yaw)
-            pitch = rpyMap_[0] * np.sin(yaw) + rpyMap_[1] * np.cos(yaw)
-            config[3:] = pin.Quaternion(pin.rpy.rpyToMatrix(roll, pitch, yaw)).coeffs()
+            roll = rpyMap_[0] * np.cos(bvref[5] * dt_config) - rpyMap_[1] * np.sin(bvref[5] * dt_config)
+            pitch = rpyMap_[0] * np.sin(bvref[5] * dt_config) + rpyMap_[1] * np.cos(bvref[5] * dt_config)
+
+            Rp = pin.rpy.rpyToMatrix(np.array([roll, pitch, 0.]))
+            Ryaw = pin.rpy.rpyToMatrix(np.array([0., 0., yaw]))
+            config[3:] = pin.Quaternion(Rp @ Ryaw).coeffs()
             configs.append(config)
 
         return configs
