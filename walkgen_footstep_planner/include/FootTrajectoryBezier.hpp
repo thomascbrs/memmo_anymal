@@ -31,6 +31,8 @@ typedef optimization::problem_definition<pointX_t, double> problem_definition_t;
 typedef optimization::problem_data<pointX_t, double> problem_data_t;
 typedef std::vector<bezier_t::point_t, Eigen::aligned_allocator<bezier_t::point_t> > t_point_t;
 
+enum ElevationType {UP=0, DOWN=1, HORIZONTAL=2};
+
 class FootTrajectoryBezier {
  public:
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,9 +69,12 @@ class FootTrajectoryBezier {
   bool onSegment(Vector2 const& p, Vector2 const& q, Vector2 const& r);
   int orientation(Vector2 const& p, Vector2 const& q, Vector2 const& r);
   void get_intersect_segment(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2);
+  void updateInequalityUp(Vector2 const& pos_init, Vector2 const& pos_end, Surface const& surface);
+  void updateInequalityDown(Vector2 const& pos_init, Vector2 const& pos_end, Surface const& surface);
 
-  double getT0() { return t0_; };
-
+      double getT0() {
+    return t0_;
+  };
 
   MatrixN getCoefficients() { return vectorToEigenArray<bezier_t::t_point_t, MatrixN>(curve_.waypoints()); };
 
@@ -79,12 +84,13 @@ class FootTrajectoryBezier {
   Vector7 Az;  ///< Coefficients for the Z component
 
   Vector2 intersectionPoint_;  // tmp point of intersection
-  Vector3 starting_position_; // Initial position at t0 = 0.
+  Vector3 starting_position_;  // Initial position at t0 = 0.
 
   double t_swing_;
   bool useBezier;
   double maxHeight_;
   double t0_;
+  ElevationType elevation_;
 
   // Number of points in the least square problem
   int N_samples;
@@ -123,6 +129,8 @@ class FootTrajectoryBezier {
   double t_margin_;      // % of the curve after critical point
   double z_margin_;      // % of the height of the obstacle around the critical point
   double t_stop_;
+  double margin_adapted_;
+  double EPS_; // epsilon for QP.
 
   // QP solver
   EiquadprogFast_status expected = EIQUADPROG_FAST_OPTIMAL;

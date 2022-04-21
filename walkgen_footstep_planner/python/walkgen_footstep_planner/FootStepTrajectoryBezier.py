@@ -32,10 +32,16 @@ import pinocchio
 import numpy as np
 
 from walkgen_footstep_planner.libwalkgen_footstep_planner_pywrap import FootTrajectoryBezier
+from walkgen_footstep_planner.params import FootStepPlannerParams
 
 class FootStepTrajectoryBezier():
 
-    def __init__(self, dt, N, stepHeight, M_current, M_next):
+    def __init__(self, dt, N, stepHeight, M_current, M_next, params=None):
+        if params is not None:
+            self._params = copy.deepcopy(params)
+        else:
+            self._params = FootStepPlannerParams()
+
         # Stored swing-trajectory properties
         self._dt = copy.deepcopy(dt)
         self._N = copy.deepcopy(N)
@@ -44,17 +50,17 @@ class FootStepTrajectoryBezier():
         self._M_next = copy.deepcopy(M_next)
 
         # Bezier parameters
-        x_margin_max_ = 0.1  # 4cm margin
-        t_margin_ = 0.3  # 15% of the curve around critical point
-        z_margin_ = 0.04  # 1% of the curve after the critical point
-        N_sample = 10  # Number of sample in the least square optimisation for Bezier coeffs
-        N_sample_ineq = 8  # Number of sample while browsing the curve
-        degree = 7  # Degree of the Bezier curve
+        margin = self._params.margin  # Margin [m] wrt to the segment crossed in the surface.
+        t_margin = self._params.t_margin  # % of the curve constrained around critical point.
+        z_margin = self._params.z_margin  # % of the curve after the critical point.
+        N_sample = self._params.N_sample  # Number of sample in the least square optimisation for Bezier coeffs
+        N_sample_ineq = self._params.N_sample_ineq  # Number of sample while browsing the curve
+        degree = self._params.degree  # Degree of the Bezier curve
         t_swing = self._dt * self._N
         maxHeight = stepHeight
 
         self._curve = FootTrajectoryBezier()
-        self._curve.initialize(x_margin_max_, t_margin_, z_margin_, N_sample, N_sample_ineq, degree, t_swing, maxHeight)
+        self._curve.initialize(margin, t_margin, z_margin, N_sample, N_sample_ineq, degree, t_swing, maxHeight)
         self._curve.create_simple_curve(self._M_current.translation, np.zeros(3), self._M_next.translation, 0.)
 
     def position(self, k):
