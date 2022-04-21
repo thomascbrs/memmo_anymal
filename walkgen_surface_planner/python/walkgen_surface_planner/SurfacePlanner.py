@@ -303,6 +303,18 @@ class SurfacePlanner():
 
         return com_positions
 
+    def _compute_sl1m_position(self, pb_data):
+        """ Get the position of the feet from the previous optimisation problem.
+
+        Args:
+            - pb_data : Sl1m structure containing the results of the previous optimisation
+        """
+        previous_position = pb_data.all_feet_pos
+        for foot in range(4):
+            previous_position[foot].pop(0)
+            previous_position.append(None)
+        return previous_position
+
     def get_potential_surfaces(self, configs, gait):
         """ Get the rotation matrix and surface condidates for each configuration in configs using
         the collision tool hppfcl.
