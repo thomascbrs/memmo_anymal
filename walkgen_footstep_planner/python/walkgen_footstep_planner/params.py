@@ -55,6 +55,14 @@ class FootStepPlannerParams:
         self.nsteps = 1  # Number of iteration.
         self.stepHeight = 0.15  # Step height [m]
 
+        # Bezier parameters
+        self.margin = 0.12  # Margin [m] wrt to the segment crossed in the surface.
+        self.t_margin = 0.2  # % of the curve constrained around critical point.
+        self.z_margin = 0.2  # % of the curve after the critical point.
+        self.N_sample = 10  # Number of sample in the least square optimisation for Bezier coeffs.
+        self.N_sample_ineq = 8  # Number of sample while browsing the curve.
+        self.degree = 7  # Degree of the Bezier curve.
+
         if filename is not None:
             self.parseFile(filename)
 
@@ -75,3 +83,9 @@ class FootStepPlannerParams:
         self.horizon = config["walkgen_params"]["gait"]["horizon"]
         self.nsteps = config["walkgen_params"]["gait"]["nsteps"]
         self.stepHeight = config["walkgen_params"]["gait"]["stepHeight"]
+        self.margin = config["walkgen_params"]["bezier"]["margin"]
+        self.t_margin = config["walkgen_params"]["bezier"]["t_margin"]
+        self.z_margin = config["walkgen_params"]["bezier"]["z_margin"]
+        self.N_sample = config["walkgen_params"]["bezier"]["N_sample"]
+        self.N_sample_ineq = config["walkgen_params"]["bezier"]["N_sample_ineq"]
+        self.degree = config["walkgen_params"]["bezier"]["degree"]
