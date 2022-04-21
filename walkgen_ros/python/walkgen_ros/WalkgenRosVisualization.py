@@ -124,7 +124,7 @@ class WalkgenVisualizationPublisher():
             marker_y = Marker()
             color = [0., 1., 0., 1.]
             quat = pin.Quaternion(
-                np.dot(mat_y, pin.Quaternion(config[3:]).toRotationMatrix()))
+                np.dot(pin.Quaternion(config[3:]).toRotationMatrix(), mat_y ))
             self._set_header(marker_y, id=id+50, frame_id=frame_id,
                              ns="arrow_x", lifetime=lifetime)
             self._set_pose(marker_y, pose[:3], quat.coeffs())
