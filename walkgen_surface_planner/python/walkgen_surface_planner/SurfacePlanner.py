@@ -34,7 +34,7 @@ import os
 try:
     from time import perf_counter as clock
 except ImportError:
-    from time import time as clock 
+    from time import time as clock
 import copy
 import warnings
 import trimesh
@@ -484,9 +484,12 @@ class SurfacePlanner():
 
         # Walking cost with new potential surfaces
         costs = {
-            # "effector_position_cost_xy_selected": [0.5, [feet, shoulder_position]],
-            "effector_positions": [1.0, effector_positions]
+            "effector_positions_xy": [1.0, effector_positions]
         }
+        # activate shoulder cost for going up
+        if bvref[0] > 0:
+            feet_selected = [2,3]
+            costs["effector_positions_3D_select"] = [0.5, [feet_selected, shoulder_position]]
 
         # Trotting costs
         # costs = {
