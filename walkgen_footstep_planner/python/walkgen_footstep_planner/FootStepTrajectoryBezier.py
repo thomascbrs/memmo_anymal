@@ -50,9 +50,15 @@ class FootStepTrajectoryBezier():
         self._M_next = copy.deepcopy(M_next)
 
         # Bezier parameters
-        margin = self._params.margin  # Margin [m] wrt to the segment crossed in the surface.
-        t_margin = self._params.t_margin  # % of the curve constrained around critical point.
-        z_margin = self._params.z_margin  # % of the curve after the critical point.
+        # Margin [m] wrt to the segment crossed in the surface.
+        margin_up = self._params.margin_up
+        margin_down = self._params.margin_down
+        # % of the curve constrained around critical point.
+        t_margin_up = self._params.t_margin_up
+        t_margin_down = self._params.t_margin_down
+        # % of the curve after the critical point.
+        z_margin_up = self._params.z_margin_up
+        z_margin_down = self._params.z_margin_down
         N_sample = self._params.N_sample  # Number of sample in the least square optimisation for Bezier coeffs
         N_sample_ineq = self._params.N_sample_ineq  # Number of sample while browsing the curve
         degree = self._params.degree  # Degree of the Bezier curve
@@ -60,7 +66,9 @@ class FootStepTrajectoryBezier():
         maxHeight = stepHeight
 
         self._curve = FootTrajectoryBezier()
-        self._curve.initialize(margin, t_margin, z_margin, N_sample, N_sample_ineq, degree, t_swing, maxHeight)
+        self._curve.initialize(N_sample, N_sample_ineq, degree, t_swing, maxHeight)
+        self._curve.set_parameters_up(margin_up, t_margin_up, z_margin_up)
+        self._curve.set_parameters_down(margin_down, t_margin_down, z_margin_down)
         self._curve.create_simple_curve(self._M_current.translation, np.zeros(3), self._M_next.translation, 0.)
 
     def position(self, k):

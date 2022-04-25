@@ -76,6 +76,8 @@ struct FootTrajectoryBezierPythonVisitor
         .def("evaluateBezier", &FootTrajectoryBezier::evaluateBezier, bp::args("indice", "t"), "Evaluate Bezier curve.\n")
         .def("evaluatePoly", &FootTrajectoryBezier::evaluatePoly, bp::args("indice", "t"), "Evaluate polynomial reference curve.\n")
         .def("initialize", &FootTrajectoryBezier::initialize,"Initialize Bezier curves from Python.\n")
+        .def("set_parameters_up", & FootTrajectoryBezier::set_parameters_up, "Set hyperparameters for going up.")
+        .def("set_parameters_down", & FootTrajectoryBezier::set_parameters_down, "Set hyperparameters for going down.")
         .def("getT0", &FootTrajectoryBezier::getT0, "Get the T_min argument of the curve.\n" )
         .def("getCoefficients", &FootTrajectoryBezier::getCoefficients, "Get the coefficients.\n" )
         .def("create_simple_curve", &FootTrajectoryBezier::create_simple_curve, "Create a Bezier curve without collision avoidance.\n")

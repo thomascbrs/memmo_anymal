@@ -31,7 +31,7 @@ typedef optimization::problem_definition<pointX_t, double> problem_definition_t;
 typedef optimization::problem_data<pointX_t, double> problem_data_t;
 typedef std::vector<bezier_t::point_t, Eigen::aligned_allocator<bezier_t::point_t> > t_point_t;
 
-enum ElevationType {UP=0, DOWN=1, HORIZONTAL=2};
+enum ElevationType { UP = 0, DOWN = 1, HORIZONTAL = 2 };
 
 class FootTrajectoryBezier {
  public:
@@ -49,8 +49,11 @@ class FootTrajectoryBezier {
   ////////////////////////////////////////////////////////////////////////////////////////////////
   ~FootTrajectoryBezier(){};  // Empty constructor
 
-  void initialize(double x_margin_max_in, double t_margin_in, double z_margin_in, int N_samples_in,
-                  int N_samples_ineq_in, int degree_in, double t_swing, double maxHeight);
+  void initialize(int const& N_samples_in, int const& N_samples_ineq_in, int const& degree_in, double const& t_swing,
+                  double const& maxHeight);
+
+  void set_parameters_up(double const& margin_max_in, double const& t_margin_in, double const& z_margin_in);
+  void set_parameters_down(double const& margin_max_in, double const& t_margin_in, double const& z_margin_in);
 
   void create_simple_curve(Vector3 const& pos_init, Vector3 const& vel_init, Vector3 const& pos_end, double t0);
 
@@ -72,9 +75,7 @@ class FootTrajectoryBezier {
   void updateInequalityUp(Vector2 const& pos_init, Vector2 const& pos_end, Surface const& surface);
   void updateInequalityDown(Vector2 const& pos_init, Vector2 const& pos_end, Surface const& surface);
 
-      double getT0() {
-    return t0_;
-  };
+  double getT0() { return t0_; };
 
   MatrixN getCoefficients() { return vectorToEigenArray<bezier_t::t_point_t, MatrixN>(curve_.waypoints()); };
 
@@ -123,14 +124,20 @@ class FootTrajectoryBezier {
   Vector3 ineq_;
   double ineq_vector_;
 
-  // Hyper parameters
-  double x_margin_;
-  double x_margin_max_;  // margin around the obstacle
-  double t_margin_;      // % of the curve after critical point
-  double z_margin_;      // % of the height of the obstacle around the critical point
-  double t_stop_;
+  // Hyper parameters.
+  // Margin around the obstacle.
+  double margin_max_up_;
+  double margin_max_down_;
+  // % of the curve after critical point.
+  double t_margin_up_;
+  double t_margin_down_;
+  double t_stop_up_;
+  double t_stop_down_;
+  // % of the height of the obstacle around the critical point.
+  double z_margin_up_;
+  double z_margin_down_;
   double margin_adapted_;
-  double EPS_; // epsilon for QP.
+  double EPS_;  // epsilon for QP.
 
   // QP solver
   EiquadprogFast_status expected = EIQUADPROG_FAST_OPTIMAL;
