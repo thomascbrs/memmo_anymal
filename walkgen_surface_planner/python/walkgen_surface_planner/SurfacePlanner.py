@@ -482,14 +482,44 @@ class SurfacePlanner():
         #     ]
         # }
 
+        ############################################################
         # Walking cost with new potential surfaces
         costs = {
             "effector_positions_xy": [1.0, effector_positions]
         }
-        # activate shoulder cost for going up
-        if bvref[0] > 0:
-            feet_selected = [2,3]
-            costs["effector_positions_3D_select"] = [0.5, [feet_selected, shoulder_position]]
+        # activate shoulder cost for going up (should work for going down)
+        # if bvref[0] > 0:
+        #     feet_selected = [2,3]
+        #     costs["effector_positions_3D_select"] = [0.5, [feet_selected, shoulder_position]]
+
+        # Walk : ! Depends on the forward sign vx > 0 here
+        # feet_selected = [0,1]
+        # costs["effector_positions_3D_select"] = [0.5, [feet_selected, shoulder_position]]
+
+        # Should work for going up & down
+        feet_selected = [2,3]
+        costs["effector_positions_3D_select"] = [0.5, [feet_selected, shoulder_position]]
+        #############################################################
+
+        #############################################################
+        # Trotting cost:
+        # costs = {
+        #     "effector_positions_xy": [1.0, effector_positions]
+        # }
+        # For going down : vx > 0
+        # feet_selected = [0,1]
+        # costs["effector_positions_3D_select"] = [0.2, [feet_selected, shoulder_position]]
+
+        # Going up
+        # feet_selected = [2,3]
+        # costs["effector_positions_3D_select"] = [0.2, [feet_selected, shoulder_position]]
+
+        # # Regularization cost
+        # if self.pb_data is not None and self.pb_data.success:
+        #     previous_position = self._compute_sl1m_position(self.pb_data)
+        #     # feet_selected = [0,1]
+        #     costs["regularization_cost"] = [0.4, previous_position]
+        ###############################################################
 
         # Trotting costs
         # costs = {
@@ -506,10 +536,6 @@ class SurfacePlanner():
             costs["coms_xy"] = [0.5, com_positions]
             costs["coms_z"] = [0.05, com_positions]
 
-        # Regularization cost
-        # if self.pb_data is not None and self.pb_data.success:
-        #     previous_position = self._compute_sl1m_position(self.pb_data)
-        #     costs["regularization_cost"] = [0.2, previous_position]
 
         # Solve MIP
         self.pb_data = solve_MIP(self.pb, costs=costs, com=self._com)
