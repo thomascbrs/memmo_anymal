@@ -95,6 +95,10 @@ class SurfaceProcessing:
         Returns:
             - param1 (Dictionnary): Dictionnary type containing the new surfaces with an unique id.
         """
+        if len(markerArray.markers) == 0:
+            print("Warning no polygon to process.")
+            return dict()
+
         vertices = [[position[0] - self._dx, position[1] + self._dy, self._initial_height],
                     [position[0] - self._dx, position[1] -
                         self._dy, self._initial_height],

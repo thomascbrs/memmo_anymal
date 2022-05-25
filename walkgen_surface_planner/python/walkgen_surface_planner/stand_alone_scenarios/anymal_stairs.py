@@ -88,7 +88,7 @@ current_contacts = np.array(
 for k in range(4):
     current_contacts[:, k] += q[:3]
 
-print(current_contacts)
+# print(current_contacts)
 
 # Run MIP problem.
 t0 = clock()

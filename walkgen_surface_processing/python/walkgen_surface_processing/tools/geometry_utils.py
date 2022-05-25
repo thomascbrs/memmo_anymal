@@ -84,7 +84,13 @@ def reduce_surfaces(surface_list, margin=0., n_points=None):
     if 'MarkerArray' in str(type(surface_list)):
         surface_list = convert_from_marker_array(surface_list)
     else:
-        surface_list = [order([vs[:, i].T for i in range(vs.shape[1])]) for vs in surface_list]
+        surface_list_tmp = []
+        for vs in surface_list:
+            ordered_s = order([vs[:, i].T for i in range(vs.shape[1])])
+            if ordered_s is not 0:
+                surface_list_tmp.append(ordered_s)
+            
+        surface_list = surface_list_tmp
     
     out_surface_list = []
     for vertices in surface_list:
@@ -512,9 +518,9 @@ def align_points(vertices):
 # TODO, from stackoverflow, find reference
 def order(vertices, method="convexHull"):
     """
-    Order the array of vertice in counterclock wise using convex Hull method
+    Order the array of vertices in counterclockwise using convex Hull method
     """
-    if len(vertices) <= 3:
+    if len(vertices) < 3:
         return 0
     # v = np.unique([np.round(v, decimals=8) for v in vertices], axis=0)
     v = np.unique(vertices, axis=0)
@@ -530,7 +536,6 @@ def order(vertices, method="convexHull"):
         d = c - mean
         s = np.arctan2(d[:, 0], d[:, 1])
         vert = v[np.argsort(s)]
-
     return vert
 
 
