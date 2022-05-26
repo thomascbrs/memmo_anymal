@@ -48,7 +48,20 @@ class DECOMPO_type(Enum):
 tess = Tess2.hxGeomAlgo_Tess2()
 
 
-def reduce_surfaces(markerArray, margin=0., n_points=None):
+def convert_from_marker_array(marker_array):
+    '''Convert to a list of list from ros msg.'''
+    surface_list = []
+    for marker in marker_array.markers:
+        # Marker structure :
+        # [Pt1,Pt2,Pt2,Pt3,Pt3,Pt4, ... , Ptn-1, Ptn, Pt1, Ptn] !Warning order at the end
+        # if id != 6 :
+        pts = [[pt.x, pt.y, pt.z]
+               for pt in marker.points]  # List not sorted, with duplicates
+        surface_list.append(order(np.array(pts)))
+    return surface_list
+
+
+def reduce_surfaces(surface_list, margin=0., n_points=None):
     ''' Process the surfaces list from markerArray data type.
 
     The following method is applied to process each surface:
@@ -68,17 +81,19 @@ def reduce_surfaces(markerArray, margin=0., n_points=None):
                         [y0, y1, ... , yn],
                         [z0, z1, ... , zn]])
     '''
-    surface_list = []
-    # surface_list.append(np.array(init_vertices).T)
-
-    for id, marker in enumerate(markerArray.markers):
-        # Marker structure :
-        # [Pt1,Pt2,Pt2,Pt3,Pt3,Pt4, ... , Ptn-1, Ptn, Pt1, Ptn] !Warning order at the end
-        # if id != 6 :
-        pts = [[pt.x, pt.y, pt.z]
-               for pt in marker.points]  # List not sorted, with duplicates
-        vertices = order(np.array(pts))  # Sorted, no duplicates
-
+    if 'MarkerArray' in str(type(surface_list)):
+        surface_list = convert_from_marker_array(surface_list)
+    else:
+        surface_list_tmp = []
+        for vs in surface_list:
+            ordered_s = order([vs[:, i].T for i in range(vs.shape[1])])
+            if ordered_s is not 0:
+                surface_list_tmp.append(ordered_s)
+            
+        surface_list = surface_list_tmp
+    
+    out_surface_list = []
+    for vertices in surface_list:
         if n_points is None:
             vertices_vw = vertices
         else:
@@ -87,19 +102,19 @@ def reduce_surfaces(markerArray, margin=0., n_points=None):
 
         if margin == 0.:
             vertices_vw = order(vertices_vw)
-            surface_list.append(vertices_vw.T)
+            out_surface_list.append(vertices_vw)
 
         else:
-            ineq_inner, ineq_inner_vect, normal = compute_inner_inequalities(
+            ineq_inner, ineq_inner_vect, _ = compute_inner_inequalities(
                 vertices_vw, margin)
             vertices_inner = compute_inner_vertices(
                 vertices_vw, ineq_inner, ineq_inner_vect)
             # If margin create intersection, need to be sorted
             vertices_inner = order(vertices_inner)
 
-            surface_list.append(vertices_inner.T)
+            out_surface_list.append(vertices_inner.T)
 
-    return surface_list
+    return out_surface_list
 
 
 def remove_overlap_surfaces(surfacesIn, polySize=10, method=0, min_area=0., initial_floor=None):
@@ -503,10 +518,11 @@ def align_points(vertices):
 # TODO, from stackoverflow, find reference
 def order(vertices, method="convexHull"):
     """
-    Order the array of vertice in counterclock wise using convex Hull method
+    Order the array of vertices in counterclockwise using convex Hull method
     """
-    if len(vertices) <= 3:
+    if len(vertices) < 3:
         return 0
+    # v = np.unique([np.round(v, decimals=8) for v in vertices], axis=0)
     v = np.unique(vertices, axis=0)
     n = norm(v[:3])
     y = np.cross(n, v[1] - v[0])
@@ -520,7 +536,6 @@ def order(vertices, method="convexHull"):
         d = c - mean
         s = np.arctan2(d[:, 0], d[:, 1])
         vert = v[np.argsort(s)]
-
     return vert
 
 

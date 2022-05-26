@@ -30,6 +30,7 @@
 # ----------------------------------------------------
 
 # ------ SL1M --------------------
+find_package(sl1m REQUIRED)
 execute_process(
     COMMAND ${PYTHON_EXECUTABLE} -c "import sl1m"
     RESULT_VARIABLE EXIT_CODE

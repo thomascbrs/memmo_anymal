@@ -94,7 +94,7 @@ class FootStepPlanner():
         else:
             self._horizon = params.horizon
 
-        print("horizon footstepplanner : ", self._horizon)
+        # print("horizon footstepplanner : ", self._horizon)
 
         self.debug = debug
         if debug:
@@ -109,7 +109,7 @@ class FootStepPlanner():
         else:
             raise ArgumentError("Wrong type of gait. Try walk or trot")
 
-        print("cut off frequency : ", cutoff)
+        # print("cut off frequency : ", cutoff)
         self._q_filter = Filter(cutoff, 1/(params.nsteps * params.dt), 2)
         self.q_f = np.zeros(18)
 
