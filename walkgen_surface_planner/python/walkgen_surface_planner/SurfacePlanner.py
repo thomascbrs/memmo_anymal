@@ -498,6 +498,7 @@ class SurfacePlanner():
 
         # Should work for going up & down
         feet_selected = [2,3]
+        # feet_selected = [0,1] # Going down forward
         costs["effector_positions_3D_select"] = [0.5, [feet_selected, shoulder_position]]
         #############################################################
 
