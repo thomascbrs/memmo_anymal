@@ -89,9 +89,9 @@ def reduce_surfaces(surface_list, margin=0., n_points=None):
             ordered_s = order([vs[:, i].T for i in range(vs.shape[1])])
             if ordered_s is not 0:
                 surface_list_tmp.append(ordered_s)
-            
+
         surface_list = surface_list_tmp
-    
+
     out_surface_list = []
     for vertices in surface_list:
         if n_points is None:
@@ -117,11 +117,13 @@ def reduce_surfaces(surface_list, margin=0., n_points=None):
     return out_surface_list
 
 
-def remove_overlap_surfaces(surfacesIn, polySize=10, method=0, min_area=0., initial_floor=None):
+def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inner=0., margin_outer=0.):
     """Filter the surfaces. Projection of the surfaces in X,Y plan and reshape them to avoid overlaying
     using Tesselation algorithm following the method:
     1. Run the list of surfaces starting with the lowest.
-    2. Decomposes the lowest surface in set of convex ones by removing the upper surfaces that overlap it.
+    2. Apply an inner security margin on the contour of the surface.
+    2. Decomposes the lowest surface in set of convex ones by removing the upper surfaces that overlap it
+    with an outer margin.
        (Tesselation algorithm).
        Use one of the 4 methods listed in DECOMPO_type to select/intersect the surfaces.
     3. Delate surface from the list and continue.
@@ -151,101 +153,81 @@ def remove_overlap_surfaces(surfacesIn, polySize=10, method=0, min_area=0., init
     """
     method_type = DECOMPO_type(method)
 
-    surfaces_init = []
     surfaces = []
+    new_surfaces = []
+
+    for sf in surfacesIn:
+        try :
+            s = SurfaceData(sf, margin_inner=margin_inner, margin_outer=margin_outer)
+            surfaces.append(s)
+        except :
+            print("Applying inner margin not feasible. Surface removed.")
+
+    # Temporary list for decomposition.
     contours_intersect = []
     surfaces_intersect = []
-    # Format the incoming data with SurfaceData structure.
-    # Project on X,Y axis the surface.
-    for sf in surfacesIn:
-        s = SurfaceData(sf)
-        surfaces_init.append(s)
-        surfaces.append(s)
-
-    initial_floor_data = None
-    if initial_floor is not None:
-        initial_floor_data = SurfaceData(initial_floor, isFloor=True)
-        surfaces_init.append(initial_floor_data)
-        surfaces.append(initial_floor_data)
 
     # Run the list of surfaces starting with the lowest.
     while len(surfaces) > 1:
-        h_mean = [sf.h_mean for sf in surfaces]
-        # Get id of the lowest surface remaining and process it.
-        id_ = np.argmin(h_mean)
-
-        # Get the list of contour that intersect the surface.
         contours_intersect.clear()
         surfaces_intersect.clear()
 
-        initial_floor_intersection = False  # ONly for convex process
+        h_mean = [sf.h_mean for sf in surfaces]
+        id_ = np.argmin(h_mean)
+
+
+
         for i, s_ in enumerate(surfaces):
             if i != id_:
-                if surfaces[id_].Polygon.intersects(s_.Polygon):
-                    if method_type == DECOMPO_type.CONVEX or method_type == DECOMPO_type.AREA_CONVEX:
-                        if s_.isFloor:
-                            initial_floor_intersection = True
-                        else:
-                            surfaces_intersect.append(s_)
-
-                    contours_intersect.append(s_.contour)
+                if surfaces[id_].Polygon_inner.intersects(s_.Polygon_outer):
+                    surfaces_intersect.append(s_)
+                    contours_intersect.append(s_.contour_outer)
 
         if method_type == DECOMPO_type.CONVEX or method_type == DECOMPO_type.AREA_CONVEX:
-            if len(surfaces_intersect) == 1:  # No union needed
-                contours_intersect.append(surfaces_intersect[0].contour)
+            # If only one surface, no need for the convex union
             if len(surfaces_intersect) > 1:
                 contours_intersect.clear()  # Redefine the contour for the difference
                 vertices_union = np.zeros((1, 2))
                 for sf in surfaces_intersect:
                     vertices_union = np.vstack(
-                        [vertices_union, sf.vertices[:2, :].T])
+                        [vertices_union, sf.vertices_outer[:, :2]])
                 convexHUll = ConvexHull(vertices_union[1:, :])
                 vert_2D = np.zeros((2, 1))
                 for j in convexHUll.vertices:
                     vert_2D = np.hstack(
                         [vert_2D, convexHUll.points[j, :].reshape((2, 1), order="F")])
 
-                contours_intersect.clear()
                 contours_intersect = [get_contour(vert_2D[:, 1:])]
-                if initial_floor_intersection:
-                    contours_intersect.append(initial_floor_data.contour)
 
         # No surface overllaping, keep initial surface.
         if len(contours_intersect) == 0:
-            surfaces[id_].vertices_reshaped2D = [surfaces[id_].vertices[:2, :]]
+            new_surfaces.append(surfaces[id_].vertices_inner)
 
         # Surface overllaping, decompose the surface.
         if len(contours_intersect) != 0:
 
-            res = tess.difference([surfaces[id_].contour],
+            res = tess.difference([surfaces[id_].contour_inner],
                                   contours_intersect, polySize=polySize)
             surface_processed = process_tess_results(res, polySize)
 
             if surface_processed is None:  # no surface left after intersection.
-                surfaces[id_].vertices_reshaped2D = None
+                surfaces[id_].vertices_reshaped = None
             else:
-                surfaces[id_].vertices_reshaped2D = surface_processed.copy()
+                for vt in surface_processed:
+
+                    if method_type == DECOMPO_type.AREA or method_type == DECOMPO_type.AREA_CONVEX:
+                        # Keep the surface if the area > min_area
+                        # Or if the surface has not been decomposed
+                        if get_Polygon(get_contour(vt)).area > min_area :
+                            new_surfaces.append(projection_surface(vt, surfaces[id_].equation) )
+                    else:
+                        new_surfaces.append(projection_surface(vt, surfaces[id_].equation) )
 
         # Remove the surface processed from the lists.
         surfaces.pop(id_)
 
-    # Reshape remaining surface
-    surfaces[0].vertices_reshaped2D = [surfaces[0].vertices[:2, :]]
-
-    new_surfaces = []
-    for sf in surfaces_init:
-        if sf.vertices_reshaped2D is not None:
-            for vert in sf.vertices_reshaped2D:
-                if method_type == DECOMPO_type.AREA or method_type == DECOMPO_type.AREA_CONVEX:
-                    # Keep the surface if the area > min_area
-                    # Or if the surface has not been decomposed
-                    if get_Polygon(get_contour(vert)).area > min_area or len(sf.vertices_reshaped2D) < 1:
-                        vert_3D = projection_surface(vert, sf.equation)
-                        new_surfaces.append(vert_3D)
-                else:
-                    vert_3D = projection_surface(vert, sf.equation)
-                    new_surfaces.append(vert_3D)
-
+    # Add last surface remaining
+    new_surfaces.append(surfaces[0].get_vertices_inner())
     return new_surfaces
 
 
@@ -359,9 +341,8 @@ def projection_surface(vertices2D, equation):
     if equation[2] < 10e-5:
         raise ValueError(
             'The surface is vertical, cannot project 2D vectors inside.')
-    z = (1 / equation[2]) * (-equation[3] -
-                             np.dot(equation[:2], vertices2D[:2, :]))
-    return np.vstack([vertices2D[:2, :], z])
+    z = (1 / equation[2]) * (-equation[3] - np.dot(equation[:2], vertices2D[:2, :]))
+    return np.vstack([vertices2D[:2, :], z]).T
 
 
 def norm(sq):

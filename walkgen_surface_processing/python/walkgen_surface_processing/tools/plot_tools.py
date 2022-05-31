@@ -110,7 +110,7 @@ def plot_surface(points, ax, color="b"):
     """
     Plot a 3D surface.
     """
-    xs = np.append(points[0, :], points[0, 0]).tolist()
-    ys = np.append(points[1, :], points[1, 0]).tolist()
-    zs = np.append(points[2, :], points[2, 0]).tolist()
+    xs = np.append(points[:, 0], points[0, 0]).tolist()
+    ys = np.append(points[:, 1], points[0, 1]).tolist()
+    zs = np.append(points[:, 2], points[0, 2]).tolist()
     ax.plot(xs, ys, zs, color=color)
