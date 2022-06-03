@@ -39,6 +39,7 @@ from walkgen_surface_processing.tools.SurfaceData import SurfaceData
 import walkgen_surface_processing.tools.Tess2 as Tess2
 from pyhull import qconvex
 
+
 class DECOMPO_type(Enum):
     BASIC = 0
     AREA = 1
@@ -55,8 +56,7 @@ def convert_from_marker_array(marker_array):
     for marker in marker_array.markers:
         # Marker structure :
         # [Pt1,Pt2,Pt2,Pt3,Pt3,Pt4, ... , Ptn-1, Ptn, Pt1, Ptn] !Warning order at the end
-        pts = [[pt.x, pt.y, pt.z]
-               for pt in marker.points]  # List not sorted, with duplicates
+        pts = [[pt.x, pt.y, pt.z] for pt in marker.points]  # List not sorted, with duplicates
         surface_list.append(remove_duplicates(pts).tolist())
     return surface_list
 
@@ -90,13 +90,14 @@ def reduce_surfaces(surface_list, n_points=None):
     out_surface_list = []
     if n_points is None:
         out_surface_list = surface_list
-    else :
+    else:
         for vertices in surface_list:
             simplifier = vw.Simplifier(vertices)
 
             out_surface_list.append(simplifier.simplify(number=n_points))
 
     return out_surface_list
+
 
 def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inner=0., margin_outer=0.):
     """Filter the surfaces. Projection of the surfaces in X,Y plan and reshape them to avoid overlaying
@@ -138,10 +139,10 @@ def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inne
     new_surfaces = []
 
     for sf in surfacesIn:
-        try :
+        try:
             s = SurfaceData(sf, margin_inner=margin_inner, margin_outer=margin_outer)
             surfaces.append(s)
-        except :
+        except:
             print("Applying inner margin not feasible. Surface removed.")
 
     # Temporary list for decomposition.
@@ -156,8 +157,6 @@ def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inne
         h_mean = [sf.h_mean for sf in surfaces]
         id_ = np.argmin(h_mean)
 
-
-
         for i, s_ in enumerate(surfaces):
             if i != id_:
                 if surfaces[id_].Polygon_inner.intersects(s_.Polygon_outer):
@@ -170,13 +169,11 @@ def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inne
                 contours_intersect.clear()  # Redefine the contour for the difference
                 vertices_union = np.zeros((1, 2))
                 for sf in surfaces_intersect:
-                    vertices_union = np.vstack(
-                        [vertices_union, sf.vertices_outer[:, :2]])
+                    vertices_union = np.vstack([vertices_union, sf.vertices_outer[:, :2]])
                 convexHUll = ConvexHull(vertices_union[1:, :])
                 vert_2D = np.zeros((2, 1))
                 for j in convexHUll.vertices:
-                    vert_2D = np.hstack(
-                        [vert_2D, convexHUll.points[j, :].reshape((2, 1), order="F")])
+                    vert_2D = np.hstack([vert_2D, convexHUll.points[j, :].reshape((2, 1), order="F")])
 
                 contours_intersect = [get_contour(vert_2D[:, 1:])]
 
@@ -187,8 +184,7 @@ def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inne
         # Surface overllaping, decompose the surface.
         if len(contours_intersect) != 0:
 
-            res = tess.difference([surfaces[id_].contour_inner],
-                                  contours_intersect, polySize=polySize)
+            res = tess.difference([surfaces[id_].contour_inner], contours_intersect, polySize=polySize)
             surface_processed = process_tess_results(res, polySize)
 
             if surface_processed is None:  # no surface left after intersection.
@@ -199,10 +195,10 @@ def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inne
                     if method_type == DECOMPO_type.AREA or method_type == DECOMPO_type.AREA_CONVEX:
                         # Keep the surface if the area > min_area
                         # Or if the surface has not been decomposed
-                        if get_Polygon(get_contour(vt)).area > min_area :
-                            new_surfaces.append(projection_surface(vt, surfaces[id_].equation) )
+                        if get_Polygon(get_contour(vt)).area > min_area:
+                            new_surfaces.append(projection_surface(vt, surfaces[id_].equation))
                     else:
-                        new_surfaces.append(projection_surface(vt, surfaces[id_].equation) )
+                        new_surfaces.append(projection_surface(vt, surfaces[id_].equation))
 
         # Remove the surface processed from the lists.
         surfaces.pop(id_)
@@ -230,8 +226,7 @@ def process_tess_results(res, poly_numbers):
     vertices_Ids = []
     surfaces = []
     for i in range(res.elementCount):
-        list_Id = [id for id in res.elements[poly_numbers *
-                                             i:poly_numbers * (i + 1)] if id != -1]
+        list_Id = [id for id in res.elements[poly_numbers * i:poly_numbers * (i + 1)] if id != -1]
         vertices_Ids.append(list_Id)
 
     # Get 2D surfaces
@@ -297,8 +292,7 @@ def get_normal(vertices):
         - array x3: The normal of the surface.
     """
     # Computes normal surface
-    S_normal = np.cross(vertices[0] - vertices[1],
-                        vertices[0] - vertices[2])
+    S_normal = np.cross(vertices[0] - vertices[1], vertices[0] - vertices[2])
     # Check orientation of the normal
     if np.dot(S_normal, np.array([0., 0., 1.])) < 0.:
         S_normal = -S_normal
@@ -320,111 +314,9 @@ def projection_surface(vertices2D, equation):
                                [z0, z1, ... , zn]]).
     """
     if equation[2] < 10e-5:
-        raise ValueError(
-            'The surface is vertical, cannot project 2D vectors inside.')
+        raise ValueError('The surface is vertical, cannot project 2D vectors inside.')
     z = (1 / equation[2]) * (-equation[3] - np.dot(equation[:2], vertices2D[:2, :]))
     return np.vstack([vertices2D[:2, :], z]).T
-
-
-def norm(sq):
-    """
-    Computes b=norm
-    """
-    cr = np.cross(sq[2] - sq[0], sq[1] - sq[0])
-    return np.abs(cr / np.linalg.norm(cr))
-
-
-def compute_inner_inequalities(vertices, margin):
-    """
-    Compute surface inequalities from the vertices list with a margin, update self.ineq_inner,
-    self.ineq_vect_inner
-    ineq_iner X <= ineq_vect_inner
-    the last row contains the equality vector
-    Keyword arguments:
-    Vertice of the surface  = [[x1 ,y1 ,z1 ]
-                            [x2 ,y2 ,z2 ]
-                                ...      ]]
-    """
-    nb_vert = vertices.shape[0]
-
-    # Computes normal surface
-    S_normal = np.cross(vertices[0, :] - vertices[1, :],
-                        vertices[0, :] - vertices[2, :])
-    # Check orientation of the normal
-    if np.dot(S_normal, np.array([0., 0., 1.])) < 0.:
-        S_normal = -S_normal
-
-    normal = S_normal / np.linalg.norm(S_normal)
-
-    ineq_inner = np.zeros((nb_vert + 1, 3))
-    ineq_vect_inner = np.zeros((nb_vert + 1))
-
-    ineq_inner[-1, :] = normal
-    ineq_vect_inner[-1] = -(-normal[0] * vertices[0, 0] -
-                            normal[1] * vertices[0, 1] - normal[2] * vertices[0, 2])
-
-    for i in range(nb_vert):
-
-        if i < nb_vert - 1:
-            AB = vertices[i, :] - vertices[i + 1, :]
-        else:
-            # last point of the list with first
-            AB = vertices[i, :] - vertices[0, :]
-
-        n_plan = np.cross(AB, normal)
-        n_plan = n_plan / np.linalg.norm(n_plan)
-
-        # normal = [a,b,c].T
-        # To keep the half space in the direction of the normal :
-        # ax + by + cz + d >= 0
-        # - [a,b,c] * X <= d
-
-        # Take a point M along the normal of the plan, from a distance margin
-        # OM = OA + AM = OA + margin*n_plan
-
-        M = vertices[i, :] + margin * n_plan
-
-        # Create the parallel plan that pass trhough M
-        ineq_inner[i, :] = -np.array([n_plan[0], n_plan[1], n_plan[2]])
-        ineq_vect_inner[i] = -n_plan[0] * M[0] - \
-            n_plan[1] * M[1] - n_plan[2] * M[2]
-
-    return ineq_inner, ineq_vect_inner, normal
-
-
-def compute_inner_vertices(vertices, ineq_inner, ineq_vect_inner):
-    """"
-    Compute the list of vertice defining the inner surface :
-    update self.vertices_inner = = [[x1 ,y1 ,z1 ]    shape((nb vertice , 3))
-                                    [x2 ,y2 ,z2 ]
-                                        ...      ]]
-    """
-    S_inner = []
-    nb_vert = vertices.shape[0]
-
-    # P = np.array([a,b,c,d]) , (Plan) ax + by + cz + d = 0
-    P_normal = np.zeros(4)
-    P_normal[:3] = ineq_inner[-1, :]
-    P_normal[-1] = -ineq_vect_inner[-1]
-
-    P1, P2 = np.zeros(4), np.zeros(4)
-
-    for i in range(nb_vert):
-        if i < nb_vert - 1:
-            P1[:3], P2[:3] = ineq_inner[i, :], ineq_inner[i + 1, :]
-            P1[-1], P2[-1] = -ineq_vect_inner[i], -ineq_vect_inner[i + 1]
-
-            A, B = plane_intersect(P1, P2)
-            S_inner.append(LinePlaneCollision(P_normal, A, B))
-        else:
-            P1[:3], P2[:3] = ineq_inner[i, :], ineq_inner[0, :]
-            P1[-1], P2[-1] = -ineq_vect_inner[i], -ineq_vect_inner[0]
-
-            A, B = plane_intersect(P1, P2)
-            S_inner.append(LinePlaneCollision(P_normal, A, B))
-
-    vertices_inner = np.array(S_inner)
-    return vertices_inner
 
 
 def getAllSurfacesDict_inner(all_surfaces, margin):
@@ -451,6 +343,7 @@ def getAllSurfacesDict_inner(all_surfaces, margin):
     surfaces_dict = dict(zip(all_names, surfaces))
     return surfaces_dict
 
+
 def align_points(vertices):
     """ Align points to ensure convexity of the surface. 3 first point kept and the others projected into the 2D surface.
 
@@ -470,8 +363,8 @@ def align_points(vertices):
         normal = get_normal(vertices)
         # Projection of the other vertices into the surface obtained by the 3 first vertices
         # to ensure convexity of the surfaces.
-        for k in range(3,len(vertices)):
-            vertices_projected.append(vertices[k] - np.dot( np.dot( (vertices[k] - vertices[0]), normal ) , normal))
+        for k in range(3, len(vertices)):
+            vertices_projected.append(vertices[k] - np.dot(np.dot((vertices[k] - vertices[0]), normal), normal))
         return np.array(vertices_projected)
 
 
@@ -490,62 +383,6 @@ def order(points):
     output.pop(0)
     return [points[int(elt)].tolist() for elt in output]
 
+
 def remove_duplicates(points):
-    return np.unique(points, axis = 0)
-
-# TODO, from stackoverflow, find reference
-def plane_intersect(P1, P2):
-    """
-    Reference:
-    Get the intersection between 2 plan, return Point and direction
-    :param P1,P2: Plan equalities
-              np.array([a,b,c,d])
-              ax + by + cz + d = 0
-    Returns : 1 point and 1 direction vect of the line of intersection, np.arrays, shape (3,)
-    """
-
-    P1_normal, P2_normal = P1[:3], P2[:3]
-
-    aXb_vec = np.cross(P1_normal, P2_normal)
-
-    A = np.array([P1_normal, P2_normal, aXb_vec])
-    d = np.array([-P1[3], -P2[3], 0.]).reshape(3, 1)
-
-    # could add np.linalg.det(A) == 0 test to prevent linalg.solve throwing error
-
-    p_inter = np.linalg.solve(A, d).T
-
-    return p_inter[0], (p_inter + aXb_vec)[0]
-
-
-# TODO, from stackoverflow, find reference
-def LinePlaneCollision(P, A, B, epsilon=1e-6):
-    """
-    Reference:
-    Get the intersection point between 1 plane and 1 line
-    :param P: Plane equality
-                np.array([a,b,c,d])
-                ax + by + cz + d = 0
-    :param A,B : 2 points defining the line np.arrays, shape(3,)
-    Returns : 1 point,  np.array, shape (3,)
-    """
-    plane_normal = P[:3]
-    if P[0] == 0:
-        if P[1] == 0:
-            # a,b = 0 --> z = -d/c
-            planePoint = np.array([0, 0, -P[-1] / P[2]])
-        else:
-            # a,c = 0 --> y = -d/b
-            planePoint = np.array([0, -P[-1] / P[1], 0])
-    else:
-        planePoint = np.array([-P[-1] / P[0], 0., 0])  # b,c = 0 --> x = -d/a
-
-    rayDirection = A - B
-    ndotu = plane_normal.dot(rayDirection)
-    if abs(ndotu) < epsilon:
-        raise RuntimeError("no intersection or line is within plane")
-
-    w = A - planePoint
-    si = -plane_normal.dot(w) / ndotu
-    Psi = w + si * rayDirection + planePoint
-    return Psi
+    return np.unique(points, axis=0)
