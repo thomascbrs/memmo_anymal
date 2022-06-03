@@ -53,7 +53,7 @@ def get_normal(vertices):
         - array x3: The normal of the surface.
     """
     # Computes normal surface
-    S_normal = np.cross(vertices[0] - vertices[1], vertices[0] - vertices[2])
+    S_normal = cross(vertices[0] - vertices[1], vertices[0] - vertices[2])
     # Check orientation of the normal
     if np.dot(S_normal, np.array([0., 0., 1.])) < 0.:
         S_normal = -S_normal
@@ -81,7 +81,7 @@ def get_surface_frame(vertices):
     """
     z = get_normal(vertices)
     x = (vertices[1] - vertices[0]) / np.linalg.norm(vertices[1] - vertices[0])
-    y = np.cross(z, x)
+    y = cross(z, x)
     y = y / np.linalg.norm(y)
 
     oRl = np.zeros((3, 3))
@@ -171,7 +171,7 @@ def norm(sq):
     """
     Computes b=norm
     """
-    cr = np.cross(sq[2] - sq[0], sq[1] - sq[0])
+    cr = cross(sq[2] - sq[0], sq[1] - sq[0])
     return np.abs(cr / np.linalg.norm(cr))
 
 
@@ -189,3 +189,6 @@ def order(points):
     output = qconvex("Fx", points[:,:2])
     output.pop(0)
     return [points[int(elt)].tolist() for elt in output]
+
+def cross(a,b):
+    return [a[1]*b[2] - a[2]*b[1] , a[2]*b[1] - a[0]*b[2], a[0]*b[1] - a[1]*b[0]]
