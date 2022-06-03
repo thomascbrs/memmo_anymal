@@ -27,8 +27,7 @@
 
 import numpy as np
 import quadprog
-from pyhull.halfspace import Halfspace
-from pyhull.halfspace import HalfspaceIntersection
+from scipy.spatial import HalfspaceIntersection
 from pyhull import qconvex
 
 
@@ -102,33 +101,33 @@ def apply_margin(vertices, margin=0.):
     # Projection of the 3D vertices in the 2D surface.
     oTl, oRl = get_surface_frame(vertices)
     vertices_2D = np.array([compute_projection2D(vt, oTl, oRl).tolist() for vt in vertices])
-    # Halp-space equations with an inner margin.
     equations = get_equations(vertices_2D)
-    half_sp = []
+    inner_eq = []
     for a, b, c in equations:
         if b != 0.:
-            half_sp.append(
-                Halfspace([np.sign(b) * a / b, np.sign(b) * 1.0],
-                          np.sign(b) * (c / b + np.sign(b) * margin * np.sqrt(1 + (a / b)**2))))
+            inner_eq.append([
+                np.sign(b) * a / b,
+                np.sign(b) * 1.0,
+                np.sign(b) * (c / b + np.sign(b) * margin * np.sqrt(1 + (a / b)**2))
+            ])
         else:
-            half_sp.append(Halfspace([a, 0.], c + np.sign(a) * a * margin))
-
-    # Get a feasible points inside the new equations.
-    inner_normal = np.array([hsp.normal for hsp in half_sp])
-    norm_vector = np.reshape(np.linalg.norm(inner_normal[:, :], axis=1), (inner_normal.shape[0], 1))
-    A = np.hstack((inner_normal, norm_vector))
-    b = -np.array([hsp.offset for hsp in half_sp])
-
+            inner_eq.append([a, 0., c + np.sign(a) * a * margin])
+    # halfspace equation for inner surface
+    halfspaces = np.array(inner_eq)
+    norm_vector = np.reshape(np.linalg.norm(halfspaces[:, :-1], axis=1), (halfspaces.shape[0], 1))
+    A = np.hstack((halfspaces[:, :-1], norm_vector))
+    b = -halfspaces[:, -1:].reshape(halfspaces.shape[0])
     q = np.zeros(3)
     q[2] = -1
     P = 10e-6 * np.identity(3)
     res = quadprog_solve_qp(P, q, G=A, h=b)
 
-    # Halfspace intersection points 2D with margin in local surface frame.
-    hs = np.array(HalfspaceIntersection(half_sp, res[:2]).vertices)
+    # Halfspace intersection points 2D with margin in local surface frame
+    feasible_point = res[:2]
+    hs = HalfspaceIntersection(halfspaces, feasible_point)
 
     # Halfspace intersection points 3D with margin in world frame
-    vert_inner_l = order(np.hstack([hs, np.zeros((hs.shape[0], 1))]))
+    vert_inner_l = order(np.hstack([hs.intersections, np.zeros((hs.intersections.shape[0], 1))]))
     return [compute_worldFrame(pos, oTl, oRl).tolist() for pos in vert_inner_l]
 
 
@@ -181,7 +180,7 @@ def order(points):
 
 
 def cross(a, b):
-    return [a[1] * b[2] - a[2] * b[1], a[2] * b[1] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
+    return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
 
 
 def get_equations(points):
