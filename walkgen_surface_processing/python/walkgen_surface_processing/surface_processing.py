@@ -31,7 +31,7 @@ import numpy as np
 import copy
 
 from walkgen_surface_processing.params import SurfaceProcessingParams
-from walkgen_surface_processing.tools.geometry_utils import reduce_surfaces, remove_overlap_surfaces, convert_from_marker_array
+from walkgen_surface_processing.tools.geometry_utils import process_surfaces, convert_from_marker_array, order, reduce_surfaces
 
 
 class SurfaceProcessing:
@@ -99,26 +99,28 @@ class SurfaceProcessing:
             print("Warning no polygon to process.")
             return dict()
 
-        vertices = [[position[0] - self._dx, position[1] + self._dy, self._initial_height],
+        # Convert incoming data.
+        surface_list = convert_from_marker_array(markerArray)
+
+        # Sort, remove duplicates and reduce the number of points.
+        surface_reduced = reduce_surfaces(surface_list, self._n_points)
+
+        # Add floor around robot position.
+        vertices = np.array([[position[0] - self._dx, position[1] + self._dy, self._initial_height],
                     [position[0] - self._dx, position[1] -
                         self._dy, self._initial_height],
                     [position[0] + self._dx, position[1] -
                         self._dy, self._initial_height],
-                    [position[0] + self._dx, position[1] + self._dy, self._initial_height]]
+                    [position[0] + self._dx, position[1] + self._dy, self._initial_height]])
+        surface_reduced.append(vertices)
 
-        surface_list = convert_from_marker_array(markerArray)
-
-        # Apply process to filter and decompose the surfaces to avoid overlap
-        np_surface_list = [np.array(s).T for s in surface_list]
-        surfaces_without_overlap = remove_overlap_surfaces(
-            np_surface_list,
+        # Apply process to filter and decompose the surfaces to avoid overlap and apply a security margin.
+        surfaces_processed = process_surfaces(
+            surface_reduced,
             polySize=self._poly_size,
             method=self._method_id,
             min_area=self._min_area,
-            initial_floor=np.array(vertices).T)
+            margin_inner=self._margin,
+            margin_outer=self._margin)
 
-        # Reduce and sort incoming data
-        surfaces_processed = reduce_surfaces(
-            surfaces_without_overlap, margin=self._margin, n_points=self._n_points)
-
-        return dict(zip([str(k) for k in range(len(surfaces_processed))], [sf.T.tolist() for sf in surfaces_processed]))
+        return dict(zip([str(k) for k in range(len(surfaces_processed))], [sf.tolist() for sf in surfaces_processed]))

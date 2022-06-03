@@ -55,7 +55,7 @@ class SurfaceDetector:
         loader.load(filename, orientation_matrix ,translation)
         names = [prefix + str(k) for k in range(len(loader.get_affordances()))]
         affordances = dict(
-            zip(names, [(order(align_points(affordance)).tolist(), get_normal(affordance).tolist())
+            zip(names, [(order(align_points(affordance)), get_normal(affordance).tolist())
                         for affordance in loader.get_affordances()]))
         self._affordances_reduced = getAllSurfacesDict_inner(affordances, margin)
 
