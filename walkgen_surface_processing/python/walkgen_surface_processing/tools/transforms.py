@@ -129,7 +129,6 @@ def apply_margin(vertices, margin=0.):
     # Halfspace intersection points 2D with margin in local surface frame
     feasible_point = res[:2]
     hs = HalfspaceIntersection(halfspaces, feasible_point)
-    vert_inner = order(np.hstack([hs.intersections, np.zeros((hs.intersections.shape[0], 1))]))[:, :2].tolist()
 
     # Halfspace intersection points 3D with margin in world frame
     vert_inner_l = order(np.hstack([hs.intersections, np.zeros((hs.intersections.shape[0], 1))]))[:, :].tolist()
