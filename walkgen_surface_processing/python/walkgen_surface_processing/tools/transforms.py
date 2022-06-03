@@ -167,14 +167,6 @@ def quadprog_solve_qp(P, q, G=None, h=None, C=None, d=None, verbose=False):
 
     return res[0]
 
-def norm(sq):
-    """
-    Computes b=norm
-    """
-    cr = cross(sq[2] - sq[0], sq[1] - sq[0])
-    return np.abs(cr / np.linalg.norm(cr))
-
-
 def order(points):
     """
     Order and remove repeated points in counterclockwise using pyhull library (only for 2D vectors)
