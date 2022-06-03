@@ -36,7 +36,7 @@ from shapely.geometry import Polygon
 
 from walkgen_surface_processing.tools.SurfaceData import SurfaceData
 import walkgen_surface_processing.tools.Tess2 as Tess2
-
+from pyhull import qconvex
 
 class DECOMPO_type(Enum):
     BASIC = 0
@@ -54,68 +54,48 @@ def convert_from_marker_array(marker_array):
     for marker in marker_array.markers:
         # Marker structure :
         # [Pt1,Pt2,Pt2,Pt3,Pt3,Pt4, ... , Ptn-1, Ptn, Pt1, Ptn] !Warning order at the end
-        # if id != 6 :
         pts = [[pt.x, pt.y, pt.z]
                for pt in marker.points]  # List not sorted, with duplicates
-        surface_list.append(order(np.array(pts)))
+        surface_list.append(remove_duplicates(pts).tolist())
     return surface_list
 
 
-def reduce_surfaces(surface_list, margin=0., n_points=None):
-    ''' Process the surfaces list from markerArray data type.
+def reduce_surfaces(surface_list, n_points=None):
+    ''' Remove duplicates, sort in counter-clock wise and reduce the numbre of points.
 
     The following method is applied to process each surface:
     1. The vertices received are sorted counterclockwise, duplicates removed.
     2. The number of vertices is reduced using Visvalingam-Wyatt algorithm.
-    3. An interior surface is calculated, with a margin parallel to each edge.
 
     Args:
-        - markerArray (list): The initial input list, containing marker objects.
-        - margin (float): The margin to apply for each edge of the surface.
+        - surface_list (list): List of List containing 3D points.
         - n_points (int or None): The maximal number of vertices for each surface.
                                   None --> No reduction.
 
     Returns:
-        - list : The list the surfaces processed. The surfaces are defined using the vertices positions:
-                 array([[x0, x1, ... , xn],
-                        [y0, y1, ... , yn],
-                        [z0, z1, ... , zn]])
+        - (list) : The list the surfaces reduced. List of list containing 3D points.
     '''
     if 'MarkerArray' in str(type(surface_list)):
         surface_list = convert_from_marker_array(surface_list)
     else:
         surface_list_tmp = []
         for vs in surface_list:
-            ordered_s = order([vs[:, i].T for i in range(vs.shape[1])])
-            if ordered_s is not 0:
+            ordered_s = order(remove_duplicates(vs))
+            if ordered_s != 0:
                 surface_list_tmp.append(ordered_s)
 
         surface_list = surface_list_tmp
 
     out_surface_list = []
-    for vertices in surface_list:
-        if n_points is None:
-            vertices_vw = vertices
-        else:
+    if n_points is None:
+        out_surface_list = surface_list
+    else :
+        for vertices in surface_list:
             simplifier = vw.Simplifier(vertices)
-            vertices_vw = simplifier.simplify(number=n_points)
 
-        if margin == 0.:
-            vertices_vw = order(vertices_vw)
-            out_surface_list.append(vertices_vw)
-
-        else:
-            ineq_inner, ineq_inner_vect, _ = compute_inner_inequalities(
-                vertices_vw, margin)
-            vertices_inner = compute_inner_vertices(
-                vertices_vw, ineq_inner, ineq_inner_vect)
-            # If margin create intersection, need to be sorted
-            vertices_inner = order(vertices_inner)
-
-            out_surface_list.append(vertices_inner.T)
+            out_surface_list.append(simplifier.simplify(number=n_points))
 
     return out_surface_list
-
 
 def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inner=0., margin_outer=0.):
     """Filter the surfaces. Projection of the surfaces in X,Y plan and reshape them to avoid overlaying
@@ -496,29 +476,23 @@ def align_points(vertices):
         return np.array(vertices_projected)
 
 
-# TODO, from stackoverflow, find reference
-def order(vertices, method="convexHull"):
+def order(points):
     """
-    Order the array of vertices in counterclockwise using convex Hull method
-    """
-    if len(vertices) < 3:
-        return 0
-    # v = np.unique([np.round(v, decimals=8) for v in vertices], axis=0)
-    v = np.unique(vertices, axis=0)
-    n = norm(v[:3])
-    y = np.cross(n, v[1] - v[0])
-    y = y / np.linalg.norm(y)
-    c = np.dot(v, np.c_[v[1] - v[0], y])
-    if method == "convexHull":
-        h = ConvexHull(c)
-        vert = v[h.vertices]
-    else:
-        mean = np.mean(c, axis=0)
-        d = c - mean
-        s = np.arctan2(d[:, 0], d[:, 1])
-        vert = v[np.argsort(s)]
-    return vert
+    Order and remove repeated points in counterclockwise using pyhull library (only for 2D vectors)
+    Assumptions : Project directly in X,Y plane and not into the surface local frame to avoid computational
+    burden.
 
+    Args:
+        - points (list): List of 2D or 3D points.
+    """
+    if len(points) < 3:
+        return 0
+    output = qconvex("Fx", points[:, :2])
+    output.pop(0)
+    return [points[int(elt)].tolist() for elt in output]
+
+def remove_duplicates(points):
+    return np.unique(points, axis = 0)
 
 # TODO, from stackoverflow, find reference
 def plane_intersect(P1, P2):
