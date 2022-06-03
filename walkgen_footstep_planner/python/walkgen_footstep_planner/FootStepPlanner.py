@@ -234,11 +234,13 @@ class FootStepPlanner():
                             if active_phase.T + inactive_phase.T - timeline > 0:  # case 1 & 2
                                 if abs(bvref[5]) > 10e-3:
                                     dt_ = (cs_index + active_phase.T +
-                                           inactive_phase.T) * cs.dt
+                                           inactive_phase.T - timeline) * cs.dt
                                     dx_ = (bvref[0] * np.sin(bvref[5] * dt_) + bvref[1] *
                                            (np.cos(bvref[5] * dt_) - 1.0)) / bvref[5]
                                     dy_ = (bvref[1] * np.sin(bvref[5] * dt_) - bvref[0] *
                                            (np.cos(bvref[5] * dt_) - 1.0)) / bvref[5]
+                                    dt_ = (cs_index + active_phase.T +
+                                           inactive_phase.T ) * cs.dt
                                     yaw = bvref[5] * dt_
                                     Rz_tmp = pin.rpy.rpyToMatrix(
                                         np.array([0., 0., yaw]))
@@ -288,7 +290,7 @@ class FootStepPlanner():
                                 else:
                                     t0 = timeline - active_phase.T
 
-                                if t0 <= inactive_phase.T * 0.7:
+                                if t0 <= inactive_phase.T * 0.5:
                                     surface_init = Surface_cpp(previous_sf.A, previous_sf.b, previous_sf.vertices.T)
                                     surface_end = Surface_cpp(sf.A, sf.b, sf.vertices.T)
 

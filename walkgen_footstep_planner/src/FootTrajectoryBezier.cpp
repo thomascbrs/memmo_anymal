@@ -356,7 +356,7 @@ void FootTrajectoryBezier::update(Vector3 const& pos_init, Vector3 const& vel_in
   // No surface switch or already overpass the critical point
   switch (elevation_) {
     case UP: {
-      std::cout << "UP" << std::endl;
+      // std::cout << "UP" << std::endl;
       // double t_margin = t_margin_up_ * t_swing_;  // 10% around the limit point !inferior to 1/nb point in linspace
       if (((x_t[2] < pos_end(2)) && ineq_vector_ != 0.) || (t0_ < t_stop_up_ + t_margin_up_)) {
         updateInequalityUp(pos_init.head(2), pos_end.head(2), surface_end);
@@ -393,7 +393,7 @@ void FootTrajectoryBezier::update(Vector3 const& pos_init, Vector3 const& vel_in
       break;
     }
     case HORIZONTAL: {
-      std::cout << "HORIZONTAL" << std::endl;
+      // std::cout << "HORIZONTAL" << std::endl;
       G_.setZero();
       for (int l = 0; l < h_.size(); l++) {
         h_(l) = 0.;
@@ -401,8 +401,8 @@ void FootTrajectoryBezier::update(Vector3 const& pos_init, Vector3 const& vel_in
       break;
     }
     case DOWN: {
-      std::cout << "DOWN" << std::endl;
-      std::cout << "init height :" << surface_init.getHeight(pos_end.head(2)) << std::endl;
+      // std::cout << "DOWN" << std::endl;
+      // std::cout << "init height :" << surface_init.getHeight(pos_end.head(2)) << std::endl;
       linear_variable_t linear_var_;
 
       double z_margin = (starting_position_(2) - pos_end(2)) * z_margin_down_;  // 10% around the limit height
@@ -415,12 +415,12 @@ void FootTrajectoryBezier::update(Vector3 const& pos_init, Vector3 const& vel_in
       // std::cout << "z_margin : " << z_margin << std::endl;
       // std::cout << "t_margin : " << t_margin << std::endl;
       updateInequalityDown(starting_position_.head(2), pos_end.head(2), surface_init);
-      std::cout << "x_t[2] : " << x_t[2] << std::endl;
-      std::cout << "starting_position_(2) : " << starting_position_(2) << std::endl;
-      std::cout << "t0_ : " << t0_ << std::endl;
-      std::cout << "tswing - t0_ : " << t_swing_ - t0_ << std::endl;
-      std::cout << " t_stop_down_ : " << t_stop_down_ << std::endl;
-      std::cout << " t_stop_down_ - t_margin_down_ : " << t_stop_down_ - t_margin_down_ << std::endl;
+      // std::cout << "x_t[2] : " << x_t[2] << std::endl;
+      // std::cout << "starting_position_(2) : " << starting_position_(2) << std::endl;
+      // std::cout << "t0_ : " << t0_ << std::endl;
+      // std::cout << "tswing - t0_ : " << t_swing_ - t0_ << std::endl;
+      // std::cout << " t_stop_down_ : " << t_stop_down_ << std::endl;
+      // std::cout << " t_stop_down_ - t_margin_down_ : " << t_stop_down_ - t_margin_down_ << std::endl;
 
       if ((x_t[2] >= starting_position_(2)) && ((t_swing_ - t0_) >= t_stop_down_ - t_margin_down_)) {
         for (int its = N_samples_ineq - 1; its >= 0; its--) {
@@ -432,12 +432,12 @@ void FootTrajectoryBezier::update(Vector3 const& pos_init, Vector3 const& vel_in
           // std::cout << "zt : " << zt << std::endl;
           // std::cout << "t0 + (t_swing_ - t0) * t_s : " << t0 + (t_swing_ - t0) * t_s << std::endl;
           // std::cout << "t_stop_down_ : " << t_stop_down_ << std::endl;
-          std::cout << "t0 + (t_swing_ - t0) * t_s: " << t0 + (t_swing_ - t0) * t_s << std::endl;
+          // std::cout << "t0 + (t_swing_ - t0) * t_s: " << t0 + (t_swing_ - t0) * t_s << std::endl;
           if (t0 + (t_swing_ - t0) * t_s >= t_stop_down_ - t_margin_down_) {
             if (zt < starting_position_(2) + z_margin) {
               t_stop_down_ = t0 + (t_swing_ - t0) * (t_s - 1 / N_samples_ineq);
             }
-            std::cout << "constraint on time : " << t_s << std::endl;
+            // std::cout << "constraint on time : " << t_s << std::endl;
             linear_var_ = linear_bezier->operator()(t_s);
             // std::cout << linear_var_ << std::endl;
             G_.row(its) = -ineq_.transpose() * linear_var_.B();
