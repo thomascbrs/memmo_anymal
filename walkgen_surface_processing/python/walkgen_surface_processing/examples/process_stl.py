@@ -26,8 +26,8 @@ all_surfaces_reduced = surface_detector.extract_surfaces()
 fig = plt.figure(figsize=(10, 6))
 ax = plt.axes(projection='3d')
 for sf in all_surfaces.values():
-    plot_surface( np.array(sf).T, ax,color = "k")
+    plot_surface( np.array(sf), ax,color = "k")
 for sf in all_surfaces_reduced.values():
-    plot_surface( np.array(sf).T, ax,color = "r")
+    plot_surface( np.array(sf), ax,color = "r")
 plt.title("Surfaces extracted from .stl file")
 plt.show()

@@ -34,6 +34,7 @@ import visvalingamwyatt as vw
 from scipy.spatial import ConvexHull
 from shapely.geometry import Polygon
 
+from walkgen_surface_processing.tools.transforms import apply_margin
 from walkgen_surface_processing.tools.SurfaceData import SurfaceData
 import walkgen_surface_processing.tools.Tess2 as Tess2
 from pyhull import qconvex
@@ -440,14 +441,12 @@ def getAllSurfacesDict_inner(all_surfaces, margin):
     surfaces = []
     for name_surface in all_surfaces:
         vertices = order(np.array(all_surfaces.get(name_surface)[0]))
-        ineq_inner, ineq_inner_vect, normal = compute_inner_inequalities(
-            vertices, margin)
-        vertices_inner = compute_inner_vertices(
-            vertices, ineq_inner, ineq_inner_vect)
+        normal = get_normal(np.array(vertices))
+        vertices_inner = apply_margin(np.array(vertices), margin)
 
         # Save inner vertices
         all_names.append(name_surface)
-        surfaces.append((vertices_inner.tolist(), normal.tolist()))
+        surfaces.append((vertices_inner, normal.tolist()))
 
     surfaces_dict = dict(zip(all_names, surfaces))
     return surfaces_dict
