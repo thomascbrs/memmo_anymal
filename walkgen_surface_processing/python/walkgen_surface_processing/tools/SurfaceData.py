@@ -29,7 +29,7 @@
 
 import numpy as np
 from shapely.geometry import Polygon
-from walkgen_surface_processing.tools.transforms import apply_margin
+from walkgen_surface_processing.tools.transforms import apply_margin, cross
 
 """
 Usefull structure to work on surface decomposition.
@@ -119,7 +119,7 @@ class SurfaceData():
             - array x3: The normal of the surface.
         """
         # Computes normal surface
-        S_normal = np.cross(vertices[0] - vertices[1], vertices[0] - vertices[2])
+        S_normal = cross(vertices[0] - vertices[1], vertices[0] - vertices[2])
         # Check orientation of the normal
         if np.dot(S_normal, np.array([0., 0., 1.])) < 0.:
             S_normal = -S_normal
