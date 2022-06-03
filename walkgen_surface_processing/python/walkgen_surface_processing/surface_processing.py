@@ -31,7 +31,7 @@ import numpy as np
 import copy
 
 from walkgen_surface_processing.params import SurfaceProcessingParams
-from walkgen_surface_processing.tools.geometry_utils import process_surfaces, convert_from_marker_array, order
+from walkgen_surface_processing.tools.geometry_utils import process_surfaces, convert_from_marker_array, order, reduce_surfaces
 
 
 class SurfaceProcessing:
@@ -102,18 +102,21 @@ class SurfaceProcessing:
         # Convert incoming data.
         surface_list = convert_from_marker_array(markerArray)
 
+        # Sort, remove duplicates and reduce the number of points.
+        surface_reduced = reduce_surfaces(surface_list, self._n_points)
+
         # Add floor around robot position.
-        vertices = order(np.array([[position[0] - self._dx, position[1] + self._dy, self._initial_height],
+        vertices = np.array([[position[0] - self._dx, position[1] + self._dy, self._initial_height],
                     [position[0] - self._dx, position[1] -
                         self._dy, self._initial_height],
                     [position[0] + self._dx, position[1] -
                         self._dy, self._initial_height],
-                    [position[0] + self._dx, position[1] + self._dy, self._initial_height]]))
-        surface_list.append(vertices)
+                    [position[0] + self._dx, position[1] + self._dy, self._initial_height]])
+        surface_reduced.append(vertices)
 
         # Apply process to filter and decompose the surfaces to avoid overlap and apply a security margin.
         surfaces_processed = process_surfaces(
-            surface_list,
+            surface_reduced,
             polySize=self._poly_size,
             method=self._method_id,
             min_area=self._min_area,
