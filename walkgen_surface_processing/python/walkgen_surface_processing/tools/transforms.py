@@ -79,15 +79,11 @@ def get_surface_frame(vertices):
     Returns :
         - (list) : List of 2D vectors.
     """
-    z = get_normal(vertices)
-    x = (vertices[1] - vertices[0]) / np.linalg.norm(vertices[1] - vertices[0])
-    y = cross(z, x)
-    y = y / np.linalg.norm(y)
-
     oRl = np.zeros((3, 3))
-    oRl[:, 0] = x
-    oRl[:, 1] = y
-    oRl[:, 2] = z
+    oRl[:, 0] = (vertices[1] - vertices[0]) / np.linalg.norm(vertices[1] - vertices[0])
+    oRl[:, 2] = get_normal(vertices)
+    y = cross(oRl[:, 2], oRl[:, 0])
+    oRl[:, 1] = y / np.linalg.norm(y)
     oTl = vertices[0]
     return oTl, oRl
 
@@ -106,9 +102,9 @@ def apply_margin(vertices, margin=0.):
     # Projection of the vertices in the 2D surface
     oTl, oRl = get_surface_frame(vertices)
     vertices_2D = np.array([compute_projection2D(vt, oTl, oRl).tolist() for vt in vertices])
-    hull_2D = ConvexHull(vertices_2D)
+    equations = get_equations(vertices_2D)
     inner_eq = []
-    for a, b, c in hull_2D.equations:
+    for a, b, c in equations:
         if b != 0.:
             inner_eq.append([
                 np.sign(b) * a / b,
@@ -184,3 +180,9 @@ def order(points):
 
 def cross(a,b):
     return [a[1]*b[2] - a[2]*b[1] , a[2]*b[1] - a[0]*b[2], a[0]*b[1] - a[1]*b[0]]
+
+def get_equations(points):
+    """ Hyperplan normal with offsets : Ax <= -b
+    """
+    output = qconvex("n", points[:,:])
+    return [[float(item) for item in elt.split()] for elt in output[2:]]
