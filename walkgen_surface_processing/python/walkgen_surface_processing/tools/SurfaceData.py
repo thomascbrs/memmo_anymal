@@ -29,6 +29,7 @@
 
 import numpy as np
 from shapely.geometry import Polygon
+from walkgen_surface_processing.tools.transforms import apply_margin, cross
 
 """
 Usefull structure to work on surface decomposition.
@@ -52,32 +53,48 @@ class SurfaceData():
     - vertices_reshaped2D (list): List containing the new surfaces in 2D, after some process.
     """
 
-    def __init__(self, vertices, isFloor=False):
+    def __init__(self, vertices, margin_inner, margin_outer):
         """Initialize the surface data with the vertices positions in 3D.
 
         Args:
-            - vertices (array 3xn): The surface is defined using the vertices positions:
-                                    array([[x0, x1, ... , xn],
-                                           [y0, y1, ... , yn],
-                                           [z0, z1, ... , zn]]).
-            - isFloor (bool): Flag for surface that has been added manually added.
-                              (usefull for filtering process)
-
-        Raises:
-            ValueError: If vertice.shape[0] != 3.
+            - vertices (list): List of 3D vertices array x3.
 
         """
-        if vertices.shape[0] != 3:
-            raise ValueError('Array should be of size 3xn')
+        # Surface main informations
+        self.vertices = vertices  # Initial 3D vertices
+        self.h_mean = self._compute_height(vertices)  # mean height of surface
+        self.normal = self._compute_normal(vertices)  # Nomral of the surface
+        self.equation = self._compute_equation(vertices, self.normal)  # ax +by + cz + d = 0
 
-        self.vertices = vertices  # Initial 3D surface
-        self.h_mean = self._compute_height(vertices)
-        self.normal = self._compute_normal(vertices)
-        self.equation = self._compute_equation(vertices, self.normal)
-        self.contour = self._get_contour(vertices[:2, :])
-        self.Polygon = self._get_Polygon(self.contour)
+        # MArgin information
+        self._margin_inner = margin_inner
+        self._margin_outer = margin_outer
+
+        # Inner contour with margin
+        self.vertices_inner = None
+        self.contour_inner = None
+        self.Polygon_inner = None
+
+        # Outer contour with margin
+        self.vertices_outer = None
+        self.contour_outer = None
+        self.Polygon_outer = None
+
+        self._initialize_inner()
+        self._initialize_outer()
+
+        # Results of decomposition algorithm if necessary
         self.vertices_reshaped2D = None
-        self.isFloor = isFloor
+
+    def _initialize_inner(self):
+        self.vertices_inner = np.array(apply_margin(self.vertices, self._margin_inner))
+        self.contour_inner = self._get_contour(self.vertices_inner)  # [x0,y0,x1,y1, ... , xn,zn]
+        self.Polygon_inner = self._get_Polygon(self.contour_inner)
+
+    def _initialize_outer(self):
+        self.vertices_outer = np.array(apply_margin(self.vertices, -self._margin_outer))
+        self.contour_outer = self._get_contour(self.vertices_outer)  # [x0,y0,x1,y1, ... , xn,zn]
+        self.Polygon_outer = self._get_Polygon(self.contour_outer)
 
     def _compute_equation(self, vertices, normal):
         """ Get surface equation such as ax + by + cz + d = 0.
@@ -85,7 +102,7 @@ class SurfaceData():
         Returns:
             - array 4x: [a,b,c,d] parameters.
         """
-        d = -np.dot(vertices[:, 0], normal)
+        d = -np.dot(vertices[0], normal)
         return np.concatenate((normal, d), axis=None)
 
     def _compute_height(self, vertices):
@@ -93,7 +110,7 @@ class SurfaceData():
         Returns:
             - float: Mean height.
         """
-        return np.mean(vertices[2, :])
+        return np.mean([vt[2] for vt in vertices])
 
     def _compute_normal(self, vertices):
         """ Compute normal of a surface.
@@ -102,8 +119,7 @@ class SurfaceData():
             - array x3: The normal of the surface.
         """
         # Computes normal surface
-        S_normal = np.cross(
-            vertices[:, 0] - vertices[:, 1], vertices[:, 0] - vertices[:, 2])
+        S_normal = cross(vertices[0] - vertices[1], vertices[0] - vertices[2])
         # Check orientation of the normal
         if np.dot(S_normal, np.array([0., 0., 1.])) < 0.:
             S_normal = -S_normal
@@ -122,9 +138,9 @@ class SurfaceData():
                             [x0,y0,x1,y1, ... , xn,yn].
         """
         contour = []  # Contour representation [x0,y0,x1,y1, ... , xn,yn]
-        for k in range(vertices.shape[1]):
-            contour.append(vertices[0, k])
-            contour.append(vertices[1, k])
+        for k in range(len(vertices)):
+            contour.append(vertices[k][0])
+            contour.append(vertices[k][1])
 
         return contour
 
@@ -137,6 +153,26 @@ class SurfaceData():
         poly = []
 
         for k in range(0, len(contour), 2):
-            poly.append((contour[k], contour[k+1]))
+            poly.append((contour[k], contour[k + 1]))
 
         return Polygon(poly)
+
+    def get_contour_inner(self):
+        if self.contour_inner is None:
+            self._initialize_inner()
+        return self.contour_inner
+
+    def get_contour_outer(self):
+        if self.contour_outer is None:
+            self._initialize_outer()
+        return self.contour_outer
+
+    def get_vertices_inner(self):
+        if self.vertices_inner is None:
+            self._initialize_inner()
+        return self.vertices_inner
+
+    def get_vertices_outer(self):
+        if self.vertices_outer is None:
+            self._initialize_outer()
+        return self.vertices_outer

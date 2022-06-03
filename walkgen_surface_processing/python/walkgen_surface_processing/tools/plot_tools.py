@@ -58,7 +58,7 @@ def plot_marker_surface(array_markers, ax=None):
     return ax
 
 
-def plot_contour(contour, ax=None, color="b"):
+def plot_contour(contour, ax=None, color="b", label=""):
     """ Plot a contour surface in 2D.
 
     Args :
@@ -78,12 +78,12 @@ def plot_contour(contour, ax=None, color="b"):
 
     xs = np.append(cont_arr[0, :], cont_arr[0, 0]).tolist()
     ys = np.append(cont_arr[1, :], cont_arr[1, 0]).tolist()
-    ax.plot(xs, ys, color=color)
+    ax.plot(xs, ys, color=color, label=label)
 
     return ax
 
 
-def plot_surface2D(surface, ax=None, color="b"):
+def plot_surface2D(surface, ax=None, color="b", label=""):
     """ Plot 2D surface.
 
     Args:
@@ -102,15 +102,20 @@ def plot_surface2D(surface, ax=None, color="b"):
 
     xs = np.append(surface[0, :], surface[0, 0]).tolist()
     ys = np.append(surface[1, :], surface[1, 0]).tolist()
-    ax.plot(xs, ys, color=color)
+    ax.plot(xs, ys, color=color, label = label)
 
     return ax
 
-def plot_surface(points, ax, color="b"):
+def plot_surface(points, ax = None, color="b", label = ""):
     """
     Plot a 3D surface.
     """
-    xs = np.append(points[0, :], points[0, 0]).tolist()
-    ys = np.append(points[1, :], points[1, 0]).tolist()
-    zs = np.append(points[2, :], points[2, 0]).tolist()
-    ax.plot(xs, ys, zs, color=color)
+    if ax is None:
+        # Plot surfaces.
+        fig = plt.figure(figsize=(10, 6))
+        ax = plt.axes(projection='3d')
+    xs = np.append(points[:, 0], points[0, 0]).tolist()
+    ys = np.append(points[:, 1], points[0, 1]).tolist()
+    zs = np.append(points[:, 2], points[0, 2]).tolist()
+    ax.plot(xs, ys, zs, color=color, label= label)
+    return ax

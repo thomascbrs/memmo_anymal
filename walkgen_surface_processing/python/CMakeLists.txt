@@ -39,6 +39,7 @@ SET(${SURFACE_PROCESSING_NAME}_TOOLS_SOURCES
   Tess2.py
   geometry_utils.py
   SurfaceData.py
+  transforms.py
   )
 
 SET(${SURFACE_PROCESSING_NAME}_EXAMPLES_SOURCES

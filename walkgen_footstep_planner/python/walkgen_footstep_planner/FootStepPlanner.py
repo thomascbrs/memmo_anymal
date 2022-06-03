@@ -95,7 +95,7 @@ class FootStepPlanner():
         else:
             self._horizon = params.horizon
 
-        print("horizon footstepplanner : ", self._horizon)
+        # print("horizon footstepplanner : ", self._horizon)
 
         self.debug = debug
         if debug:
