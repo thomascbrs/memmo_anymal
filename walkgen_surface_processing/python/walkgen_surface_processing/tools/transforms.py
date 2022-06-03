@@ -29,6 +29,7 @@ import numpy as np
 import quadprog
 from scipy.spatial import HalfspaceIntersection
 from scipy.spatial import ConvexHull
+from pyhull import qconvex
 
 
 def compute_projection2D(pos, oTl=np.zeros(3), oRl=np.zeros((3, 3))):
@@ -131,7 +132,7 @@ def apply_margin(vertices, margin=0.):
     hs = HalfspaceIntersection(halfspaces, feasible_point)
 
     # Halfspace intersection points 3D with margin in world frame
-    vert_inner_l = order(np.hstack([hs.intersections, np.zeros((hs.intersections.shape[0], 1))]))[:, :].tolist()
+    vert_inner_l = order(np.hstack([hs.intersections, np.zeros((hs.intersections.shape[0], 1))]))
     return [compute_worldFrame(pos, oTl, oRl).tolist() for pos in vert_inner_l]
 
 
@@ -174,25 +175,17 @@ def norm(sq):
     return np.abs(cr / np.linalg.norm(cr))
 
 
-# TODO, from stackoverflow, find reference
-def order(vertices, method="convexHull"):
+def order(points):
     """
-    Order the array of vertices in counterclockwise using convex Hull method
+    Order and remove repeated points in counterclockwise using pyhull library (only for 2D vectors)
+    Assumptions : Project directly in X,Y plane and not into the surface local frame to avoid computational
+    burden.
+
+    Args:
+        - points (list): List of 2D or 3D points.
     """
-    if len(vertices) < 3:
+    if len(points) < 3:
         return 0
-    # v = np.unique([np.round(v, decimals=8) for v in vertices], axis=0)
-    v = np.unique(vertices, axis=0)
-    n = norm(v[:3])
-    y = np.cross(n, v[1] - v[0])
-    y = y / np.linalg.norm(y)
-    c = np.dot(v, np.c_[v[1] - v[0], y])
-    if method == "convexHull":
-        h = ConvexHull(c)
-        vert = v[h.vertices]
-    else:
-        mean = np.mean(c, axis=0)
-        d = c - mean
-        s = np.arctan2(d[:, 0], d[:, 1])
-        vert = v[np.argsort(s)]
-    return vert
+    output = qconvex("Fx", points[:,:2])
+    output.pop(0)
+    return [points[int(elt)].tolist() for elt in output]
