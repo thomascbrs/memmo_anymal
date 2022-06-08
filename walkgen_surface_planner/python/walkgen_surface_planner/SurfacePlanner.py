@@ -254,18 +254,16 @@ class SurfacePlanner():
             dt_config = self._step_duration * (i + 2)
 
             if abs(bvref[5]) >= 0.01:
-                config[0] = (bvref[0] * np.sin(bvref[5] * dt_config) + bvref[1] *
+                dx_ = (bvref[0] * np.sin(bvref[5] * dt_config) + bvref[1] *
                              (np.cos(bvref[5] * dt_config) - 1.0)) / bvref[5]
-                config[1] = (bvref[1] * np.sin(bvref[5] * dt_config) - bvref[0] *
+                dy_ = (bvref[1] * np.sin(bvref[5] * dt_config) - bvref[0] *
                              (np.cos(bvref[5] * dt_config) - 1.0)) / bvref[5]
             else:
-                config[0] = bvref[0] * dt_config
-                config[1] = bvref[1] * dt_config
+                dx_ = bvref[0] * dt_config
+                dy_ = bvref[1] * dt_config
 
-            config[0] = np.cos(yaw_init) * config[0] - \
-                np.sin(yaw_init) * config[1]  # Yaw rotation for dx
-            config[1] = np.sin(yaw_init) * config[0] + \
-                np.cos(yaw_init) * config[1]  # Yaw rotation for dy
+            config[0] = np.cos(yaw_init) * dx_ - np.sin(yaw_init) * dy_  # Yaw rotation for dx
+            config[1] = np.sin(yaw_init) * dx_ + np.cos(yaw_init) * dy_  # Yaw rotation for dy
             config[:2] += q[:2]  # Add initial 2D position
 
             # Recompute the orientation according to the heightmap for each configuration.
