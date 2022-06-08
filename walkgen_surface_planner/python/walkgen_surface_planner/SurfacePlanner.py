@@ -232,10 +232,6 @@ class SurfacePlanner():
             raise ArithmeticError("Reference velocity should be size 6.")
 
         yaw_init = pin.rpy.matrixToRpy(pin.Quaternion(q[3:7]).toRotationMatrix())[2]
-        if yaw_init <= -np.pi:
-            yaw_init += 2 * np.pi
-        if yaw_init >= np.pi:
-            yaw_init -= 2 * np.pi
 
         # Select the relevant convex surfaces to approximate the slope of the terrain.
         self._tf.setTranslation(q[:3])
