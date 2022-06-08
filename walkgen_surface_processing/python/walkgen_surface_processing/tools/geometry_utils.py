@@ -50,13 +50,13 @@ class DECOMPO_type(Enum):
 tess = Tess2.hxGeomAlgo_Tess2()
 
 
-def convert_from_marker_array(marker_array):
+def convert_from_marker_array(marker_array ,offset = 0.0):
     '''Convert to a list of list from ros msg.'''
     surface_list = []
     for marker in marker_array.markers:
         # Marker structure :
         # [Pt1,Pt2,Pt2,Pt3,Pt3,Pt4, ... , Ptn-1, Ptn, Pt1, Ptn] !Warning order at the end
-        pts = [[pt.x, pt.y, pt.z] for pt in marker.points]  # List not sorted, with duplicates
+        pts = [[pt.x, pt.y, pt.z + offset] for pt in marker.points]  # List not sorted, with duplicates
         surface_list.append(remove_duplicates(pts).tolist())
     return surface_list
 

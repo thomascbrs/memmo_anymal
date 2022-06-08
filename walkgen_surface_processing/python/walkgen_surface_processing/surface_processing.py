@@ -73,8 +73,8 @@ class SurfaceProcessing:
             self._params = SurfaceProcessingParams()
 
         self._initial_height = initial_height
-        self._dx = 1.5  # Distance on y-axis around the current position.
-        self._dy = 1.5  # Distance on y-axis around the current position.
+        self._dx = 0.8  # Distance on y-axis around the current position.
+        self._dy = 0.8  # Distance on y-axis around the current position.
 
         # Parameters for postprocessing.
         self._n_points = self._params.n_points
@@ -82,6 +82,7 @@ class SurfaceProcessing:
         self._poly_size = self._params.poly_size
         self._min_area = self._params.min_area
         self._margin = self._params.margin
+        self._offsets = -0.015
 
     def run(self, position, markerArray):
         """ Process the surfaces list from markerArray data type.
@@ -100,7 +101,7 @@ class SurfaceProcessing:
             return dict()
 
         # Convert incoming data.
-        surface_list = convert_from_marker_array(markerArray)
+        surface_list = convert_from_marker_array(markerArray, self._offsets)
 
         # Sort, remove duplicates and reduce the number of points.
         surface_reduced = reduce_surfaces(surface_list, self._n_points)
