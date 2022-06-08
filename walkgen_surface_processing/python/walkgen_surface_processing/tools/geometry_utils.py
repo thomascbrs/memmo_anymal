@@ -151,8 +151,13 @@ def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inne
 
     # Run the list of surfaces starting with the lowest.
     while len(surfaces) > 1:
-        contours_intersect.clear()
-        surfaces_intersect.clear()
+        try :
+            contours_intersect.clear()
+            surfaces_intersect.clear()
+        except AttributeError:
+            del contours_intersect[:]
+            del surfaces_intersect[:]
+
 
         h_mean = [sf.h_mean for sf in surfaces]
         id_ = np.argmin(h_mean)
@@ -166,7 +171,11 @@ def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inne
         if method_type == DECOMPO_type.CONVEX or method_type == DECOMPO_type.AREA_CONVEX:
             # If only one surface, no need for the convex union
             if len(surfaces_intersect) > 1:
-                contours_intersect.clear()  # Redefine the contour for the difference
+                # Redefine the contour for the difference
+                try :
+                    contours_intersect.clear()
+                except AttributeError:
+                    del contours_intersect[:] 
                 vertices_union = np.zeros((1, 2))
                 for sf in surfaces_intersect:
                     vertices_union = np.vstack([vertices_union, sf.vertices_outer[:, :2]])
