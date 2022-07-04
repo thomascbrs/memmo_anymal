@@ -5,11 +5,10 @@ Workspace containing the works related to the anymal demo for the Memmo project.
 
 --> Caracal and SL1M integration.
 
-The workspace is composed of 4 python modules:
+The workspace is composed of 3 python modules:
 - walkgen_foostep_planner
 - walkgen_surface_planner
 - walkgen_surface_processing
-- walkgen_ros
 
 ---
 ## Installation
@@ -23,7 +22,7 @@ Build the walkgen library:
 ```
 mkdir build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=~/install -DFOOTSTEP_PLANNER=ON -DSURFACE_PLANNER=ON -DROS_INTERFACE=ON -DPYTHON_EXECUTABLE=$(which python3.8) -DPYTHON_STANDARD_LAYOUT=ON
+cmake .. -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=~/install -DFOOTSTEP_PLANNER=ON -DSURFACE_PLANNER=ON -DPYTHON_EXECUTABLE=$(which python3.8) -DPYTHON_STANDARD_LAYOUT=ON
 ```
 
 
@@ -35,7 +34,6 @@ The compilation option are the following:
 - DFOOTSTEP_PLANNER : Install walkgen_foostep_planner.
 - DSURFACE_PLANNER : Install walkgen_surface_planner.
 - DSURFACE_PROCESSING : Install walkgen_surface_processing.
-- DROS_INTERFACE : Install walkgen_ros.
 
 ---
 ### Footstep planner :

@@ -47,7 +47,6 @@ option(SUFFIX_SO_VERSION "Suffix library name with its version" ON)
 option(FOOTSTEP_PLANNER "Install foostep planner library" ON)
 option(SURFACE_PLANNER "Install surface planner library" ON)
 option(SURFACE_PROCESSING "Install surface processing library" ON)
-option(ROS_INTERFACE "Install the ros interface" ON)
 
 # Check if the submodule cmake have been initialized
 if(NOT EXISTS "${CMAKE_SOURCE_DIR}/cmake/base.cmake")
@@ -69,7 +68,6 @@ ADD_PROJECT_DEPENDENCY(pinocchio)
 SET(FOOTSTEP_PLANNER_NAME ${PROJECT_NAME}_footstep_planner)
 SET(SURFACE_PLANNER_NAME ${PROJECT_NAME}_surface_planner)
 SET(SURFACE_PROCESSING_NAME ${PROJECT_NAME}_surface_processing)
-SET(ROS_INTERFACE_NAME ${PROJECT_NAME}_ros)
 
 # Project definition
 COMPUTE_PROJECT_ARGS(PROJECT_ARGS LANGUAGES CXX)
@@ -84,8 +82,4 @@ endif()
 
 if(SURFACE_PROCESSING)
   ADD_SUBDIRECTORY("${SURFACE_PROCESSING_NAME}")
-endif()
-
-if(ROS_INTERFACE)
-  ADD_SUBDIRECTORY("${ROS_INTERFACE_NAME}/python")
 endif()
