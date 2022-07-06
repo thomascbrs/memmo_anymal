@@ -2,7 +2,7 @@ import numpy as np
 try:
     from time import perf_counter as clock
 except ImportError:
-    from time import time as clock 
+    from time import time as clock
 import os
 import pickle
 import matplotlib.pyplot as plt
@@ -23,7 +23,7 @@ except ValueError:
     filename = path + "example_marker_array_prot2.pickle"
     with open(filename, 'rb') as file2:
         array_markers = pickle.load(file2)
-    
+
 
 # Parameters of the environment
 params = SurfaceProcessingParams()
@@ -34,11 +34,13 @@ params.poly_size = 10  # Maximum size of the polygon for the convex decompositio
 params.min_area = 0.03   # Area under which the remaining surfaces is delated.
 
 # Initial height
-initial_height = 0.1
+initial_height = 0.01
 position = np.array([0.2,0.5,0.])
 
 # Extract surfaces from .stl file.
 surface_processing = SurfaceProcessing(initial_height=initial_height, params=params)
+surface_processing.set_clearmap(True)
+surface_processing.set_offset_clearmap(0.02)
 t0 = clock()
 all_surfaces = surface_processing.run(position, array_markers)
 t1 = clock()
