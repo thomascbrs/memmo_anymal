@@ -128,7 +128,7 @@ class SurfaceData():
         if norm > 10e-5:
             return S_normal / np.linalg.norm(S_normal)
         else:
-            return np.array([1., 0., 0.])
+            return np.array([0., 0., 1.])
 
     def _get_contour(self, vertices):
         """ Compute the contour of a given surface, projected in X,Y plan.
