@@ -82,7 +82,10 @@ class SurfaceProcessing:
         self._poly_size = self._params.poly_size
         self._min_area = self._params.min_area
         self._margin = self._params.margin
-        self._offsets = -0.015
+        self._offsets = -0.03
+
+        self._offsets_clearmap = 0.02 # (initial_height + offsets_clearmap) height under which the surfaces are removed.
+        self._clearmap = False # Boolean to remove the some of the ground surfaces.
 
     def run(self, position, markerArray):
         """ Process the surfaces list from markerArray data type.
@@ -122,6 +125,18 @@ class SurfaceProcessing:
             method=self._method_id,
             min_area=self._min_area,
             margin_inner=self._margin,
-            margin_outer=self._margin)
+            margin_outer=self._margin,
+            clearmap= self._clearmap,
+            clearmap_limit= (self._initial_height + self._offsets_clearmap) )
 
         return dict(zip([str(k) for k in range(len(surfaces_processed))], [sf.tolist() for sf in surfaces_processed]))
+
+    def set_offset_clearmap(self, offset):
+        """ Offset from which all surfaces under the initial height + offset will be removed if the boolean clearmap is active.
+        """
+        self._offsets_clearmap = offset
+
+    def set_clearmap(self, clearmap):
+        """ Set the clearmap boolean to remove the surfaces on the ground.
+        """
+        self._clearmap = clearmap

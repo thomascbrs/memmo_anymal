@@ -99,7 +99,7 @@ def reduce_surfaces(surface_list, n_points=None):
     return out_surface_list
 
 
-def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inner=0., margin_outer=0.):
+def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inner=0., margin_outer=0., clearmap=False,clearmap_limit = 0. ):
     """Filter the surfaces. Projection of the surfaces in X,Y plan and reshape them to avoid overlaying
     using Tesselation algorithm following the method:
     1. Run the list of surfaces starting with the lowest.
@@ -141,7 +141,10 @@ def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inne
     for sf in surfacesIn:
         try:
             s = SurfaceData(sf, margin_inner=margin_inner, margin_outer=margin_outer)
-            surfaces.append(s)
+            if clearmap and (s.h_mean < clearmap_limit):
+                pass
+            else:
+                surfaces.append(s)
         except:
             print("Applying inner margin not feasible. Surface removed.")
 
@@ -175,7 +178,7 @@ def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inne
                 try :
                     contours_intersect.clear()
                 except AttributeError:
-                    del contours_intersect[:] 
+                    del contours_intersect[:]
                 vertices_union = np.zeros((1, 2))
                 for sf in surfaces_intersect:
                     vertices_union = np.vstack([vertices_union, sf.vertices_outer[:, :2]])
@@ -213,7 +216,8 @@ def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inne
         surfaces.pop(id_)
 
     # Add last surface remaining
-    new_surfaces.append(surfaces[0].get_vertices_inner())
+    if len(new_surfaces) > 0:
+        new_surfaces.append(surfaces[0].get_vertices_inner())
     return new_surfaces
 
 
