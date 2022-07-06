@@ -496,8 +496,9 @@ class SurfacePlanner():
         feet_selected = [2,3]
         if pitch > 0.05:
             feet_selected = [0,1] # Going down forward
-        # feet_selected = [0,1] # Going down forward
-        costs["effector_positions_3D_select"] = [0.5, [feet_selected, shoulder_position]]
+            costs["effector_positions_3D_select"] = [0.25, [feet_selected, shoulder_position]]
+        else:
+            costs["effector_positions_3D_select"] = [0.5, [feet_selected, shoulder_position]]
         #############################################################
 
         #############################################################
