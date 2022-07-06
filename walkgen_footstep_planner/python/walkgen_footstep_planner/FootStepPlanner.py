@@ -87,6 +87,7 @@ class FootStepPlanner():
         self._href = 0.48
         self._g = 9.81
         self._L = 0.5
+        self._nsteps = params.nsteps
         # range [0.,1.], % of the curve to fix the position of the targetfoostep --> avoid slipping.
         self._stop_heuristic = 5/8
         if params.horizon is None:
@@ -109,9 +110,22 @@ class FootStepPlanner():
         else:
             raise ArgumentError("Wrong type of gait. Try walk or trot")
 
-        # print("cut off frequency : ", cutoff)
-        self._q_filter = Filter(cutoff, 1/(params.nsteps * params.dt), 2)
+        print("cut off frequency : ", cutoff)
+        self._q_filter = Filter(cutoff, 1/(params.nsteps * params.dt), 3)
         self.q_f = np.zeros(18)
+
+        self._previous_surfaces = dict()
+        dx, dy = 0.5, 0.5
+        height = 0.
+        epsilon = 10e-6
+        A = [[-1., 0., 0.], [0., -1., 0.], [0., 1., 0.],
+             [1., 0., 0.], [0., 0., 1.], [-0., -0., -1.]]
+        b = [dx - q[0], dy - q[1], dy + q[1], dx +
+             q[0], height + epsilon, -height + epsilon]
+        vertices = [[q[0]-dx, q[1]+dy, height], [q[0]-dx, q[1]-dy, height],
+                    [q[0]+dx, q[1]-dy, height], [q[0]+dx, q[1]+dy, height]]
+        for foot in range(4):
+            self._previous_surfaces[self._contactNames[foot]] = copy.deepcopy(Surface(np.array(A), np.array(b), np.array(vertices).T))
 
         # Quick debug tools
         self.q_save = []
@@ -164,7 +178,7 @@ class FootStepPlanner():
         # np.save("/home/thomas_cbrs/Desktop/edin/tmp/memmo_anymal_test/CoM_analysis/q_filter_9070", np.array(self.q_filter_save))
 
         # Update position for each CS in the queue.
-        return self.update_position(queue_cs, self.q_f, vq[:6], bvref, timeline, selected_surfaces, previous_surfaces)
+        return self.update_position(queue_cs, self.q_f.copy(), vq[:6].copy(), bvref.copy(), timeline, selected_surfaces, previous_surfaces)
 
     def update_position(self, queue_cs, q, bv, bvref, timeline_, selected_surfaces, previous_surfaces):
         """ Update the position for a contact schedule.
@@ -220,11 +234,13 @@ class FootStepPlanner():
                             if active_phase.T + inactive_phase.T - timeline > 0:  # case 1 & 2
                                 if abs(bvref[5]) > 10e-3:
                                     dt_ = (cs_index + active_phase.T +
-                                           inactive_phase.T) * cs.dt
+                                           inactive_phase.T - timeline) * cs.dt
                                     dx_ = (bvref[0] * np.sin(bvref[5] * dt_) + bvref[1] *
                                            (np.cos(bvref[5] * dt_) - 1.0)) / bvref[5]
                                     dy_ = (bvref[1] * np.sin(bvref[5] * dt_) - bvref[0] *
                                            (np.cos(bvref[5] * dt_) - 1.0)) / bvref[5]
+                                    dt_ = (cs_index + active_phase.T +
+                                           inactive_phase.T ) * cs.dt
                                     yaw = bvref[5] * dt_
                                     Rz_tmp = pin.rpy.rpyToMatrix(
                                         np.array([0., 0., yaw]))
@@ -263,7 +279,7 @@ class FootStepPlanner():
                                 # optimVector.append(OptimData(0,name, selected_surfaces.get(name),heuristic, Rz_tmp ))
 
                                 if foot_timeline[j] == 0:
-                                    previous_sf = previous_surfaces.get(name)
+                                    previous_sf = self._previous_surfaces.get(name)
                                 else:
                                     previous_sf = selected_surfaces.get(name)[foot_timeline[j] -1]
 
@@ -274,12 +290,17 @@ class FootStepPlanner():
                                 else:
                                     t0 = timeline - active_phase.T
 
-                                if t0 <= inactive_phase.T * 0.7:
+                                if t0 <= inactive_phase.T * 0.5:
                                     surface_init = Surface_cpp(previous_sf.A, previous_sf.b, previous_sf.vertices.T)
                                     surface_end = Surface_cpp(sf.A, sf.b, sf.vertices.T)
 
                                     phases[1].trajectory.update(
                                         P0[:, j], V0[:, j], footstep_optim, t0 * cs.dt, surface_init, surface_end)
+
+                                # End of the flying phase, register the surface.
+                                if t0 >= inactive_phase.T - self._nsteps:
+                                    self._previous_surfaces.pop(name)
+                                    self._previous_surfaces[name] = copy.deepcopy(sf)
 
                                 P0[:, j] = footstep_optim
                                 V0[:, j] = np.zeros(3)

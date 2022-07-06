@@ -6,11 +6,18 @@ FootTrajectoryBezier::FootTrajectoryBezier()
       Ay(Vector6::Zero()),
       Az(Vector7::Zero()),
       t_swing_(0.),
+      useBezier(true),
+      elevation_(ElevationType(HORIZONTAL)),
       ineq_(Vector3::Zero()),
       ineq_vector_(0.),
-      x_margin_(0.),
-      t_stop_(0.),
-      useBezier(true) {
+      margin_max_up_(0.),
+      margin_max_down_(0.),
+      t_margin_up_(0.),
+      t_margin_down_(0.),
+      t_stop_up_(0.),
+      t_stop_down_(0.),
+      z_margin_up_(0.),
+      z_margin_down_(0.) {
   pDef.degree = 7;
   pDef.flag = optimization::INIT_POS | optimization::END_POS | optimization::INIT_VEL | optimization::END_VEL |
               optimization::INIT_ACC | optimization::END_ACC;
@@ -21,8 +28,8 @@ FootTrajectoryBezier::FootTrajectoryBezier()
   fitBezier = evaluateLinear<bezier_t, bezier_linear_variable_t>(*bez, vector);
 }
 
-void FootTrajectoryBezier::initialize(double x_margin_max_in, double t_margin_in, double z_margin_in,
-                                               int N_samples_in, int N_samples_ineq_in, int degree_in, double t_swing, double maxHeight) {
+void FootTrajectoryBezier::initialize(int const& N_samples_in, int const& N_samples_ineq_in, int const& degree_in,
+                                      double const& t_swing, double const& maxHeight) {
   N_samples = N_samples_in;
   N_samples_ineq = N_samples_ineq_in;
   degree = degree_in;
@@ -35,14 +42,28 @@ void FootTrajectoryBezier::initialize(double x_margin_max_in, double t_margin_in
   x = VectorN::Zero(res_size);
   G_ = MatrixN::Zero(N_samples_ineq, res_size);
   h_ = VectorN::Zero(N_samples_ineq);
-  x_margin_max_ = x_margin_max_in;
-  t_margin_ = t_margin_in;
-  z_margin_ = z_margin_in;
   t_swing_ = t_swing;
   maxHeight_ = maxHeight;
+  margin_adapted_ = 0.0;
+  EPS_ = 0.002;
 }
 
-void FootTrajectoryBezier::create_simple_curve(Vector3 const& pos_init, Vector3 const& vel_init, Vector3 const& pos_end, double t0){
+void FootTrajectoryBezier::set_parameters_up(double const& margin_max_in, double const& t_margin_in,
+                                             double const& z_margin_in) {
+  margin_max_up_ = margin_max_in;
+  t_margin_up_ = t_margin_in * t_swing_;
+  z_margin_up_ = z_margin_in;
+}
+
+void FootTrajectoryBezier::set_parameters_down(double const& margin_max_in, double const& t_margin_in,
+                                               double const& z_margin_in) {
+  margin_max_down_ = margin_max_in;
+  t_margin_down_ = t_margin_in * t_swing_;
+  z_margin_down_ = z_margin_in;
+}
+
+void FootTrajectoryBezier::create_simple_curve(Vector3 const& pos_init, Vector3 const& vel_init,
+                                               Vector3 const& pos_end, double t0) {
   double delta_t = t_swing_ - t0;
   t0_ = t0;
   if (t0 < 10e-4) {
@@ -56,22 +77,20 @@ void FootTrajectoryBezier::create_simple_curve(Vector3 const& pos_init, Vector3 
     pDef.init_pos = pos_init;
     pDef.init_vel = Vector3::Zero();
     pDef.init_acc = Vector3::Zero();
+  } else {
+    updatePolyCoeff_XY(pos_init, evaluatePoly(1, t0), evaluatePoly(2, t0), pos_end, t0, t_swing_);
+    // Update initial conditions of the Problem Definition
+    pDef.init_pos = pos_init;
+    pDef.init_vel = delta_t * evaluatePoly(1, t0);
+    pDef.init_acc = std::pow(delta_t, 2) * evaluatePoly(2, t0);
   }
-  else {
-      updatePolyCoeff_XY(pos_init, evaluatePoly(1,t0), evaluatePoly(2,t0),
-                         pos_end, t0, t_swing_);
-      // Update initial conditions of the Problem Definition
-      pDef.init_pos = pos_init;
-      pDef.init_vel = delta_t * evaluatePoly(1, t0);
-      pDef.init_acc = std::pow(delta_t, 2) * evaluatePoly(2, t0);
-    }
   // Update final conditions of the Problem Definition
   pDef.end_pos = pos_end;
   pDef.end_vel = Vector3::Zero();
   pDef.end_acc = Vector3::Zero();
 
-  pDef.flag = optimization::INIT_POS | optimization::END_POS | optimization::INIT_VEL |
-                        optimization::END_VEL | optimization::INIT_ACC | optimization::END_ACC;
+  pDef.flag = optimization::INIT_POS | optimization::END_POS | optimization::INIT_VEL | optimization::END_VEL |
+              optimization::INIT_ACC | optimization::END_ACC;
 
   // generates the linear variable of the bezier curve with the parameters of problemDefinition
   problem_data_t pbData = optimization::setup_control_points<pointX_t, double, safe>(pDef);
@@ -88,6 +107,7 @@ void FootTrajectoryBezier::create_simple_curve(Vector3 const& pos_init, Vector3 
 
     P_ += linear_var.B().transpose() * linear_var.B();
     q_ += linear_var.B().transpose() * (linear_var.c() - evaluatePoly(0, t0 + (t_swing_ - t0) * t_b_));
+    // q_ += linear_var.B().transpose() * (linear_var.c() - evaluateBezier(0, t0 + (t_swing_ - t0) * t_b_));
   }
 
   // Eiquadprog-Fast solves the problem :
@@ -100,13 +120,177 @@ void FootTrajectoryBezier::create_simple_curve(Vector3 const& pos_init, Vector3 
   fitBezier = evaluateLinear<bezier_t, bezier_linear_variable_t>(*linear_bezier, x);
 
   // Reshape Bezier curve with proper boundaries T_min and T_max
-  curve_ =  bezier_t::bezier_curve_t(fitBezier.waypoints().begin(), fitBezier.waypoints().end(), t0, t_swing_);
+  curve_ = bezier_t::bezier_curve_t(fitBezier.waypoints().begin(), fitBezier.waypoints().end(), t0, t_swing_);
+}
+
+void FootTrajectoryBezier::updateInequalityUp(Vector2 const& pos_init, Vector2 const& pos_end,
+                                              Surface const& surface) {
+  int nb_vert = (int)surface.vertices_.rows();
+  MatrixN vert = surface.vertices_;
+  Vector2 Q1;
+  Vector2 Q2;
+  // Projection on X,Y axis of the segment pos_init vs pos_end to get
+  // which vertices of the convex surface is crossed.
+  for (int l = 0; l < nb_vert; l++) {
+    Q1 << vert(l, 0), vert(l, 1);
+    if (l < nb_vert - 1) {
+      Q2 << vert(l + 1, 0), vert(l + 1, 1);
+    } else {
+      Q2 << vert(0, 0), vert(0, 1);
+    }
+    if (doIntersect_segment(pos_init, pos_end, Q1, Q2)) {
+      get_intersect_segment(pos_init, pos_end, Q1, Q2);
+      //  self.ineq = surface.ineq[k, :]
+      //  self.ineq_vect = surface.ineq_vect[k]
+
+      double a = 0.;
+      double b = 0.;
+      double b2 = 0.;
+      //  Get line equation
+      if (abs(Q1[0] - Q2[0]) >= 0.001) {
+        // Line equation y = ax + b
+        // Line equation with margin, y = ax + b'
+        a = (Q2[1] - Q1[1]) / (Q2[0] - Q1[0]);
+        b = Q1[1] - a * Q1[0];
+        // Update the inequalities depending of the position of the end position wrt the line.
+        if (pos_end[1] - a * pos_end[0] - b >= 0) {
+          // End position belongs to y >= ax + b
+          // Initial position + points constrained belong to y <= ax + b'
+          // ineq_ X <= ineq_vector_
+          ineq_ << -a, 1., 0.;  // -ax + y <= b'
+          b2 = b - margin_max_up_ * std::sqrt(1 + std::pow(a, 2));
+
+          // If foot position already closer than line with margin, means : y_0 >= ax_0 + b'
+          if (ineq_.head(2).transpose() * pos_init >= b2) {
+            // Take the line parallel crossing pos_init
+            ineq_vector_ = pos_init[1] - a * pos_init[0] + EPS_ - margin_adapted_ * std::sqrt(1 + std::pow(a, 2));
+          } else {
+            ineq_vector_ = b2;
+          }
+          // ineq_vector_ = b2;
+        } else {
+          // Initial position + points constrained belong to y >= ax + b'
+          ineq_ << a, -1., 0.;  // ax - y <= - b'
+          b2 = b + margin_max_up_ * std::sqrt(1 + std::pow(a, 2));
+          // If foot position already closer than line with margin, means : ax_0 - y_0 >= -b'
+          if (ineq_.head(2).transpose() * pos_init >= -b2) {
+            // Take the line parallel crossing pos_init
+            ineq_vector_ = -(pos_init[1] - a * pos_init[0] - EPS_ + margin_adapted_ * std::sqrt(1 + std::pow(a, 2)));
+          } else {
+            ineq_vector_ = -b2;
+          }
+          // ineq_vector_ = -b2;
+        }
+      } else {
+        // Line equation x = b
+        // Line equation with margin, x = b'
+        b = Q1[0];
+        if (pos_end[0] >= b) {
+          ineq_ << 1., 0., 0.;
+          b2 = b - margin_max_up_;
+          if (pos_init[0] >= b2) {
+            ineq_vector_ = pos_init[0] + EPS_ - margin_adapted_;
+          } else {
+            ineq_vector_ = b2;
+          }
+          // ineq_vector_ = b2;
+        } else {
+          ineq_ << -1., 0., 0.;
+          b2 = b + margin_max_up_;
+          if (pos_init[0] <= b2) {
+            ineq_vector_ = -(pos_init[0] - 0.002 + margin_adapted_);
+          } else {
+            ineq_vector_ = -b2;
+          }
+          // ineq_vector_ = - b2;
+        }
+      }
+    }
+  }
+}
+
+void FootTrajectoryBezier::updateInequalityDown(Vector2 const& pos_init, Vector2 const& pos_end,
+                                                Surface const& surface) {
+  int nb_vert = (int)surface.vertices_.rows();
+  MatrixN vert = surface.vertices_;
+  Vector2 Q1;
+  Vector2 Q2;
+  // Projection on X,Y axis of the segment pos_init vs pos_end to get
+  // which vertices of the convex surface is crossed.
+  for (int l = 0; l < nb_vert; l++) {
+    Q1 << vert(l, 0), vert(l, 1);
+    if (l < nb_vert - 1) {
+      Q2 << vert(l + 1, 0), vert(l + 1, 1);
+    } else {
+      Q2 << vert(0, 0), vert(0, 1);
+    }
+    if (doIntersect_segment(pos_init, pos_end, Q1, Q2)) {
+      get_intersect_segment(pos_init, pos_end, Q1, Q2);
+      //  self.ineq = surface.ineq[k, :]
+      //  self.ineq_vect = surface.ineq_vect[k]
+
+      double a = 0.;
+      double b = 0.;
+      double b2 = 0.;
+      //  Get line equation
+      if (abs(Q1[0] - Q2[0]) >= 0.001) {
+        // Line equation y = ax + b
+        // Line equation with margin, y = ax + b'
+        a = (Q2[1] - Q1[1]) / (Q2[0] - Q1[0]);
+        b = Q1[1] - a * Q1[0];
+        // Update the inequalities depending of the position of the end position wrt the line.
+        if (pos_end[1] - a * pos_end[0] - b >= 0) {
+          // End position belongs to y >= ax + b
+          // Points constrained belong to y >= ax + b'
+          // ineq_ X <= ineq_vector_
+          ineq_ << a, -1., 0.;  // -ax + y <= b'
+          b2 = b + margin_max_down_ * std::sqrt(1 + std::pow(a, 2));
+          if (ineq_.head(2).transpose() * pos_end >= -b2) {
+            ineq_vector_ = -(pos_end[1] - a * pos_end[0] - EPS_ + margin_adapted_ * std::sqrt(1 + std::pow(a, 2)));
+          } else {
+            ineq_vector_ = -b2;
+          }
+        } else {
+          // Points constrained belong to y >= ax + b'
+          ineq_ << -a, 1., 0.;  // -ax + y <= - b'
+          b2 = b - margin_max_down_ * std::sqrt(1 + std::pow(a, 2));
+          if (ineq_.head(2).transpose() * pos_end >= b2) {
+            ineq_vector_ = pos_end[1] - a * pos_end[0] + EPS_ - margin_adapted_ * std::sqrt(1 + std::pow(a, 2));
+          } else {
+            ineq_vector_ = b2;
+          }
+        }
+      } else {
+        // Line equation x = b
+        // Line equation with margin, x = b'
+        b = Q1[0];
+        if (pos_end[0] >= b) {
+          ineq_ << -1., 0., 0.;
+          b2 = b + margin_max_down_;
+          if (pos_end[0] <= b2) {
+            ineq_vector_ = -(pos_end[0] - EPS_ + margin_adapted_);
+          } else {
+            ineq_vector_ = -b2;
+          }
+        } else {
+          ineq_ << 1., 0., 0.;
+          b2 = b - margin_max_down_;
+          if (pos_end[0] >= b2) {
+            ineq_vector_ = pos_end[0] + EPS_ - margin_adapted_;
+          } else {
+            ineq_vector_ = b2;
+          }
+        }
+      }
+    }
+  }
 }
 
 void FootTrajectoryBezier::update(Vector3 const& pos_init, Vector3 const& vel_init, Vector3 const& pos_end, double t0,
-              Surface surface_init, Surface surface_end){
+                                  Surface surface_init, Surface surface_end) {
   double delta_t = t_swing_ - t0;
   t0_ = t0;
+
   if (t0 < 10e-4) {
     double height_ = std::max(pos_init(2), pos_end(2));
     // Update Z coefficients only at the beginning of the flying phase
@@ -115,9 +299,8 @@ void FootTrajectoryBezier::update(Vector3 const& pos_init, Vector3 const& vel_in
     updatePolyCoeff_XY(pos_init, Vector3::Zero(), Vector3::Zero(), pos_end, 0., t_swing_);
 
     // Update initial conditions of the Problem Definition
-    // Update initial conditions of the Problem Definition
     Vector3 vector;
-    vector << pos_init(0), pos_init(1), evaluatePoly(0,t0)(2);
+    vector << pos_init(0), pos_init(1), evaluatePoly(0, t0)(2);
     pDef.init_pos = vector;
 
     vector << 0., 0., delta_t * evaluatePoly(1, t0)(2);
@@ -128,78 +311,40 @@ void FootTrajectoryBezier::update(Vector3 const& pos_init, Vector3 const& vel_in
     // pDef.init_pos = pos_init;
     // pDef.init_vel = Vector3::Zero();
     // pDef.init_acc = Vector3::Zero();
-    t_stop_ = 0.;
-    x_margin_ = 0.;
     starting_position_ = pos_init;
 
     // Get inequality constraint form the new surface if going upward for now.
-    if ((surface_end.getHeight(pos_end.head(2)) -
-           starting_position_(2)) >= 0.02)
-      {
-        int nb_vert = surface_end.vertices_.rows();
-        MatrixN vert = surface_end.vertices_;
-
-        // Projection on X,Y axis of the segment pos_init vs pos_end to get
-        // which vertices of the convex surface is crossed.
-        Vector2 P1 = pos_init.head(2);
-        Vector2 P2 = pos_end.head(2);
-
-        Vector2 Q1;
-        Vector2 Q2;
-        for (int l = 0; l < nb_vert; l++) {
-          Q1 << vert(l, 0), vert(l, 1);
-          if (l < nb_vert - 1) {
-            Q2 << vert(l + 1, 0), vert(l + 1, 1);
-          } else {
-            Q2 << vert(0, 0), vert(0, 1);
-          }
-          if (doIntersect_segment(P1, P2, Q1, Q2)) {
-            get_intersect_segment(P1, P2, Q1, Q2);
-            //  Should be sorted
-            //  self.ineq = surface.ineq[k, :]
-            //  self.ineq_vect = surface.ineq_vect[k]
-            double a = 0.;
-            if ((Q1[0] - Q2[0]) != 0.) {
-              a = (Q2[1] - Q1[1]) / (Q2[0] - Q1[0]);
-              double b = Q1[1] - a * Q1[0];
-              ineq_ << -a, 1., 0.;  // -ax + y = b
-              ineq_vector_ = b;
-            } else {
-              //  Inequality of the surface corresponding to these vertices
-              ineq_ << -1., 0., 0.;
-              ineq_vector_ = -Q1[0];
-            }
-            if (ineq_.transpose() * pos_init > ineq_vector_) {
-              // Wrong side, the targeted point is inside the surface
-              ineq_ = -ineq_;
-              ineq_vector_ = -ineq_vector_;
-            }
-            // If foot position already closer than margin
-            x_margin_ = std::max(std::min(x_margin_max_, std::abs(intersectionPoint_[0] - P1[0]) - 0.001), 0.);
-          }
-        }
-      } else {
-        ineq_.setZero();
-        ineq_vector_ = 0.;
-      }
-  }
-  else {
-      updatePolyCoeff_XY(pos_init, evaluatePoly(1,t0), evaluatePoly(2,t0),
-                         pos_end, t0, t_swing_);
-      // Update initial conditions of the Problem Definition
-      pDef.init_pos = pos_init;
-      // pDef.init_vel = delta_t * evaluatePoly(1, t0);
-      // pDef.init_acc = std::pow(delta_t, 2) * evaluatePoly(2, t0);
-      pDef.init_vel = delta_t * curve_.derivate(t0,1);
-      pDef.init_acc = std::pow(delta_t, 2) * curve_.derivate(t0, 2);
+    if (surface_end.getHeight(pos_end.head(2)) - starting_position_(2) >= 0.02) {
+      updateInequalityUp(pos_init.head(2), pos_end.head(2), surface_end);
+      t_stop_up_ = t_swing_ / N_samples_ineq;
+      elevation_ = ElevationType(UP);
+    } else if (surface_end.getHeight(pos_end.head(2)) - starting_position_(2) <= -0.02) {
+      updateInequalityDown(pos_init.head(2), pos_end.head(2), surface_init);
+      t_stop_down_ = (t_swing_ * (N_samples_ineq - 1)) / N_samples_ineq;
+      elevation_ = ElevationType(DOWN);
+    } else {
+      ineq_.setZero();
+      ineq_vector_ = 0.;
+      t_stop_up_ = 0.;
+      t_stop_down_ = 0.;
+      elevation_ = ElevationType(HORIZONTAL);
     }
+  } else {
+    updatePolyCoeff_XY(pos_init, evaluatePoly(1, t0), evaluatePoly(2, t0), pos_end, t0, t_swing_);
+    // Update initial conditions of the Problem Definition
+    pDef.init_pos = pos_init;
+    // pDef.init_vel = delta_t * evaluatePoly(1, t0);
+    // pDef.init_acc = std::pow(delta_t, 2) * evaluatePoly(2, t0);
+    pDef.init_vel = delta_t * curve_.derivate(t0, 1);
+    pDef.init_acc = std::pow(delta_t, 2) * curve_.derivate(t0, 2);
+  }
   // Update final conditions of the Problem Definition
   pDef.end_pos = pos_end;
   pDef.end_vel = Vector3::Zero();
   pDef.end_acc = Vector3::Zero();
 
-  pDef.flag = optimization::INIT_POS | optimization::END_POS | optimization::INIT_VEL |
-                        optimization::END_VEL | optimization::INIT_ACC | optimization::END_ACC;
+  pDef.flag = optimization::INIT_POS | optimization::END_POS | optimization::INIT_VEL | optimization::END_VEL |
+              optimization::INIT_ACC | optimization::END_ACC;
 
   // generates the linear variable of the bezier curve with the parameters of problemDefinition
   problem_data_t pbData = optimization::setup_control_points<pointX_t, double, safe>(pDef);
@@ -207,81 +352,110 @@ void FootTrajectoryBezier::update(Vector3 const& pos_init, Vector3 const& vel_in
 
   // Prepare the inequality matrix :
   Vector3 x_t = evaluatePoly(0, t0);
-  double t_margin = t_margin_ * t_swing_;  // 10% around the limit point !inferior to 1/nb point in linspace
 
   // No surface switch or already overpass the critical point
-  if (!ineq_.isZero()) {
-    if (((x_t[2] < pos_end(2))) and x_margin_ != 0. or (t0_ < t_stop_ + t_margin)) {
-      int nb_vert = surface_end.vertices_.rows();
-      MatrixN vert = surface_end.vertices_;
+  switch (elevation_) {
+    case UP: {
+      // std::cout << "UP" << std::endl;
+      // double t_margin = t_margin_up_ * t_swing_;  // 10% around the limit point !inferior to 1/nb point in linspace
+      if (((x_t[2] < pos_end(2)) && ineq_vector_ != 0.) || (t0_ < t_stop_up_ + t_margin_up_)) {
+        updateInequalityUp(pos_init.head(2), pos_end.head(2), surface_end);
 
-      // Projection on X,Y axis of the segment pos_init vs pos_end to get
-      // which vertices of the convex surface is crossed.
-      Vector2 P1 = pos_init.head(2);
-      Vector2 P2 = pos_end.head(2);
+        double z_margin = (pos_end(2) - starting_position_(2)) * z_margin_up_;  // 10% around the limit height
+        double t_s;
+        double zt;
+        // std::cout << ineq_ << std::endl;
+        // std::cout << ineq_vector_ << std::endl;
 
-      Vector2 Q1;
-      Vector2 Q2;
-      for (int l = 0; l < nb_vert; l++) {
-        Q1 << vert(l, 0), vert(l, 1);
-        if (l < nb_vert - 1) {
-          Q2 << vert(l + 1, 0), vert(l + 1, 1);
-        } else {
-          Q2 << vert(0, 0), vert(0, 1);
-        }
-        if (doIntersect_segment(P1, P2, Q1, Q2)) {
-          get_intersect_segment(P1, P2, Q1, Q2);
-          //  Should be sorted
-          //  self.ineq = surface.ineq[k, :]
-          //  self.ineq_vect = surface.ineq_vect[k]
-          double a = 0.;
-          if ((Q1[0] - Q2[0]) != 0.) {
-            a = (Q2[1] - Q1[1]) / (Q2[0] - Q1[0]);
-            double b = Q1[1] - a * Q1[0];
-            ineq_ << -a, 1., 0.;  // -ax + y = b
-            ineq_vector_ = b;
+        linear_variable_t linear_var_;
+
+        for (int its = 0; its < N_samples_ineq; its++) {
+          t_s = (its + 1.0) / N_samples_ineq;
+          zt = evaluatePoly(0, t0 + (t_swing_ - t0) * t_s)[2];
+          if (t0 + (t_swing_ - t0) * t_s <= t_stop_up_ + t_margin_up_) {
+            if (zt < pos_end(2) + z_margin) {
+              t_stop_up_ = t0 + (t_swing_ - t0) * (t_s + 1.0 / N_samples_ineq);
+            }
+            linear_var_ = linear_bezier->operator()(t_s);
+            G_.row(its) = -ineq_.transpose() * linear_var_.B();
+            h_(its) = -ineq_.transpose() * linear_var_.c() + ineq_vector_;
           } else {
-            //  Inequality of the surface corresponding to these vertices
-            ineq_ << -1., 0., 0.;
-            ineq_vector_ = -Q1[0];
+            G_.row(its).setZero();
+            h_(its) = 0.;
           }
-          if (ineq_.transpose() * pos_init > ineq_vector_) {
-            // Wrong side, the targeted point is inside the surface
-            ineq_ = -ineq_;
-            ineq_vector_ = -ineq_vector_;
-          }
-          // If foot position already closer than margin
-          x_margin_ = std::max(std::min(x_margin_max_, std::abs(intersectionPoint_[0] - P1[0]) - 0.001), 0.);
+        }
+      } else {
+        G_.setZero();
+        for (int l = 0; l < h_.size(); l++) {
+          h_(l) = 0.;
         }
       }
+      break;
+    }
+    case HORIZONTAL: {
+      // std::cout << "HORIZONTAL" << std::endl;
+      G_.setZero();
+      for (int l = 0; l < h_.size(); l++) {
+        h_(l) = 0.;
+      }
+      break;
+    }
+    case DOWN: {
+      // std::cout << "DOWN" << std::endl;
+      // std::cout << "init height :" << surface_init.getHeight(pos_end.head(2)) << std::endl;
+      linear_variable_t linear_var_;
 
-      double z_margin = pos_end(2) * z_margin_;  // 10% around the limit height
+      double z_margin = (starting_position_(2) - pos_end(2)) * z_margin_down_;  // 10% around the limit height
+
       double t_s;
       double zt;
 
-      linear_variable_t linear_var_;
+      // std::cout << ineq_ << std::endl;
+      // std::cout << ineq_vector_ << std::endl;
+      // std::cout << "z_margin : " << z_margin << std::endl;
+      // std::cout << "t_margin : " << t_margin << std::endl;
+      updateInequalityDown(starting_position_.head(2), pos_end.head(2), surface_init);
+      // std::cout << "x_t[2] : " << x_t[2] << std::endl;
+      // std::cout << "starting_position_(2) : " << starting_position_(2) << std::endl;
+      // std::cout << "t0_ : " << t0_ << std::endl;
+      // std::cout << "tswing - t0_ : " << t_swing_ - t0_ << std::endl;
+      // std::cout << " t_stop_down_ : " << t_stop_down_ << std::endl;
+      // std::cout << " t_stop_down_ - t_margin_down_ : " << t_stop_down_ - t_margin_down_ << std::endl;
 
-      for (int its = 0; its < N_samples_ineq; its++) {
-        t_s = (its + 1.0) / N_samples_ineq;
-        zt = evaluatePoly(0, t0 + (t_swing_ - t0) * t_s)[2];
-        if (t0 + (t_swing_ - t0) * t_s < t_stop_ + t_margin) {
-          if (zt < pos_end(2) + z_margin) {
-            t_stop_ = t0 + (t_swing_ - t0) * t_s;
+      if ((x_t[2] >= starting_position_(2)) && ((t_swing_ - t0_) >= t_stop_down_ - t_margin_down_)) {
+        for (int its = N_samples_ineq - 1; its >= 0; its--) {
+          t_s = (its + 1.0) / N_samples_ineq;  // % of the curve in Bezier space
+          zt = evaluatePoly(0, t0 + (t_swing_ - t0) * t_s)[2];
+
+          // std::cout << "--" << its << std::endl;
+          // std::cout << "t_s : " << its << std::endl;
+          // std::cout << "zt : " << zt << std::endl;
+          // std::cout << "t0 + (t_swing_ - t0) * t_s : " << t0 + (t_swing_ - t0) * t_s << std::endl;
+          // std::cout << "t_stop_down_ : " << t_stop_down_ << std::endl;
+          // std::cout << "t0 + (t_swing_ - t0) * t_s: " << t0 + (t_swing_ - t0) * t_s << std::endl;
+          if (t0 + (t_swing_ - t0) * t_s >= t_stop_down_ - t_margin_down_) {
+            if (zt < starting_position_(2) + z_margin) {
+              t_stop_down_ = t0 + (t_swing_ - t0) * (t_s - 1 / N_samples_ineq);
+            }
+            // std::cout << "constraint on time : " << t_s << std::endl;
+            linear_var_ = linear_bezier->operator()(t_s);
+            // std::cout << linear_var_ << std::endl;
+            G_.row(its) = -ineq_.transpose() * linear_var_.B();
+            h_(its) = -ineq_.transpose() * linear_var_.c() + ineq_vector_;
+          } else {
+            G_.row(its).setZero();
+            h_(its) = 0.;
           }
-          linear_var_ = linear_bezier->operator()(t_s);
-          G_.row(its) = -ineq_.transpose() * linear_var_.B();
-          h_(its) = -ineq_.transpose() * linear_var_.c() + ineq_vector_ - (x_margin_);
-        } else {
-          G_.row(its).setZero();
-          h_(its) = 0.;
+        }
+      } else {
+        G_.setZero();
+        for (int l = 0; l < h_.size(); l++) {
+          h_(l) = 0.;
         }
       }
     }
-  } else {
-    G_.setZero();
-    for (int l = 0; l < h_.size(); l++) {
-      h_(l) = 0.;
-    }
+    default:
+      break;
   }
 
   P_.setZero();
@@ -307,7 +481,7 @@ void FootTrajectoryBezier::update(Vector3 const& pos_init, Vector3 const& vel_in
   fitBezier = evaluateLinear<bezier_t, bezier_linear_variable_t>(*linear_bezier, x);
 
   // Reshape Bezier curve with proper boundaries T_min and T_max
-  curve_ =  bezier_t::bezier_curve_t(fitBezier.waypoints().begin(), fitBezier.waypoints().end(), t0, t_swing_);
+  curve_ = bezier_t::bezier_curve_t(fitBezier.waypoints().begin(), fitBezier.waypoints().end(), t0, t_swing_);
 }
 
 Vector3 FootTrajectoryBezier::evaluateBezier(int const& indice, double const& t) {
@@ -321,33 +495,30 @@ Vector3 FootTrajectoryBezier::evaluateBezier(int const& indice, double const& t)
 Vector3 FootTrajectoryBezier::evaluatePoly(int const& indice, double const& t) {
   Vector3 vector = Vector3::Zero();
   if (indice == 0) {
-    double x = Ax(0) + Ax(1) * t + Ax(2) * std::pow(t, 2) + Ax(3) * std::pow(t, 3) +
-               Ax(4) * std::pow(t, 4) + Ax(5) * std::pow(t, 5);
-    double y = Ay(0) + Ay(1) * t + Ay(2) * std::pow(t, 2) + Ay(3) * std::pow(t, 3) +
-               Ay(4) * std::pow(t, 4) + Ay(5) * std::pow(t, 5);
-    double z = Az(0) + Az(1) * t + Az(2) * std::pow(t, 2) + Az(3) * std::pow(t, 3) +
-               Az(4) * std::pow(t, 4) + Az(5) * std::pow(t, 5) + Az(6) * std::pow(t, 6);
+    double x = Ax(0) + Ax(1) * t + Ax(2) * std::pow(t, 2) + Ax(3) * std::pow(t, 3) + Ax(4) * std::pow(t, 4) +
+               Ax(5) * std::pow(t, 5);
+    double y = Ay(0) + Ay(1) * t + Ay(2) * std::pow(t, 2) + Ay(3) * std::pow(t, 3) + Ay(4) * std::pow(t, 4) +
+               Ay(5) * std::pow(t, 5);
+    double z = Az(0) + Az(1) * t + Az(2) * std::pow(t, 2) + Az(3) * std::pow(t, 3) + Az(4) * std::pow(t, 4) +
+               Az(5) * std::pow(t, 5) + Az(6) * std::pow(t, 6);
     vector << x, y, z;
   }
 
   if (indice == 1) {
-    double vx = Ax(1) + 2 * Ax(2) * t + 3 * Ax(3) * std::pow(t, 2) +
-                4 * Ax(4) * std::pow(t, 3) + 5 * Ax(5) * std::pow(t, 4);
-    double vy = Ay(1) + 2 * Ay(2) * t + 3 * Ay(3) * std::pow(t, 2) +
-                4 * Ay(4) * std::pow(t, 3) + 5 * Ay(5) * std::pow(t, 4);
-    double vz = Az(1) + 2 * Az(2) * t + 3 * Az(3) * std::pow(t, 2) +
-                4 * Az(4) * std::pow(t, 3) + 5 * Az(5) * std::pow(t, 4) +
-                6 * Az(6) * std::pow(t, 5);
+    double vx =
+        Ax(1) + 2 * Ax(2) * t + 3 * Ax(3) * std::pow(t, 2) + 4 * Ax(4) * std::pow(t, 3) + 5 * Ax(5) * std::pow(t, 4);
+    double vy =
+        Ay(1) + 2 * Ay(2) * t + 3 * Ay(3) * std::pow(t, 2) + 4 * Ay(4) * std::pow(t, 3) + 5 * Ay(5) * std::pow(t, 4);
+    double vz = Az(1) + 2 * Az(2) * t + 3 * Az(3) * std::pow(t, 2) + 4 * Az(4) * std::pow(t, 3) +
+                5 * Az(5) * std::pow(t, 4) + 6 * Az(6) * std::pow(t, 5);
     vector << vx, vy, vz;
   }
 
   if (indice == 2) {
-    double ax = 2 * Ax(2) + 6 * Ax(3) * t + 12 * Ax(4) * std::pow(t, 2) +
-                20 * Ax(5) * std::pow(t, 3);
-    double ay = 2 * Ay(2) + 6 * Ay(3) * t + 12 * Ay(4) * std::pow(t, 2) +
-                20 * Ay(5) * std::pow(t, 3);
-    double az = 2 * Az(2) + 6 * Az(3) * t + 12 * Az(4) * std::pow(t, 2) +
-                20 * Az(5) * std::pow(t, 3) + 30 * Az(6) * std::pow(t, 4);
+    double ax = 2 * Ax(2) + 6 * Ax(3) * t + 12 * Ax(4) * std::pow(t, 2) + 20 * Ax(5) * std::pow(t, 3);
+    double ay = 2 * Ay(2) + 6 * Ay(3) * t + 12 * Ay(4) * std::pow(t, 2) + 20 * Ay(5) * std::pow(t, 3);
+    double az = 2 * Az(2) + 6 * Az(3) * t + 12 * Az(4) * std::pow(t, 2) + 20 * Az(5) * std::pow(t, 3) +
+                30 * Az(6) * std::pow(t, 4);
     vector << ax, ay, az;
   }
 

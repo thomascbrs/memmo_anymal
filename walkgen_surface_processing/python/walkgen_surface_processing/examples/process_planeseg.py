@@ -1,8 +1,12 @@
 import numpy as np
-from time import perf_counter as clock
+try:
+    from time import perf_counter as clock
+except ImportError:
+    from time import time as clock
 import os
 import pickle
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 from walkgen_surface_processing.surface_processing import SurfaceProcessing
 from walkgen_surface_processing.params import SurfaceProcessingParams
@@ -10,9 +14,16 @@ from walkgen_surface_processing.tools.plot_tools import plot_surface, plot_marke
 
 # Load Planeseg data, MarkerArray class example extracted from rosbag.
 path = os.path.dirname(os.path.abspath(__file__)) + "/../data/"
-fileObject = path + "example_marker_array.pickle"
-with open(fileObject, 'rb') as file2:
-    array_markers = pickle.load(file2)
+try:
+    filename = path + "example_marker_array.pickle"
+    with open(filename, 'rb') as file2:
+        array_markers = pickle.load(file2)
+except ValueError:
+    # Python2.7
+    filename = path + "example_marker_array_prot2.pickle"
+    with open(filename, 'rb') as file2:
+        array_markers = pickle.load(file2)
+
 
 # Parameters of the environment
 params = SurfaceProcessingParams()
@@ -23,11 +34,13 @@ params.poly_size = 10  # Maximum size of the polygon for the convex decompositio
 params.min_area = 0.03   # Area under which the remaining surfaces is delated.
 
 # Initial height
-initial_height = 0.1
+initial_height = 0.01
 position = np.array([0.2,0.5,0.])
 
 # Extract surfaces from .stl file.
 surface_processing = SurfaceProcessing(initial_height=initial_height, params=params)
+surface_processing.set_clearmap(True)
+surface_processing.set_offset_clearmap(0.02)
 t0 = clock()
 all_surfaces = surface_processing.run(position, array_markers)
 t1 = clock()

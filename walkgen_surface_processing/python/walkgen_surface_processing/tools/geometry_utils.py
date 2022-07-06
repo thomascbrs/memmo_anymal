@@ -50,13 +50,13 @@ class DECOMPO_type(Enum):
 tess = Tess2.hxGeomAlgo_Tess2()
 
 
-def convert_from_marker_array(marker_array):
+def convert_from_marker_array(marker_array ,offset = 0.0):
     '''Convert to a list of list from ros msg.'''
     surface_list = []
     for marker in marker_array.markers:
         # Marker structure :
         # [Pt1,Pt2,Pt2,Pt3,Pt3,Pt4, ... , Ptn-1, Ptn, Pt1, Ptn] !Warning order at the end
-        pts = [[pt.x, pt.y, pt.z] for pt in marker.points]  # List not sorted, with duplicates
+        pts = [[pt.x, pt.y, pt.z + offset] for pt in marker.points]  # List not sorted, with duplicates
         surface_list.append(remove_duplicates(pts).tolist())
     return surface_list
 
@@ -99,7 +99,7 @@ def reduce_surfaces(surface_list, n_points=None):
     return out_surface_list
 
 
-def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inner=0., margin_outer=0.):
+def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inner=0., margin_outer=0., clearmap=False,clearmap_limit = 0. ):
     """Filter the surfaces. Projection of the surfaces in X,Y plan and reshape them to avoid overlaying
     using Tesselation algorithm following the method:
     1. Run the list of surfaces starting with the lowest.
@@ -141,7 +141,10 @@ def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inne
     for sf in surfacesIn:
         try:
             s = SurfaceData(sf, margin_inner=margin_inner, margin_outer=margin_outer)
-            surfaces.append(s)
+            if clearmap and (s.h_mean < clearmap_limit):
+                pass
+            else:
+                surfaces.append(s)
         except:
             print("Applying inner margin not feasible. Surface removed.")
 
@@ -151,8 +154,13 @@ def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inne
 
     # Run the list of surfaces starting with the lowest.
     while len(surfaces) > 1:
-        contours_intersect.clear()
-        surfaces_intersect.clear()
+        try :
+            contours_intersect.clear()
+            surfaces_intersect.clear()
+        except AttributeError:
+            del contours_intersect[:]
+            del surfaces_intersect[:]
+
 
         h_mean = [sf.h_mean for sf in surfaces]
         id_ = np.argmin(h_mean)
@@ -166,7 +174,11 @@ def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inne
         if method_type == DECOMPO_type.CONVEX or method_type == DECOMPO_type.AREA_CONVEX:
             # If only one surface, no need for the convex union
             if len(surfaces_intersect) > 1:
-                contours_intersect.clear()  # Redefine the contour for the difference
+                # Redefine the contour for the difference
+                try :
+                    contours_intersect.clear()
+                except AttributeError:
+                    del contours_intersect[:]
                 vertices_union = np.zeros((1, 2))
                 for sf in surfaces_intersect:
                     vertices_union = np.vstack([vertices_union, sf.vertices_outer[:, :2]])
@@ -204,7 +216,8 @@ def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inne
         surfaces.pop(id_)
 
     # Add last surface remaining
-    new_surfaces.append(surfaces[0].get_vertices_inner())
+    if len(new_surfaces) > 0:
+        new_surfaces.append(surfaces[0].get_vertices_inner())
     return new_surfaces
 
 

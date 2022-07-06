@@ -73,8 +73,8 @@ class SurfaceProcessing:
             self._params = SurfaceProcessingParams()
 
         self._initial_height = initial_height
-        self._dx = 1.5  # Distance on y-axis around the current position.
-        self._dy = 1.5  # Distance on y-axis around the current position.
+        self._dx = 0.8  # Distance on y-axis around the current position.
+        self._dy = 0.8  # Distance on y-axis around the current position.
 
         # Parameters for postprocessing.
         self._n_points = self._params.n_points
@@ -82,6 +82,10 @@ class SurfaceProcessing:
         self._poly_size = self._params.poly_size
         self._min_area = self._params.min_area
         self._margin = self._params.margin
+        self._offsets = -0.03
+
+        self._offsets_clearmap = 0.02 # (initial_height + offsets_clearmap) height under which the surfaces are removed.
+        self._clearmap = False # Boolean to remove the some of the ground surfaces.
 
     def run(self, position, markerArray):
         """ Process the surfaces list from markerArray data type.
@@ -100,7 +104,7 @@ class SurfaceProcessing:
             return dict()
 
         # Convert incoming data.
-        surface_list = convert_from_marker_array(markerArray)
+        surface_list = convert_from_marker_array(markerArray, self._offsets)
 
         # Sort, remove duplicates and reduce the number of points.
         surface_reduced = reduce_surfaces(surface_list, self._n_points)
@@ -121,6 +125,18 @@ class SurfaceProcessing:
             method=self._method_id,
             min_area=self._min_area,
             margin_inner=self._margin,
-            margin_outer=self._margin)
+            margin_outer=self._margin,
+            clearmap= self._clearmap,
+            clearmap_limit= (self._initial_height + self._offsets_clearmap) )
 
         return dict(zip([str(k) for k in range(len(surfaces_processed))], [sf.tolist() for sf in surfaces_processed]))
+
+    def set_offset_clearmap(self, offset):
+        """ Offset from which all surfaces under the initial height + offset will be removed if the boolean clearmap is active.
+        """
+        self._offsets_clearmap = offset
+
+    def set_clearmap(self, clearmap):
+        """ Set the clearmap boolean to remove the surfaces on the ground.
+        """
+        self._clearmap = clearmap

@@ -32,11 +32,11 @@ from pyhull import qconvex
 
 
 def compute_projection2D(pos, oTl=np.zeros(3), oRl=np.zeros((3, 3))):
-    return (oRl.T @ (pos - oTl))[:2]
+    return np.dot(oRl.T , (pos - oTl))[:2]
 
 
 def compute_worldFrame(pos, oTl=np.zeros(3), oRl=np.zeros((3, 3))):
-    return oTl + oRl @ pos
+    return oTl + np.dot(oRl , pos)
 
 
 def get_normal(vertices):

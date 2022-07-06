@@ -33,7 +33,7 @@ ADD_SUBDIRECTORY("python")
 # ---------cpp bindings----------
 # -------------------------------
 
-FINDPYTHON()
+# FINDPYTHON()
 SEARCH_FOR_BOOST_PYTHON()
 ADD_PROJECT_DEPENDENCY(Eigen3 REQUIRED)
 ADD_PROJECT_DEPENDENCY(eigenpy REQUIRED)

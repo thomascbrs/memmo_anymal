@@ -1,6 +1,7 @@
 import numpy as np
 import pinocchio as pin
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 from walkgen_surface_processing.surface_detector import SurfaceDetector
 from walkgen_surface_processing.params import SurfaceProcessingParams

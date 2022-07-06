@@ -28,7 +28,10 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import numpy as np
-from time import perf_counter as clock
+try:
+    from time import perf_counter as clock
+except ImportError:
+    from time import time as clock 
 import os
 import pickle
 
@@ -49,9 +52,15 @@ from walkgen_surface_planner.params import SurfacePlannerParams
 
 # Load an exemple of surfaces extracted using walkgen_surface_processing.
 path = os.path.dirname(os.path.abspath(__file__)) + "/../data/"
-filename = path + "example_environment.pickle"
-with open(filename, 'rb') as file2:
-    all_surfaces = pickle.load(file2)
+try:
+    filename = path + "example_environment.pickle"
+    with open(filename, 'rb') as file2:
+        all_surfaces = pickle.load(file2)
+except ValueError:
+    # Python2.7
+    filename = path + "example_environment_prot2.pickle"
+    with open(filename, 'rb') as file2:
+        all_surfaces = pickle.load(file2)
 
 # Walkgen parameters.
 params = SurfacePlannerParams()

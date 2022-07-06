@@ -32,10 +32,16 @@ import pinocchio
 import numpy as np
 
 from walkgen_footstep_planner.libwalkgen_footstep_planner_pywrap import FootTrajectoryBezier
+from walkgen_footstep_planner.params import FootStepPlannerParams
 
 class FootStepTrajectoryBezier():
 
-    def __init__(self, dt, N, stepHeight, M_current, M_next):
+    def __init__(self, dt, N, stepHeight, M_current, M_next, params=None):
+        if params is not None:
+            self._params = copy.deepcopy(params)
+        else:
+            self._params = FootStepPlannerParams()
+
         # Stored swing-trajectory properties
         self._dt = copy.deepcopy(dt)
         self._N = copy.deepcopy(N)
@@ -44,17 +50,25 @@ class FootStepTrajectoryBezier():
         self._M_next = copy.deepcopy(M_next)
 
         # Bezier parameters
-        x_margin_max_ = 0.1  # 4cm margin
-        t_margin_ = 0.3  # 15% of the curve around critical point
-        z_margin_ = 0.04  # 1% of the curve after the critical point
-        N_sample = 10  # Number of sample in the least square optimisation for Bezier coeffs
-        N_sample_ineq = 8  # Number of sample while browsing the curve
-        degree = 7  # Degree of the Bezier curve
+        # Margin [m] wrt to the segment crossed in the surface.
+        margin_up = self._params.margin_up
+        margin_down = self._params.margin_down
+        # % of the curve constrained around critical point.
+        t_margin_up = self._params.t_margin_up
+        t_margin_down = self._params.t_margin_down
+        # % of the curve after the critical point.
+        z_margin_up = self._params.z_margin_up
+        z_margin_down = self._params.z_margin_down
+        N_sample = self._params.N_sample  # Number of sample in the least square optimisation for Bezier coeffs
+        N_sample_ineq = self._params.N_sample_ineq  # Number of sample while browsing the curve
+        degree = self._params.degree  # Degree of the Bezier curve
         t_swing = self._dt * self._N
         maxHeight = stepHeight
 
         self._curve = FootTrajectoryBezier()
-        self._curve.initialize(x_margin_max_, t_margin_, z_margin_, N_sample, N_sample_ineq, degree, t_swing, maxHeight)
+        self._curve.initialize(N_sample, N_sample_ineq, degree, t_swing, maxHeight)
+        self._curve.set_parameters_up(margin_up, t_margin_up, z_margin_up)
+        self._curve.set_parameters_down(margin_down, t_margin_down, z_margin_down)
         self._curve.create_simple_curve(self._M_current.translation, np.zeros(3), self._M_next.translation, 0.)
 
     def position(self, k):

@@ -31,7 +31,10 @@ import pinocchio as pin
 import hppfcl
 import numpy as np
 import os
-from time import perf_counter as clock
+try:
+    from time import perf_counter as clock
+except ImportError:
+    from time import time as clock
 import copy
 import warnings
 import trimesh
@@ -103,7 +106,15 @@ class SurfacePlanner():
 
         # Load rom .stl objects for collision tools to select only the relevant surfaces.
         path = os.environ["INSTALL_HPP_DIR"] + "/anymal-rbprm/meshes/"
-        obj_stl = [trimesh.load_mesh(path + rom) for rom in rom_names]
+        # obj_stl = [trimesh.load_mesh(path + rom) for rom in rom_names]
+        obj_stl = []
+        for i,rom in enumerate(rom_names):
+            obj = trimesh.load_mesh(path + rom)
+            obj.apply_translation(-self._shoulders[:,i])
+            obj.apply_scale(1.5)
+            obj.apply_translation( self._shoulders[:,i])
+            obj_stl.append(obj)
+
 
         # Dictionnary containing the convex set of roms for collisions.
         self.roms_collision = dict(zip(self._contact_names, [convert_to_convexFcl(obj.vertices) for obj in obj_stl]))
@@ -181,7 +192,7 @@ class SurfacePlanner():
                 rpy[2] = 0.  # Yaw = 0. in horizontal frame
                 Rp = pin.rpy.rpyToMatrix(rpy)[:2, :2]
                 heuristic = 0.5 * t_stance * \
-                    Rp @ bvref[:2] + Rp @ self._shoulders[:2, foot]
+                    np.dot(Rp, bvref[:2]) + np.dot(Rp, self._shoulders[:2, foot])
 
                 # Compute heuristic in world frame, rotation
                 shoulders[0] = heuristic[0] * \
@@ -204,7 +215,7 @@ class SurfacePlanner():
         for phase in self.pb.phaseData:
             for foot in phase.moving:
                 R = pin.Quaternion(configs[phase.id][3:7]).toRotationMatrix()
-                sh = R @ self._shoulders[:, foot] + configs[phase.id][:3]
+                sh = np.dot(R, self._shoulders[:, foot]) + configs[phase.id][:3]
                 shoulder_positions[foot][phase.id] = sh
         return shoulder_positions
 
@@ -221,10 +232,6 @@ class SurfacePlanner():
             raise ArithmeticError("Reference velocity should be size 6.")
 
         yaw_init = pin.rpy.matrixToRpy(pin.Quaternion(q[3:7]).toRotationMatrix())[2]
-        if yaw_init <= -np.pi:
-            yaw_init += 2 * np.pi
-        if yaw_init >= np.pi:
-            yaw_init -= 2 * np.pi
 
         # Select the relevant convex surfaces to approximate the slope of the terrain.
         self._tf.setTranslation(q[:3])
@@ -238,8 +245,6 @@ class SurfacePlanner():
         rpyMap_ = np.zeros(3)
         rpyMap_[0] = np.arctan2(fit_[1], 1.)
         rpyMap_[1] = -np.arctan2(fit_[0], 1.)
-        # print("\n rpyMap_ : ", rpyMap_)
-        # print("")
 
         # List of configurations in planned horizon, using the reference velocity.
         configs = []
@@ -249,22 +254,21 @@ class SurfacePlanner():
             dt_config = self._step_duration * (i + 2)
 
             if abs(bvref[5]) >= 0.01:
-                config[0] = (bvref[0] * np.sin(bvref[5] * dt_config) + bvref[1] *
+                dx_ = (bvref[0] * np.sin(bvref[5] * dt_config) + bvref[1] *
                              (np.cos(bvref[5] * dt_config) - 1.0)) / bvref[5]
-                config[1] = (bvref[1] * np.sin(bvref[5] * dt_config) - bvref[0] *
+                dy_ = (bvref[1] * np.sin(bvref[5] * dt_config) - bvref[0] *
                              (np.cos(bvref[5] * dt_config) - 1.0)) / bvref[5]
             else:
-                config[0] = bvref[0] * dt_config
-                config[1] = bvref[1] * dt_config
+                dx_ = bvref[0] * dt_config
+                dy_ = bvref[1] * dt_config
 
-            config[0] = np.cos(yaw_init) * config[0] - \
-                np.sin(yaw_init) * config[1]  # Yaw rotation for dx
-            config[1] = np.sin(yaw_init) * config[0] + \
-                np.cos(yaw_init) * config[1]  # Yaw rotation for dy
+            config[0] = np.cos(yaw_init) * dx_ - np.sin(yaw_init) * dy_  # Yaw rotation for dx
+            config[1] = np.sin(yaw_init) * dx_ + np.cos(yaw_init) * dy_  # Yaw rotation for dy
             config[:2] += q[:2]  # Add initial 2D position
 
             # Recompute the orientation according to the heightmap for each configuration.
             if self._recompute_slope :
+                rotation =  np.dot(pin.rpy.rpyToMatrix(np.array([0.,0.,bvref[5] * dt_config])) , rotation)
                 fit_ = self._terrain.get_slope(config[:2], rotation, collision_points)
                 rpyMap_ = np.zeros(3)
                 rpyMap_[0] = np.arctan2(fit_[1], 1.)
@@ -274,9 +278,12 @@ class SurfacePlanner():
             config[2] = fit_[0] * config[0] + fit_[1] * \
                 config[1] + fit_[2] + self._reference_height
             yaw = yaw_init + bvref[5] * dt_config
-            roll = rpyMap_[0] * np.cos(yaw) - rpyMap_[1] * np.sin(yaw)
-            pitch = rpyMap_[0] * np.sin(yaw) + rpyMap_[1] * np.cos(yaw)
-            config[3:] = pin.Quaternion(pin.rpy.rpyToMatrix(roll, pitch, yaw)).coeffs()
+            roll = rpyMap_[0] * np.cos(bvref[5] * dt_config) - rpyMap_[1] * np.sin(bvref[5] * dt_config)
+            pitch = rpyMap_[0] * np.sin(bvref[5] * dt_config) + rpyMap_[1] * np.cos(bvref[5] * dt_config)
+
+            Rp = pin.rpy.rpyToMatrix(np.array([roll, pitch, 0.]))
+            Ryaw = pin.rpy.rpyToMatrix(np.array([0., 0., yaw]))
+            config[3:] = pin.Quaternion(np.dot(Rp , Ryaw)).coeffs()
             configs.append(config)
 
         return configs
@@ -292,6 +299,18 @@ class SurfacePlanner():
             com_positions.append(configs[phase.id][:3])
 
         return com_positions
+
+    def _compute_sl1m_position(self, pb_data):
+        """ Get the position of the feet from the previous optimisation problem.
+
+        Args:
+            - pb_data : Sl1m structure containing the results of the previous optimisation
+        """
+        previous_position = pb_data.all_feet_pos
+        for foot in range(4):
+            previous_position[foot].pop(0)
+            previous_position.append(None)
+        return previous_position
 
     def get_potential_surfaces(self, configs, gait):
         """ Get the rotation matrix and surface condidates for each configuration in configs using
@@ -426,35 +445,97 @@ class SurfacePlanner():
         # Compute the costs
         effector_positions = self._compute_effector_positions(configs, bvref)
         shoulder_position = self._compute_shoulder_positions(configs)
-        com_positions = self._compute_com_positions(configs)
 
-        ## New cost function tests
+        # New cost function tests
         # if bvref[0] > 0:
-        # feet_r = dict(zip([2, 3], [1, 0]))
+        #     feet_r = dict(zip([2, 3], [1, 0]))
+        #     feet = [2,3]
+        #     feet = [0,1]
         # else:
         #     feet_r = dict(zip([1,0],[2,3]))
-        # if bvref[0] >= 0:
-        #     feet = [2,3]
-        # else:
         #     feet = [0,1]
 
-        costs = {
-            # Walks costs
+        # Walking costs
+        # costs = {
             # "height_first_phase_cost": [0.12, feet_r],
             # "height_first_phase_cost2": [
             #     1.0, pin.rpy.matrixToRpy(pin.Quaternion(configs[0][3:]).toRotationMatrix())[1]
             # ],
-            # "effector_positions_xy": [1.0, effector_positions],
+            # "effector_positions_xy": [1.0, effector_positions]
+        # }
 
-            # Trot costs
-            # "height_first_phase_cost2": [
-            #     1.0, pin.rpy.matrixToRpy(pin.Quaternion(configs[0][3:]).toRotationMatrix())[1]
-            # ],
-            # "effector_position_cost_xy_selected": [0.5, [feet, shoulder_position]],
-            "effector_positions_xy": [1.0, effector_positions],
-            "coms_xy": [0.5, com_positions],
-            "coms_z": [0.05, com_positions]
+        # Walking costs (almost working but stay locked in the midlle)
+        # costs = {
+        #     "height_first_phase_cost2": [
+        #         5.0, pin.rpy.matrixToRpy(pin.Quaternion(configs[0][3:]).toRotationMatrix())[1]
+        #     ],
+        #     "effector_position_cost_xy_selected": [2.5, [feet, shoulder_position]],
+        #     "effector_positions_xy": [4.0, effector_positions],
+        #     "height_first_phase_cost2": [
+        #         5.0, pin.rpy.matrixToRpy(pin.Quaternion(configs[0][3:]).toRotationMatrix())[1]
+        #     ]
+        # }
+
+        ############################################################
+        # Walking cost with new potential surfaces
+        costs = {
+            "effector_positions_xy": [1.0, effector_positions]
         }
+        # activate shoulder cost for going up (should work for going down)
+        # if bvref[0] > 0:
+        #     feet_selected = [2,3]
+        #     costs["effector_positions_3D_select"] = [0.5, [feet_selected, shoulder_position]]
+
+        # Walk : ! Depends on the forward sign vx > 0 here
+        # feet_selected = [0,1]
+        # costs["effector_positions_3D_select"] = [0.5, [feet_selected, shoulder_position]]
+
+        pitch = pin.rpy.matrixToRpy(pin.Quaternion(q[3:7]).toRotationMatrix())[1]
+
+        # Should work for going up & down
+        feet_selected = [2,3]
+        if pitch > 0.05:
+            feet_selected = [0,1] # Going down forward
+            costs["effector_positions_3D_select"] = [0.25, [feet_selected, shoulder_position]]
+        else:
+            costs["effector_positions_3D_select"] = [0.5, [feet_selected, shoulder_position]]
+        #############################################################
+
+        #############################################################
+        # Trotting cost:
+        # costs = {
+        #     "effector_positions_xy": [1.0, effector_positions]
+        # }
+        # For going down : vx > 0
+        # feet_selected = [0,1]
+        # costs["effector_positions_3D_select"] = [0.2, [feet_selected, shoulder_position]]
+
+        # Going up
+        # feet_selected = [2,3]
+        # costs["effector_positions_3D_select"] = [0.2, [feet_selected, shoulder_position]]
+
+        # # Regularization cost
+        # if self.pb_data is not None and self.pb_data.success:
+        #     previous_position = self._compute_sl1m_position(self.pb_data)
+        #     # feet_selected = [0,1]
+        #     costs["regularization_cost"] = [0.4, previous_position]
+        ###############################################################
+
+        # Trotting costs
+        # costs = {
+            # "height_first_phase_cost2": [
+            #     3.0, pin.rpy.matrixToRpy(pin.Quaternion(configs[0][3:]).toRotationMatrix())[1]
+            # ],
+            # "effector_position_cost_xy_selected": [2.5, [feet, shoulder_position]],
+            # "effector_positions_xy": [4.0, effector_positions]
+        # }
+
+        # CoM cost
+        if self._com:
+            com_positions = self._compute_com_positions(configs)
+            costs["coms_xy"] = [0.5, com_positions]
+            costs["coms_z"] = [0.05, com_positions]
+
 
         # Solve MIP
         self.pb_data = solve_MIP(self.pb, costs=costs, com=self._com)

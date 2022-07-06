@@ -30,8 +30,11 @@
 import os
 import pickle
 import numpy as np
-from time import perf_counter as clock
 import matplotlib.pyplot as plt
+try:
+    from time import perf_counter as clock
+except ImportError:
+    from time import time as clock 
 
 import sl1m.tools.plot_tools as plot
 
@@ -44,9 +47,15 @@ h_init = -0.06
 
 # Load an exemple of surfaces processed using walkgen_surface_processing.
 path = os.path.dirname(os.path.abspath(__file__)) + "/../data/"
-filename = path + "example_marker_array_processed.pickle"
-with open(filename, 'rb') as file2:
-    all_surfaces = pickle.load(file2)
+try:
+    filename = path + "example_marker_array_processed.pickle"
+    with open(filename, 'rb') as file2:
+        all_surfaces = pickle.load(file2)
+except ValueError:
+    # Python2.7
+    filename = path + "example_marker_array_processed_prot2.pickle"
+    with open(filename, 'rb') as file2:
+        all_surfaces = pickle.load(file2)
 
 # # Process the planeseg data using walkgen_surface_processing
 # from walkgen_surface_processing.surface_processing import SurfaceProcessing
