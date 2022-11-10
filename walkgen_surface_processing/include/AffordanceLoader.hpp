@@ -51,6 +51,11 @@ class AffordanceLoader {
 
  private:
   StdVecVec_Vector3 affordances_;
+  // Parameters to select the relevant surfaces
+  const double margin = 0.03;
+  const double nbTriMargin = 0.03;
+  const double minArea = 0.005;
+  const char* affordanceName = "Support";
 };
 
 #endif  // AffordanceLoader_H_INCLUDED

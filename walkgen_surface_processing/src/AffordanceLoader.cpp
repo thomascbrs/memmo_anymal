@@ -12,7 +12,7 @@ void AffordanceLoader::load(std::string const& filename, MatrixN const& R, Vecto
 
   fcl::CollisionObject* obj(new fcl::CollisionObject(bvh_mdel, R, T));
 
-  hpp::affordance::SupportOperationPtr_t support(new hpp::affordance::SupportOperation());
+  hpp::affordance::SupportOperationPtr_t support(new hpp::affordance::SupportOperation(margin,nbTriMargin,minArea,affordanceName));
   std::vector<hpp::affordance::OperationBasePtr_t> operations;
   operations.push_back(support);
   hpp::affordance::SemanticsDataPtr_t h = hpp::affordance::affordanceAnalysis(obj, operations);
