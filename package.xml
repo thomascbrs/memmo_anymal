@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>walkgen</name>
+  <version>1.2.0</version>
+  <description>
+    Implementation of reactive footstepplanner with Mixed-integer for surface choices.
+  </description>
+  <maintainer email="guilhem.saurel@laas.fr">Thomas Corbères</maintainer>
+  <license>BSD</license>
+
+  <url>https://github.com/thomascbrs/memmo_anymal</url>
+  <author>Thomas Corbères</author>
+
+  <build_depend>git</build_depend>
+  <build_depend>doxygen</build_depend>
+  <!-- The following tags are recommended by REP-136 -->
+  <exec_depend condition="$ROS_VERSION == 1">catkin</exec_depend>
+  <exec_depend condition="$ROS_VERSION == 2">ament_cmake</exec_depend>
+  <depend>eigen</depend>
+  <depend>boost</depend>
+  <depend>pinocchio</depend>
+  <depend>sl1m</depend>
+  <depend>pyhull-pip</depend>
+
+  <buildtool_depend>cmake</buildtool_depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>
