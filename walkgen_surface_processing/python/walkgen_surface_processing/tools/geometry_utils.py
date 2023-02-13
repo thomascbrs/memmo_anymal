@@ -38,7 +38,7 @@ from walkgen_surface_processing.tools.transforms import apply_margin
 from walkgen_surface_processing.tools.SurfaceData import SurfaceData
 import walkgen_surface_processing.tools.Tess2 as Tess2
 from pyhull import qconvex
-
+from copy import copy
 
 class DECOMPO_type(Enum):
     BASIC = 0
@@ -344,10 +344,26 @@ def getAllSurfacesDict_inner(all_surfaces, margin):
 
     all_names = []
     surfaces = []
+    # Quick hack for 1 try : 40cm block --> Inner and outer margin !=
+    # max_ = -10e5
+    # max_name = None
+    # for name_surface in all_surfaces:
+    #     vertices = order(np.array(all_surfaces.get(name_surface)[0]))
+    #     if vertices[0][2] > max_:
+    #         max_ = vertices[0][2]
+    #         max_name = copy(name_surface)
+
     for name_surface in all_surfaces:
         vertices = order(np.array(all_surfaces.get(name_surface)[0]))
         normal = get_normal(np.array(vertices))
         vertices_inner = apply_margin(np.array(vertices), margin)
+
+        # Quick hack for 1 try : 40cm block --> Inner and outer margin !=
+        # if name_surface == max_name :
+        #     vertices_inner = apply_margin(np.array(vertices), 0.04)
+        # else :
+        #     print(0.27)
+        #     vertices_inner = apply_margin(np.array(vertices), 0.27)
 
         # Save inner vertices
         all_names.append(name_surface)
