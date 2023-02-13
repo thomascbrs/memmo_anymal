@@ -33,6 +33,19 @@ class AffordanceLoader {
 
   ///////////////////////////////////////////////////////////////////////////
   ///
+  /// \brief Constructor with hpp-affordance parameters
+  ///
+  /// \param[in] margin_in double
+  /// \param[in] nbTriMargin_in double.
+  /// \param[in] minArea_in double.
+  /// \param[in] affordanceName char. type of affordance
+  ///
+  ///////////////////////////////////////////////////////////////////////////
+  AffordanceLoader(double const& margin_in, double const& nbTriMargin_in, double const& minArea_in,
+                   char* const& affordanceName_in);
+
+  ///////////////////////////////////////////////////////////////////////////
+  ///
   /// \brief Extract the affordances from .stl file.
   ///
   /// \param[in] filename .stl file.
@@ -52,10 +65,10 @@ class AffordanceLoader {
  private:
   StdVecVec_Vector3 affordances_;
   // Parameters to select the relevant surfaces
-  const double margin = 0.03;
-  const double nbTriMargin = 0.03;
-  const double minArea = 0.005;
-  const char* affordanceName = "Support";
+  double margin;
+  double nbTriMargin;
+  double minArea;
+  char* affordanceName;
 };
 
 #endif  // AffordanceLoader_H_INCLUDED
