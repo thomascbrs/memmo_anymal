@@ -41,6 +41,8 @@ class SurfaceProcessingParams:
         """
         # Use URDF of the environment or planeseg visualisation.
         self.planeseg = False
+        # 0 load surfaces from single .stl file and process it or 1 from folder of .stl files (1 .stl = 1 surface).
+        self.extract_methodId = 0
 
         # URDF and heightmap environment without planeseg.
         self.path = os.path.dirname(os.path.abspath(__file__))
@@ -80,6 +82,7 @@ class SurfaceProcessingParams:
         if self.path == "":
             self.path = os.path.dirname(os.path.abspath(__file__))
         self.planeseg = config["walkgen_params"]["planeseg"]
+        self.extract_methodId = config["walkgen_params"]["extract_methodId"]
         self.urdf = config["walkgen_params"]["world"]["urdf"]
         self.n_points = config["walkgen_params"]["params"]["n_points"]
         self.method_id = config["walkgen_params"]["params"]["method_id"]

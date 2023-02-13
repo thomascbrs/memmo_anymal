@@ -47,6 +47,7 @@ SET(${SURFACE_PROCESSING_NAME}_EXAMPLES_SOURCES
 __init__.py
 process_planeseg.py
 process_stl.py
+process_stl_folder.py
 )
 
 
