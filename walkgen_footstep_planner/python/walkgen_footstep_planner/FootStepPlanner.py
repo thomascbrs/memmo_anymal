@@ -138,6 +138,8 @@ class FootStepPlanner():
         self.v_save = []
         self.q_filter_save = []
 
+        self._counter_gait = 0
+
     def compute_footstep(self, queue_cs, q, vq, bvref, timeline, selected_surfaces, previous_surfaces):
         """ Run the queue in reverse order and update the position for each Contact Schedule (CS)
         following the Raibert heuristic, depending on current linear velocity and both desired angular and
@@ -174,6 +176,8 @@ class FootStepPlanner():
         q_[3:] = rpy
         self.q_f = self._q_filter.filter(q_)
 
+        self.qv_f = self._qv_filter.filter(vq[:6])
+
         # Quick debug tools
         # q_save = [q[0], q[1], q[3], rpy[0], rpy[1], rpy[2]]
         # self.q_save.append(q_save)
@@ -206,6 +210,10 @@ class FootStepPlanner():
             for j in range(4):
                 self.footstep[j].append(copy.deepcopy(
                     self._current_position[:, j].tolist()))
+
+        if timeline_ == 0 :
+            self._counter_gait += 1
+            print("counter gait : " , self._counter_gait)
 
         # Get current orientation of the robot
         rpy = q[3:]
@@ -296,7 +304,10 @@ class FootStepPlanner():
                                 else:
                                     t0 = timeline - active_phase.T
 
-                                if t0 <= inactive_phase.T * 0.5:
+                                if self._counter_gait < 3 :
+                                    footstep_optim[:2] = P0[:2, j]
+
+                                if t0 <= inactive_phase.T * 0.70:
                                     surface_init = Surface_cpp(previous_sf.A, previous_sf.b, previous_sf.vertices.T)
                                     surface_end = Surface_cpp(sf.A, sf.b, sf.vertices.T)
 
