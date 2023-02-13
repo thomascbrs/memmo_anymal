@@ -343,13 +343,16 @@ class FootStepPlanner():
         """ Compute heuristic position in base frame
         """
         footstep = np.zeros(3)
+        # beta = 1.
+        beta = 1.35
 
         # Add symmetry term
-        footstep += T_stance * 0.5 * bvref[:3]
+        # footstep += T_stance * 0.5 * bvref[:3]
+        footstep += beta * T_stance *  bvref[:3]
 
         # Add feedback term
-        # footstep += self._k_feedback * bv[:3]
         if feedback_term:
+            footstep += self._k_feedback * bv[:3]
             footstep += -self._k_feedback * bvref[:3]
 
         #  Add centrifugal term
