@@ -30,6 +30,7 @@ SET(${SURFACE_PROCESSING_NAME}_SOURCES
   __init__.py
   surface_processing.py
   surface_detector.py
+  surface_loader.py
   params.py
 )
 
