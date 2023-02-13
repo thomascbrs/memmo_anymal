@@ -1,5 +1,6 @@
 walkgen_params:
   planeseg: False  # Use URDF of the environment or planeseg visualisation.
+  extract_methodId: 0 # 0 load surfaces from single .stl file and process it or 1 from folder of .stl files (1 .stl = 1 surface).
 
   world:
     path: ""  # if path = "", path = os.path.dirname(os.path.abspath(__file__))

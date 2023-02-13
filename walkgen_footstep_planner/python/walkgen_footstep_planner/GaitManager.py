@@ -93,7 +93,7 @@ class GaitManager:
         if self._typeGait == "trot":
             self._initial_cs = copy.deepcopy(
                 self.gait_generator.trot(contacts=[self.cs0, self.cs1],
-                                         N_ds=self._N_ds,
+                                         N_ds=50,
                                          N_ss=self._N_ss,
                                          N_uss=self._N_uss,
                                          N_uds=self._N_uds,
@@ -112,7 +112,7 @@ class GaitManager:
         elif self._typeGait == "walk":
             self._initial_cs = copy.deepcopy(
                 self.gait_generator.walk(contacts=[self.cs0, self.cs1],
-                                         N_ds=self._N_ds,
+                                         N_ds=100,
                                          N_ss=self._N_ss,
                                          N_uss=self._N_uss,
                                          N_uds=self._N_uds,

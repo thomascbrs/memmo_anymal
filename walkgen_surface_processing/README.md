@@ -15,7 +15,15 @@ Mesh file | Surfaces extracted
 --- | ---
 ![](./doc/mesh_stl.png) | ![](./doc/affordances_example.png)
 
+
+
+Extract directly surfaces from a folder of .stl file ( 1 .stl file corresponding to 1 surface). Useful when dealing with a large scene. Set params.extract_methodId to 1. To run a example :
+```
+python3 -m walkgen_surface_processing.examples.process_stl_folder
+```
+
 ---
+
 ### Post-process of planeseg data:
 
 "Plane Seg is a library for fitting planes to LIDAR, depth camera data or elevation maps. It uses robust estimation to fit planes by clustering planar points with similar normals" : https://github.com/ori-drs/plane_seg.

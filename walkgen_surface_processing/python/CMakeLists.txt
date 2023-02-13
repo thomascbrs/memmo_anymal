@@ -30,6 +30,7 @@ SET(${SURFACE_PROCESSING_NAME}_SOURCES
   __init__.py
   surface_processing.py
   surface_detector.py
+  surface_loader.py
   params.py
 )
 
@@ -46,6 +47,7 @@ SET(${SURFACE_PROCESSING_NAME}_EXAMPLES_SOURCES
 __init__.py
 process_planeseg.py
 process_stl.py
+process_stl_folder.py
 )
 
 

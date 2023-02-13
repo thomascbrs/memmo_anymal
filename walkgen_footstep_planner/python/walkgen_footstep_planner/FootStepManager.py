@@ -122,7 +122,7 @@ class FootStepManager:
         if self._typeGait == "trot":
             self._initial_cs = copy.deepcopy(
                 gait_generator.trot(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
-                                    N_ds=self._N_ds,
+                                    N_ds=50,
                                     N_ss=self._N_ss,
                                     N_uss=self._N_uss,
                                     N_uds=self._N_uds,
@@ -141,7 +141,7 @@ class FootStepManager:
         elif self._typeGait == "walk":
             self._initial_cs = copy.deepcopy(
                 gait_generator.walk(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
-                                    N_ds=self._N_ds,
+                                    N_ds= 100,
                                     N_ss=self._N_ss,
                                     N_uss=self._N_uss,
                                     N_uds=self._N_uds,
@@ -264,6 +264,12 @@ class FootStepManager:
         """ Returns the state filtered. (x 18)
         """
         return self._foostep_planner.q_f
+    
+    def get_qv_filter(self):
+        """ Returns the state velocity filtered. (x 6)
+        """
+        return self._foostep_planner.qv_f
+
 
 
 if __name__ == "__main__":

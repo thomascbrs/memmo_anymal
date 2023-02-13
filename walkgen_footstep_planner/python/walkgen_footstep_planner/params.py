@@ -56,12 +56,12 @@ class FootStepPlannerParams:
         self.stepHeight = 0.15  # Step height [m]
 
         # Bezier parameters
-        self.margin_down = 0.12  # Margin [m] wrt to the segment crossed in the surface.
+        self.margin_down = 0.10  # Margin [m] wrt to the segment crossed in the surface.
         self.t_margin_down = 0.2  # % of the curve constrained around critical point.
         self.z_margin_down = 0.2  # % of the curve after the critical point.
-        self.margin_up = 0.12  # Margin [m] wrt to the segment crossed in the surface.
-        self.t_margin_up = 0.05  # % of the curve constrained around critical point.
-        self.z_margin_up = 0.05  # % of the curve after the critical point.
+        self.margin_up = 0.10  # Margin [m] wrt to the segment crossed in the surface.
+        self.t_margin_up = 0.045  # % of the curve constrained around critical point.
+        self.z_margin_up = 0.045  # % of the curve after the critical point.
 
         self.N_sample = 10  # Number of sample in the least square optimisation for Bezier coeffs.
         self.N_sample_ineq = 8  # Number of sample while browsing the curve.
