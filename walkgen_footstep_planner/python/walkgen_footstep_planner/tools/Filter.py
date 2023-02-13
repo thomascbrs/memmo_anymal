@@ -27,9 +27,45 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from argparse import ArgumentTypeError
 import numpy as np
 from scipy.signal import butter
 
+class FilterMean():
+    def __init__(self, period, dt):
+        self._Nx = int(period / dt)
+        self._x_queue = [] # List of precedent values
+
+    def filter(self, q):
+        """ Moving mean over period * dt sample.
+        No need to handle modulo, should not get jump in angles (yaw) during one period ?
+        Args :
+            - q (list) : List of size 6.
+        """
+        if len(q) != 6 :
+            raise ArgumentTypeError("q should be size 6")
+        if len(self._x_queue) == self._Nx:
+            self._x_queue.pop(0)
+        
+        # Handle modulo for orientation
+        if len(self._x_queue) > 0  and abs(q[5] - self._x_queue[0][5]) > 1.5 * np.pi:
+            self.handle_modulo(q[5] - self._x_queue[0][5] > 0)
+            
+        if type(q) == np.ndarray :
+            self._x_queue.append(q.tolist())
+        else:
+            self._x_queue.append(q)
+
+        return np.mean(self._x_queue, axis=0)
+    
+    def handle_modulo(self, dir):
+        """ Add or remove 2 PI to all elements in the queue for yaw angle.
+        """
+        for x in self._x_queue:
+            if dir:
+                x[5] += 2 * np.pi
+            else:
+                x[5] += - 2 * np.pi
 
 class Filter():
     """ Simple implementation of a lowpass filter.

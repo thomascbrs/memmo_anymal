@@ -33,6 +33,7 @@ import pinocchio as pin
 import copy
 
 from walkgen_footstep_planner.libwalkgen_footstep_planner_pywrap import Surface as Surface_cpp
+from walkgen_footstep_planner.tools.Filter import Filter, FilterMean
 from walkgen_footstep_planner.tools.Surface import Surface
 from walkgen_footstep_planner.tools.optimisation import quadprog_solve_qp
 from walkgen_footstep_planner.tools.Filter import Filter
@@ -111,8 +112,13 @@ class FootStepPlanner():
             raise ArgumentError("Wrong type of gait. Try walk or trot")
 
         print("cut off frequency : ", cutoff)
-        self._q_filter = Filter(cutoff, 1/(params.nsteps * params.dt), 3)
+        # self._q_filter = Filter(cutoff, 1/(params.nsteps * params.dt), 3)
+        self._q_filter = FilterMean(period, params.nsteps * params.dt)
         self.q_f = np.zeros(18)
+
+        # self._qv_filter = Filter(cutoff, 1/(params.nsteps * params.dt), 2)
+        self._qv_filter = FilterMean(period, params.nsteps * params.dt)
+        self.qv_f = np.zeros(6)
 
         self._previous_surfaces = dict()
         dx, dy = 0.5, 0.5
