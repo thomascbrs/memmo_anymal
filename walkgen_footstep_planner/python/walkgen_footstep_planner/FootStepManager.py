@@ -194,6 +194,7 @@ class FootStepManager:
 
         # Check if a new flying phase is starting to trigger SL1M.
         if self._gait_manager.is_new_step():
+            print("NEW STEPS ---> SL1M")
             self._gait_sl1m = self._gait_manager.get_current_gait()  # Current walking gait
 
             # Target foosteps for SL1M.
