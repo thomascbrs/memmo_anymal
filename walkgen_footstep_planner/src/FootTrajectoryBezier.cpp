@@ -314,11 +314,11 @@ void FootTrajectoryBezier::update(Vector3 const& pos_init, Vector3 const& vel_in
     starting_position_ = pos_init;
 
     // Get inequality constraint form the new surface if going upward for now.
-    if (surface_end.getHeight(pos_end.head(2)) - starting_position_(2) >= 0.02) {
+    if (pos_end(2) - starting_position_(2) >= 0.1) {
       updateInequalityUp(pos_init.head(2), pos_end.head(2), surface_end);
       t_stop_up_ = t_swing_ / N_samples_ineq;
       elevation_ = ElevationType(UP);
-    } else if (surface_end.getHeight(pos_end.head(2)) - starting_position_(2) <= -0.02) {
+    } else if (pos_end(2) - starting_position_(2) <= -0.1) {
       updateInequalityDown(pos_init.head(2), pos_end.head(2), surface_init);
       t_stop_down_ = (t_swing_ * (N_samples_ineq - 1)) / N_samples_ineq;
       elevation_ = ElevationType(DOWN);
