@@ -17,6 +17,8 @@ struct AffordanceLoaderPythonVisitor : public bp::def_visitor<AffordanceLoaderPy
   template <class PyClassAffordanceLoader>
   void visit(PyClassAffordanceLoader& cl) const {
     cl.def(bp::init<>(bp::arg(""), "Default constructor."))
+        .def(bp::init<double,double,double,char*>(bp::args("margin", "nbTriMargin", "minArea", "affordanceName"), "Constructor with parameters."))
+
         .def("load", &AffordanceLoader::load, bp::args("filename", "R", "T"), "Load the .stl model.\n")
         .def("get_affordances", &AffordanceLoader::getAffordances, "Get the affordances.\n");
   }

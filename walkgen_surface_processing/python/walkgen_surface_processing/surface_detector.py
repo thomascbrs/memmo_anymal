@@ -41,7 +41,11 @@ class SurfaceDetector:
                  orientation_matrix=np.identity(3),
                  translation=np.zeros(3),
                  margin=0.,
-                 prefix="environment_"):
+                 prefix="environment_",
+                 margin_aff = 0.03,
+                 nbTriMargin = 0.03,
+                 minArea = 0.005,
+                 affordanceName = "Support"):
         """ Initialize the surface detector.
 
         Args:
@@ -50,13 +54,17 @@ class SurfaceDetector:
             - translation (array x3): Translation.
             - margin (float): Margin in [m] inside the surfaces.
             - prefix(str): Prefix of obstacle names.
+            - margin_aff(float) : Margin hpp-affordance params
+            - nbTriMargin(float) : nbTriMargin hpp-affordance params
+            - minArea(float) : minArea hpp-affordance params
+            - affordanceName(String) : affordanceName hpp-affordance params
         """
-        loader = AffordanceLoader()
-        loader.load(filename, orientation_matrix ,translation)
-        names = [prefix + str(k) for k in range(len(loader.get_affordances()))]
+        self._loader = AffordanceLoader(margin_aff, nbTriMargin, minArea, affordanceName)
+        self._loader.load(filename, orientation_matrix ,translation)
+        names = [prefix + str(k) for k in range(len(self._loader.get_affordances()))]
         affordances = dict(
             zip(names, [(order(align_points(affordance)), get_normal(affordance).tolist())
-                        for affordance in loader.get_affordances()]))
+                        for affordance in self._loader.get_affordances()]))
         self._affordances_reduced = getAllSurfacesDict_inner(affordances, margin)
 
     def extract_surfaces(self):

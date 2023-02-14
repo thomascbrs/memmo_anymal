@@ -1,8 +1,15 @@
 #include "AffordanceLoader.hpp"
 #include <iostream>
 
-AffordanceLoader::AffordanceLoader() {
-}
+AffordanceLoader::AffordanceLoader() : margin(0.03), nbTriMargin(0.03), minArea(0.005), affordanceName("Support") {}
+
+AffordanceLoader::AffordanceLoader(double const& margin_in, double const& nbTriMargin_in, double const& minArea_in,
+                   char* const& affordanceName_in){
+                    margin = margin_in;
+                    nbTriMargin = nbTriMargin_in;
+                    minArea = minArea_in;
+                    affordanceName = affordanceName_in;
+                   };
 
 void AffordanceLoader::load(std::string const& filename, MatrixN const& R, VectorN const& T) {
   hpp::fcl::MeshLoader loader;
@@ -13,6 +20,8 @@ void AffordanceLoader::load(std::string const& filename, MatrixN const& R, Vecto
   fcl::CollisionObject* obj(new fcl::CollisionObject(bvh_mdel, R, T));
 
   hpp::affordance::SupportOperationPtr_t support(new hpp::affordance::SupportOperation(margin,nbTriMargin,minArea,affordanceName));
+  // hpp::affordance::LeanOperationPtr_t support(new hpp::affordance::LeanOperation(margin,nbTriMargin,minArea,affordanceName));
+  // hpp::affordance::Support45OperationPtr_t support(new hpp::affordance::Support45Operation(margin,nbTriMargin,minArea,affordanceName));
   std::vector<hpp::affordance::OperationBasePtr_t> operations;
   operations.push_back(support);
   hpp::affordance::SemanticsDataPtr_t h = hpp::affordance::affordanceAnalysis(obj, operations);

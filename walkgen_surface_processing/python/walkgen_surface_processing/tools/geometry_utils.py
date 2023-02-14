@@ -354,20 +354,23 @@ def getAllSurfacesDict_inner(all_surfaces, margin):
     #         max_name = copy(name_surface)
 
     for name_surface in all_surfaces:
-        vertices = order(np.array(all_surfaces.get(name_surface)[0]))
-        normal = get_normal(np.array(vertices))
-        vertices_inner = apply_margin(np.array(vertices), margin)
+        try :
+            vertices = order(np.array(all_surfaces.get(name_surface)[0]))
+            normal = get_normal(np.array(vertices))
+            vertices_inner = apply_margin(np.array(vertices), margin)
 
-        # Quick hack for 1 try : 40cm block --> Inner and outer margin !=
-        # if name_surface == max_name :
-        #     vertices_inner = apply_margin(np.array(vertices), 0.04)
-        # else :
-        #     print(0.27)
-        #     vertices_inner = apply_margin(np.array(vertices), 0.27)
+            # Quick hack for 1 try : 40cm block --> Inner and outer margin !=
+            # if name_surface == max_name :
+            #     vertices_inner = apply_margin(np.array(vertices), 0.04)
+            # else :
+            #     print(0.27)
+            #     vertices_inner = apply_margin(np.array(vertices), 0.27)
 
-        # Save inner vertices
-        all_names.append(name_surface)
-        surfaces.append((vertices_inner, normal.tolist()))
+            # Save inner vertices
+            all_names.append(name_surface)
+            surfaces.append((vertices_inner, normal.tolist()))
+        except :
+            print("Surface unusable : ", name_surface)
 
     surfaces_dict = dict(zip(all_names, surfaces))
     return surfaces_dict
