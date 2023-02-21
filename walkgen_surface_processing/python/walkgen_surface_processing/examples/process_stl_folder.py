@@ -9,8 +9,12 @@ from walkgen_surface_processing.tools.plot_tools import plot_surface
 
 # Parameters of the environment
 params = SurfaceProcessingParams()
-params.margin = 0.03  # Inner margins [m].
-params.extract_methodId = 1
+params.margin_inner = 0.0  # Inner margins [m].
+params.margin_outer = 0.0  # Inner margins [m].
+params.method_id = 1
+params.min_area = 0.0
+params.n_points = 10
+params.poly_size = 10
 
 # Rotation and translation of the environment
 translation = np.array([0., 0., 0.])  # translation
@@ -19,19 +23,16 @@ R = pin.rpy.rpyToMatrix(rpy)  # Rotation matrix
 
 # Extract surfaces from multiple .stl files.
 # 1 file corresponds to 1 surface (usefull for large areas)
-params.stl = "/data/meshes/parcours1/"
-surface_detector = SurfaceLoader(params.path + params.stl, R, translation, 0. , "environment_")
-all_surfaces = surface_detector.extract_surfaces()
-
-surface_detector = SurfaceLoader(params.path + params.stl, R, translation, params.margin , "environment_")
-all_surfaces_reduced = surface_detector.extract_surfaces()
+params.stl = "/data/meshes/ICRA_parkour/"
+surface_detector = SurfaceLoader(params.path + params.stl, R, translation, "environment_", params)
+all_surfaces_processed = surface_detector.extract_surfaces()
 
 # Plot surfaces.
 fig = plt.figure(figsize=(10, 6))
 ax = plt.axes(projection='3d')
-for sf in all_surfaces.values():
+for sf in surface_detector.all_surfaces.values():
     plot_surface( np.array(sf), ax,color = "k")
-for sf in all_surfaces_reduced.values():
+for sf in all_surfaces_processed.values():
     plot_surface( np.array(sf), ax,color = "r")
 plt.title("Surfaces extracted from .stl file")
 plt.show()

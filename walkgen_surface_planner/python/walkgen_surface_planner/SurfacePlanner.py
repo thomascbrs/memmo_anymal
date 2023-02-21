@@ -426,6 +426,9 @@ class SurfacePlanner():
         configs = self._compute_configuration(q[:7], bvref)
         self.configs = configs
 
+        t1 = clock()
+        print("_compute_configuration [ms] : ", 1000 * (t1 - t0))
+
         # Orientation for each configurations.
         R = [pin.XYZQUATToSE3(np.array(config)).rotation for config in configs]
 
@@ -435,7 +438,10 @@ class SurfacePlanner():
         # Initial contact at the beginning of the next phase.
         initial_contacts = [np.array(target_foostep[:, i].tolist()) for i in range(4)]
 
+        t0 = clock()
         surfaces, empty_list = self.get_potential_surfaces(configs, gait)
+        t1 = clock()
+        print("get_potential_surfaces [ms] : ", 1000 * (t1 - t0))
 
         self.pb.generate_problem(R, surfaces, gait, initial_contacts, configs[0][:3], com=self._com)
 
@@ -538,7 +544,10 @@ class SurfacePlanner():
 
 
         # Solve MIP
+        t0 = clock()
         self.pb_data = solve_MIP(self.pb, costs=costs, com=self._com)
+        t1 = clock()
+        print("SL1M optimization took [ms] : ", 1000 * (t1 - t0))
 
         # Process result SL1M
         if self.pb_data.success:

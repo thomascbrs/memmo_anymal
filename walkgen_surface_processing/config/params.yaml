@@ -8,7 +8,8 @@ walkgen_params:
     heightmap: "/data/lab_scene.dat"  # Heightmap path + heightmap
 
   params:
-    margin: 0.02  # inner surface margin
+    margin_inner: 0.02  # inner surface margin
+    margin_outer: 0.04  # outer surface margin
     n_points: 6  # Maximum number of vertices for the surfaces
     method_id: 3  # Method to remove overlapping
     poly_size: 10  # Number of maximum point for convex decomposition.

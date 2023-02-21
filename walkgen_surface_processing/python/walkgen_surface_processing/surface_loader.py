@@ -29,9 +29,11 @@
 
 import numpy as np
 import trimesh
-from walkgen_surface_processing.tools.geometry_utils import order, apply_margin
+from walkgen_surface_processing.tools.geometry_utils import order, apply_margin, align_points, process_surfaces
+from walkgen_surface_processing.params import SurfaceProcessingParams
 from os import listdir
 from os.path import isfile, join
+import copy
 
 class SurfaceLoader:
     """ Class to extract convex surfaces from a folder containing .stl files.
@@ -41,8 +43,9 @@ class SurfaceLoader:
                  folderpath,
                  orientation_matrix=np.identity(3),
                  translation=np.zeros(3),
-                 margin=0.,
-                 prefix="environment_"):
+                 prefix="environment_",
+                 params = None
+                 ):
         """ Load the surfaces.
 
         Args:
@@ -51,21 +54,45 @@ class SurfaceLoader:
             - translation (array x3): Translation.
             - margin (float): Margin in [m] inside the surfaces.
             - prefix(str): Prefix of obstacle names.
+            - params (obj): PArams objects for decompostion.
         """
+        if params is not None:
+            self._params = copy.deepcopy(params)
+        else:
+            self._params = SurfaceProcessingParams()
+
+        # Parameters for postprocessing.
+        self._n_points = self._params.n_points
+        self._method_id = self._params.method_id
+        self._poly_size = self._params.poly_size
+        self._min_area = self._params.min_area
+        self._margin_inner = self._params.margin_inner
+        self._margin_outer = self._params.margin_outer
+
         names = [f for f in listdir(folderpath) if isfile(join(folderpath, f))]
         hmatrix = np.zeros((4,4))
         hmatrix[:3,:3] = orientation_matrix[:,:]
         hmatrix[:3,-1] = translation[:]
 
         self.all_surfaces = dict()
-        self.all_surfaces_reduced = dict()
+        # self.all_surfaces_reduced = dict()
         for id,file in enumerate(names):
             obj = trimesh.load_mesh(folderpath + file)
             obj.apply_transform(hmatrix)
             vert = order(np.array(obj.vertices))
             filename = prefix + str(id)
             self.all_surfaces[filename] = vert
-            self.all_surfaces_reduced[filename] = apply_margin(np.array(vert),margin)
+            # self.all_surfaces_reduced[filename] = apply_margin(np.array(vert),0.)
+
+        # Apply process to filter and decompose the surfaces to avoid overlap and apply a security margin.
+        surfaces = [np.array(sf) for sf in self.all_surfaces.values()]
+        self.surfaces_processed = process_surfaces(surfaces,
+                                              polySize=self._poly_size,
+                                              method=self._method_id,
+                                              min_area=self._min_area,
+                                              margin_inner=self._margin_inner,
+                                              margin_outer=self._margin_outer)
+
 
     def extract_surfaces(self):
         """ Extract surfaces from the URDF file.
@@ -73,4 +100,4 @@ class SurfaceLoader:
         Retruns:
             - param1 (dict): Dictionnary type containing all the surfaces ("unique id" : [vertices]).
         """
-        return self.all_surfaces_reduced
+        return dict(zip([str(k) for k in range(len(self.surfaces_processed))], [sf.tolist() for sf in self.surfaces_processed]))
