@@ -81,7 +81,8 @@ class SurfaceProcessing:
         self._method_id = self._params.method_id
         self._poly_size = self._params.poly_size
         self._min_area = self._params.min_area
-        self._margin = self._params.margin
+        self._margin_inner = self._params.margin_inner
+        self._margin_outer = self._params.margin_outer
         self._offsets = -0.03
 
         self._offsets_clearmap = 0.02 # (initial_height + offsets_clearmap) height under which the surfaces are removed.
@@ -124,8 +125,8 @@ class SurfaceProcessing:
             polySize=self._poly_size,
             method=self._method_id,
             min_area=self._min_area,
-            margin_inner=self._margin,
-            margin_outer=self._margin,
+            margin_inner=self._margin_inner,
+            margin_outer=self._margin_outer,
             clearmap= self._clearmap,
             clearmap_limit= (self._initial_height + self._offsets_clearmap) )
 

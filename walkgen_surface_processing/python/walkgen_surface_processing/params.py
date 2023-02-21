@@ -51,7 +51,8 @@ class SurfaceProcessingParams:
 
         # Planeseg parameters for postprocessing.
         self.n_points = 6  # Maximum Number of points for for each convex surface
-        self.margin = 0.06  # Margin in [m] inside the convex surfaces
+        self.margin_inner = 0.04  # Margin in [m] inside the convex surfaces (safe footstep planning)
+        self.margin_outer = 0.06  # Margin in [m] outside the convex surfaces (collision avoidance)
         # Method to remove the overlapping between surfaces :
         #   1. Run the list of surfaces starting with the lowest.
         #   2. Decomposes the lowest surface in set of convex ones by removing the upper surfaces that overlap it. (Tesselation algorithm).
@@ -88,4 +89,5 @@ class SurfaceProcessingParams:
         self.method_id = config["walkgen_params"]["params"]["method_id"]
         self.poly_size = config["walkgen_params"]["params"]["poly_size"]
         self.min_area = config["walkgen_params"]["params"]["min_area"]
-        self.margin = config["walkgen_params"]["params"]["margin"]
+        self.margin_inner = config["walkgen_params"]["params"]["margin_inner"]
+        self.margin_outer = config["walkgen_params"]["params"]["margin_outer"]

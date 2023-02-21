@@ -9,7 +9,7 @@ from walkgen_surface_processing.tools.plot_tools import plot_surface
 
 # Parameters of the environment
 params = SurfaceProcessingParams()
-params.margin = 0.08  # Inner margins [m].
+params.margin_inner = 0.08  # Inner margins [m].
 
 # Rotation and translation of the environment
 translation = np.array([0., 0., 0.])  # translation
@@ -20,7 +20,7 @@ R = pin.rpy.rpyToMatrix(rpy)  # Rotation matrix
 surface_detector = SurfaceDetector(params.path + params.stl, R, translation, 0. , "environment_")
 all_surfaces = surface_detector.extract_surfaces()
 
-surface_detector = SurfaceDetector(params.path + params.stl, R, translation, params.margin , "environment_")
+surface_detector = SurfaceDetector(params.path + params.stl, R, translation, params.margin_inner , "environment_")
 all_surfaces_reduced = surface_detector.extract_surfaces()
 
 # Plot surfaces.
