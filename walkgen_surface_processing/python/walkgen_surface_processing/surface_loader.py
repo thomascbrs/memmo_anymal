@@ -29,7 +29,7 @@
 
 import numpy as np
 import trimesh
-from walkgen_surface_processing.tools.geometry_utils import order, apply_margin
+from walkgen_surface_processing.tools.geometry_utils import order, apply_margin, align_points
 from os import listdir
 from os.path import isfile, join
 
