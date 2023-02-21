@@ -111,7 +111,7 @@ class SurfacePlanner():
         for i,rom in enumerate(rom_names):
             obj = trimesh.load_mesh(path + rom)
             obj.apply_translation(-self._shoulders[:,i])
-            obj.apply_scale(1.5)
+            obj.apply_scale(1.)
             obj.apply_translation( self._shoulders[:,i])
             obj_stl.append(obj)
 
@@ -340,6 +340,7 @@ class SurfacePlanner():
                     if distance(surface_collision, self.roms_collision[name_foot], hppfcl.Transform3f(), tf) < 0:
                         surfaces.append(self.all_surfaces[key])
                         surface_name.append(key)
+                print("pot surfaces : " , len(surfaces))
                 if not len(surfaces):
                     # In case there are not any potential surface to use, gives all the surfaces as potential surfaces.
                     print("Warning : no potential surfaces.")
