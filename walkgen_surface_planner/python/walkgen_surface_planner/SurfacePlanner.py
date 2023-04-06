@@ -61,13 +61,14 @@ rom_names = ['LFleg_vN_Rom.stl', 'RFleg_vN_Rom.stl', 'LHleg_vN_Rom.stl', 'RHleg_
 
 class SurfacePlanner():
 
-    def __init__(self, params=None):
+    def __init__(self, params=None, RECORDING=True):
         """ Initialize the surface planner.
 
         Args:
             - initial_height (float): Height of the ground.
             - q0 (array x7): Initial position and orientation in world frame.
             - params (WalkgenParams): Parameter class.
+            - RECORDING (bool): records computing timings in a dict().
         """
         if params is not None:
             self._params = copy.deepcopy(params)
@@ -86,6 +87,9 @@ class SurfacePlanner():
         self._tf = hppfcl.Transform3f()
         self._terrain = TerrainSlope(self._params.fitsize_x, self._params.fitsize_y, self._params.fitlength)
         self._recompute_slope = self._params.recompute_slope
+        
+        # Record computing timings
+        self._RECORDING = RECORDING
 
         # Gait parameters
         self._set_gait_param(self._params)
@@ -115,7 +119,6 @@ class SurfacePlanner():
             obj.apply_translation( self._shoulders[:,i])
             obj_stl.append(obj)
 
-
         # Dictionnary containing the convex set of roms for collisions.
         self.roms_collision = dict(zip(self._contact_names, [convert_to_convexFcl(obj.vertices) for obj in obj_stl]))
 
@@ -128,6 +131,19 @@ class SurfacePlanner():
         
         # Compute the slope of terrain 1 configuration over self._ratio_recompute_slope 
         self._ratio_recompute_slope = 3 
+   
+        # Profiling performances
+        if self._RECORDING:
+            self.profiler = {"potential_number":[],
+                            "timing_potential":0,
+                            "timing_MIP":0,
+                            "timing_configuration":0
+                            }
+        else:
+            self.profiler = {}
+            
+    def get_profiler(self):
+        return self.profiler
 
     def _set_gait_param(self, params):
         """ Initialize gait parameters.
@@ -329,6 +345,9 @@ class SurfacePlanner():
             - configs (list): List of configurations (Array x7, [position, orientation]).
             - gait (array nx4): gait matrix.
         """
+        if self._RECORDING:
+            # Reset the list of potential surfaces
+            self.profiler["potential_number"] = []
         surfaces_list = []
         empty_list = False
         for id, config in enumerate(configs):
@@ -349,11 +368,13 @@ class SurfacePlanner():
                     if distance(surface_collision, self.roms_collision[name_foot], hppfcl.Transform3f(), tf) < 0:
                         surfaces.append(self.all_surfaces[key])
                         surface_name.append(key)
-                print("pot surfaces : " , len(surfaces))
                 if not len(surfaces):
                     # In case there are not any potential surface to use, gives all the surfaces as potential surfaces.
                     print("Warning : no potential surfaces.")
                     surfaces = [value for value in self.all_surfaces.values()]
+                if self._RECORDING:
+                    # Save the number of potential surfaces
+                    self.profiler["potential_number"].append(len(surfaces))
 
                 # Sort and then convert to array
                 surfaces = sorted(surfaces)
@@ -450,14 +471,15 @@ class SurfacePlanner():
         if len(q) != 7:
             raise ArithmeticError("Current state should be size 7, [pos x3 , quaternion x4]")
 
-        t0 = clock()
-
         # Compute configurations.
+        t0 = clock()
         configs = self._compute_configuration(q[:7], bvref)
-        self.configs = configs
-
         t1 = clock()
-        print("_compute_configuration [ms] : ", 1000 * (t1 - t0))
+        # print("_compute_configuration [ms] : ", 1000 * (t1 - t0))
+        if self._RECORDING:
+            self.profiler["timing_configuration"] = t1 - t0
+
+        self.configs = configs
 
         # Orientation for each configurations.
         R = [pin.XYZQUATToSE3(np.array(config)).rotation for config in configs]
@@ -471,8 +493,10 @@ class SurfacePlanner():
         t0 = clock()
         surfaces, empty_list = self.get_potential_surfaces(configs, gait)
         t1 = clock()
-        print("get_potential_surfaces [ms] : ", 1000 * (t1 - t0))
-
+        # print("get_potential_surfaces [ms] : ", 1000 * (t1 - t0))
+        if self._RECORDING:
+            self.profiler["timing_potential"] = t1 - t0
+        
         self.pb.generate_problem(R, surfaces, gait, initial_contacts, configs[0][:3], com=self._com)
 
         if empty_list:
@@ -577,6 +601,8 @@ class SurfacePlanner():
         t0 = clock()
         self.pb_data = solve_MIP(self.pb, costs=costs, com=self._com)
         t1 = clock()
+        if self._RECORDING:
+            self.profiler["timing_MIP"] = t1 - t0
         print("SL1M optimization took [ms] : ", 1000 * (t1 - t0))
 
         # Process result SL1M
