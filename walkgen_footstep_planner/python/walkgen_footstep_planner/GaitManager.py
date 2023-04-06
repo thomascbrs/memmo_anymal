@@ -145,7 +145,8 @@ class GaitManager:
         self._surface_planner_gait = None
         
         # Send new step flag only 1 over n_new_steps :
-        self._ratio_nsteps = 2
+        self._ratio_nsteps = 1
+        # self._ratio_nsteps = 2 # trot in simu with a lot of surfaces
         self._new_step_counter = 0
 
         # Add initial CS (whith longer stand phase to warm-up the MPC)
