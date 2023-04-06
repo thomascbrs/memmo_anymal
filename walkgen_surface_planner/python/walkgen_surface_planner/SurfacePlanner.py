@@ -111,7 +111,7 @@ class SurfacePlanner():
         for i,rom in enumerate(rom_names):
             obj = trimesh.load_mesh(path + rom)
             obj.apply_translation(-self._shoulders[:,i])
-            obj.apply_scale(1.)
+            obj.apply_scale(1.2)
             obj.apply_translation( self._shoulders[:,i])
             obj_stl.append(obj)
 
@@ -125,6 +125,9 @@ class SurfacePlanner():
         self.pb_data = None
         self.surfaces_processed = None
         self.configs = None
+        
+        # Compute the slope of terrain 1 configuration over self._ratio_recompute_slope 
+        self._ratio_recompute_slope = 3 
 
     def _set_gait_param(self, params):
         """ Initialize gait parameters.
@@ -154,7 +157,11 @@ class SurfacePlanner():
                 "More phases in the MPC horizon than planned by the MIP. The last surface selected will be used multiple times."
             )
         self._N_total = self._n_gait * self._N_phase
-
+        # Trotting in simulation with a lot of surfaces
+        # self._N_total = 3
+        # Walking in simulation with a lot of surfaces
+        # self._N_total = 6     
+        
     def _compute_gait(self, gait_in):
         """
         Get a gait matrix with only one line per phase
@@ -248,6 +255,8 @@ class SurfacePlanner():
 
         # List of configurations in planned horizon, using the reference velocity.
         configs = []
+        
+        # Compute the slope of terrain 1 configuration over self._ratio_recompute_slope 
         for i in range(self._N_total):
             config = np.zeros(7)
             # Delay of 1 phase of contact for MIP
@@ -266,8 +275,8 @@ class SurfacePlanner():
             config[1] = np.sin(yaw_init) * dx_ + np.cos(yaw_init) * dy_  # Yaw rotation for dy
             config[:2] += q[:2]  # Add initial 2D position
 
-            # Recompute the orientation according to the heightmap for each configuration.
-            if self._recompute_slope :
+            # Recompute the orientation according to the heightmap each configuration over self._ratio_recompute_slope
+            if self._recompute_slope and i % self._ratio_recompute_slope == 0:
                 rotation =  np.dot(pin.rpy.rpyToMatrix(np.array([0.,0.,bvref[5] * dt_config])) , rotation)
                 fit_ = self._terrain.get_slope(config[:2], rotation, collision_points)
                 rpyMap_ = np.zeros(3)
@@ -383,17 +392,37 @@ class SurfacePlanner():
         for k in range(self._N_phase):  # in one phase each foot move one time.
             if k < self._N_phase_return:
                 for i in range(self._n_gait):  # The number of step in one phase
-                    for id, foot in enumerate(self.pb.phaseData[k * self._n_gait + i].moving):
-                        # Index of surface choosen in the potential surfaces.
-                        id_sf = indices[k * self._n_gait + i][id]
-                        self._selected_surfaces.get(
-                            self._contact_names[foot])[k].A = self.pb.phaseData[k * self._n_gait +
-                                                                                i].S[id][id_sf][0][:, :]
-                        self._selected_surfaces.get(
-                            self._contact_names[foot])[k].b = self.pb.phaseData[k * self._n_gait +
-                                                                                i].S[id][id_sf][1][:]
-                        self._selected_surfaces.get(
-                            self._contact_names[foot])[k].vertices = surfaces[k * self._n_gait + i][id][id_sf][:, :]
+                    try :
+                        for id, foot in enumerate(self.pb.phaseData[k * self._n_gait + i].moving):
+                            # Index of surface choosen in the potential surfaces.
+                            id_sf = indices[k * self._n_gait + i][id]
+                            self._selected_surfaces.get(
+                                self._contact_names[foot])[k].A = self.pb.phaseData[k * self._n_gait +
+                                                                                    i].S[id][id_sf][0][:, :]
+                            self._selected_surfaces.get(
+                                self._contact_names[foot])[k].b = self.pb.phaseData[k * self._n_gait +
+                                                                                    i].S[id][id_sf][1][:]
+                            self._selected_surfaces.get(
+                                self._contact_names[foot])[k].vertices = surfaces[k * self._n_gait + i][id][id_sf][:, :]
+                    except :
+                        # Quick fix, should not work for walk
+                        if self._typeGait == "trot" :
+                            for id, foot in enumerate(self.pb.phaseData[k * self._n_gait + i - 2].moving):
+                                self._selected_surfaces.get(
+                                    self._contact_names[foot])[k].A =  self._selected_surfaces.get(self._contact_names[foot])[k-1].A
+                                self._selected_surfaces.get(
+                                    self._contact_names[foot])[k].b =  self._selected_surfaces.get(self._contact_names[foot])[k-1].b
+                                self._selected_surfaces.get(
+                                    self._contact_names[foot])[k].vertices = self._selected_surfaces.get(self._contact_names[foot])[k-1].vertices
+                        else :
+                            for id, foot in enumerate(self.pb.phaseData[k * self._n_gait + i - 4].moving):
+                                self._selected_surfaces.get(
+                                    self._contact_names[foot])[k].A =  self._selected_surfaces.get(self._contact_names[foot])[k-1].A
+                                self._selected_surfaces.get(
+                                    self._contact_names[foot])[k].b =  self._selected_surfaces.get(self._contact_names[foot])[k-1].b
+                                self._selected_surfaces.get(
+                                    self._contact_names[foot])[k].vertices = self._selected_surfaces.get(self._contact_names[foot])[k-1].vertices
+                            
 
         # Fill with the last surface computed in case the number of phases in the MIP is lower than the one in the Walkgen.
         if self._N_phase_return > self._N_phase:
