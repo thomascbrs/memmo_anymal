@@ -143,6 +143,11 @@ class GaitManager:
         self._is_first_gait = True
         self._queue_cs = []  # Queue of contact
         self._surface_planner_gait = None
+        
+        # Send new step flag only 1 over n_new_steps :
+        self._ratio_nsteps = 1
+        # self._ratio_nsteps = 2 # trot in simu with a lot of surfaces
+        self._new_step_counter = 0
 
         # Add initial CS (whith longer stand phase to warm-up the MPC)
         self._initial_cs.updateSwitches()
@@ -311,18 +316,26 @@ class GaitManager:
             for cs in self._queue_cs:
                 count += cs.T
             if count - self._timeline < (self._horizon):
-                gait = copy.deepcopy(self._default_cs)
+                gait = self._default_cs
                 gait.updateSwitches()
                 self._queue_cs.insert(0, gait)
                 addContact = True
             if self._is_first_gait:  # Double support phase added for the first gait
                 if (self._timeline - self._N_ds) in self.switches:
-                    self._new_step = True
+                    # self._new_step = True
+                    self._new_step_counter += 1
+                    if self._new_step_counter % self._ratio_nsteps == 0 :
+                        self._new_step = True
+                        self._new_step_counter = 0
                     self._surface_planner_gait = self._retrieve_gait(
                         self._timeline - self._N_ds)
             else:
                 if self._timeline in self.switches:
-                    self._new_step = True
+                    # self._new_step = True
+                    self._new_step_counter += 1
+                    if self._new_step_counter % self._ratio_nsteps == 0 :
+                        self._new_step = True
+                        self._new_step_counter = 0
                     self._surface_planner_gait = self._retrieve_gait(
                         self._timeline)
 

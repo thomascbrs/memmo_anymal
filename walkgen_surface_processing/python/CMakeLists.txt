@@ -48,6 +48,7 @@ __init__.py
 process_planeseg.py
 process_stl.py
 process_stl_folder.py
+process_icra_scene.py
 )
 
 

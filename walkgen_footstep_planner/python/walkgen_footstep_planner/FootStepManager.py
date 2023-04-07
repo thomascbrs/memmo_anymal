@@ -27,9 +27,14 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+try:
+    from time import perf_counter as clock
+except ImportError:
+    from time import time as clock
 import walkgen_footstep_planner.FootStepPlanner as FootStepPlanner
 import walkgen_footstep_planner.GaitManager as GaitManager
 from walkgen_footstep_planner.tools.Surface import Surface
+from walkgen_footstep_planner.tools.Logger import Logger
 import copy
 import numpy as np
 from walkgen_footstep_planner.params import FootStepPlannerParams
@@ -40,7 +45,7 @@ class FootStepManager:
     """ Wrapper class to manage the footstep planning of the Walkgen library.
     """
 
-    def __init__(self, model, q, params=None, debug=False):
+    def __init__(self, model, q, params=None, debug=False, RECORDING=False, folder_path=None):
         """Initialize the management.
 
         Args:
@@ -113,6 +118,10 @@ class FootStepManager:
         self.initialize_default_cs()
         self._foostep_planner = FootStepPlanner(
             model, q, self._params, debug, self._params.dt * self._default_cs.T)  # Foostep planner
+        
+        self._RECORDING = RECORDING
+        if self._RECORDING:
+            self._logger = Logger(folder_path)
 
     def initialize_default_cs(self):
         """ Create a default contact schedule compatible with Caracal CS.
@@ -174,12 +183,15 @@ class FootStepManager:
             - vq (array x18): Linear and angular current velocity.
             - b_v_ref (array x6): Linear and angular desired velocities.
         """
+        ti0 = clock()
         self._addContact = False
         # For the first iteration, the gait does not need to be updated.
+        ti1 = clock()
         if self._firstIteration:
             self._firstIteration = False
         else:
             self._addContact = self._gait_manager.update()
+        tf1 = clock()
 
         # Get results from optimisation during the previous phase.
         if self._gait_manager.is_new_step():
@@ -188,12 +200,15 @@ class FootStepManager:
             self._selected_surfaces = copy.deepcopy(self._new_surfaces)
 
         # Run Footstepplanner
+        ti2 = clock()
         target_foostep = self._foostep_planner.compute_footstep(self._gait_manager.get_cs(), q.copy(), vq.copy(),
                                                                 b_v_ref, self._gait_manager._timeline,
                                                                 self._selected_surfaces, self._previous_surfaces)
+        tf2 = clock()
 
         # Check if a new flying phase is starting to trigger SL1M.
         if self._gait_manager.is_new_step():
+            print("NEW STEPS ---> SL1M")
             self._gait_sl1m = self._gait_manager.get_current_gait()  # Current walking gait
 
             # Target foosteps for SL1M.
@@ -209,6 +224,15 @@ class FootStepManager:
                                                                                          _contactNames.index(name)]
 
         self._coeffs = self._gait_manager.get_coefficients()
+        tf0 = clock()
+        if self._RECORDING:
+            # Update logger
+            self._logger.update_fsteps_data(self._foostep_planner.get_profiler())
+            self._logger.update_global_timings(tf0 - ti0, tf1 - ti1, tf2 - ti2)
+            self._logger.write_data()
+            # Reset data
+            self._foostep_planner.reset_profiler()
+            self._logger.reset_data()
 
     def update_previous_surfaces(self):
         """ Keep in memory the starting surface for the current flying phases. Usefull to plan trajectory avoidance with Bezier curves.
@@ -270,7 +294,15 @@ class FootStepManager:
         """
         return self._foostep_planner.qv_f
 
-
+    def get_profiler(self):
+        """ Returns profiler dict() from Footstepplanner
+        """
+        return self._foostep_planner.profiler
+    
+    def reset_profiler(self):
+        """ Reset dict containing timing information
+        """
+        self._foostep_planner.reset_profiler()
 
 if __name__ == "__main__":
     """ Run a simple example of the FootStepManager wrapper.
