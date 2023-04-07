@@ -31,6 +31,10 @@ from argparse import ArgumentError
 import numpy as np
 import pinocchio as pin
 import copy
+try:
+    from time import perf_counter as clock
+except ImportError:
+    from time import time as clock
 
 from walkgen_footstep_planner.libwalkgen_footstep_planner_pywrap import Surface as Surface_cpp
 from walkgen_footstep_planner.tools.Filter import Filter, FilterMean
@@ -44,7 +48,7 @@ class FootStepPlanner():
     Use RBPRM as a guide path since the env is available.
     """
 
-    def __init__(self, model, q, params=None, debug=False, period=0.5):
+    def __init__(self, model, q, params=None, debug=False, period=0.5, RECORDING= True):
         """ Initialize the FootStepPlanner.
 
         Args:
@@ -139,6 +143,26 @@ class FootStepPlanner():
         self.q_filter_save = []
 
         self._counter_gait = 0
+        
+        # Profiling surface planner
+        self._RECORDING = RECORDING
+        if self._RECORDING:
+            self.profiler = {"update_position":[],
+                            "foot_position":[],
+                            "foot_trajectory":[],
+                            "surface_binding":[]
+                            }
+        else:
+            self.profiler = {}
+            
+    def reset_profiler(self):
+        self.profiler["update_position"] = []
+        self.profiler["foot_position"] = []
+        self.profiler["foot_trajectory"] = [] 
+        self.profiler["surface_binding"] = []
+    
+    def get_profiler(self):
+        return self.profiler  
 
     def compute_footstep(self, queue_cs, q, vq, bvref, timeline, selected_surfaces, previous_surfaces):
         """ Run the queue in reverse order and update the position for each Contact Schedule (CS)
@@ -204,6 +228,7 @@ class FootStepPlanner():
         Returns:
             - (array 3x4): Target for the incoming footseps.
         """
+        ti = clock()
         if self.debug:
             self.footstep.clear()
             self.footstep = [[], [], [], []]
@@ -245,7 +270,8 @@ class FootStepPlanner():
 
                         if cs_index + active_phase.T - timeline <= self._horizon + 2:
                             # Displacement following the reference velocity compared to current position
-                            if active_phase.T + inactive_phase.T - timeline > 0:  # case 1 & 2
+                            if active_phase.T + inactive_phase.T - timeline > 0:  # case 1 & 2 
+                                t1 = clock()
                                 if abs(bvref[5]) > 10e-3:
                                     dt_ = (cs_index + active_phase.T +
                                            inactive_phase.T - timeline) * cs.dt
@@ -279,6 +305,9 @@ class FootStepPlanner():
                                 h_ = sf.b - np.dot(sf.A, footstep)
                                 delta_x = quadprog_solve_qp(P_, q_, G_, h_)
                                 footstep_optim = footstep + delta_x
+                                t2 = clock()
+                                if self._RECORDING:
+                                    self.profiler["foot_position"].append(t2 - t1) 
                                 if foot_timeline[j] == 0:
                                     target_footstep[:, self._contact_names_SL1M.index(
                                         name)] = footstep_optim
@@ -308,11 +337,17 @@ class FootStepPlanner():
                                     footstep_optim[:2] = P0[:2, j]
 
                                 if t0 <= inactive_phase.T * 0.70:
+                                    t1 = clock()
                                     surface_init = Surface_cpp(previous_sf.A, previous_sf.b, previous_sf.vertices.T)
                                     surface_end = Surface_cpp(sf.A, sf.b, sf.vertices.T)
+                                    t1f = clock()
 
                                     phases[1].trajectory.update(
                                         P0[:, j], V0[:, j], footstep_optim, t0 * cs.dt, surface_init, surface_end)
+                                    t2 = clock()
+                                    if self._RECORDING:
+                                        self.profiler["foot_trajectory"].append(t2 - t1) 
+                                        self.profiler["surface_binding"].append(t1f - t1) 
 
                                 # End of the flying phase, register the surface.
                                 if t0 >= inactive_phase.T - self._nsteps:
@@ -336,6 +371,10 @@ class FootStepPlanner():
                 break
             cs_index += cs.T - timeline
             timeline = 0.
+            
+        tf = clock()
+        if self._RECORDING:
+            self.profiler["update_position"].append(tf - ti) 
 
         return target_footstep
 
