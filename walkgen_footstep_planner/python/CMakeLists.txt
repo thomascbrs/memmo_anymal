@@ -42,6 +42,7 @@ SET(${FOOTSTEP_PLANNER_NAME}_TOOLS_SOURCES
     Surface.py
     optimisation.py
     Filter.py
+    Logger.py
     )
 
 FOREACH(src ${${FOOTSTEP_PLANNER_NAME}_SOURCES})
