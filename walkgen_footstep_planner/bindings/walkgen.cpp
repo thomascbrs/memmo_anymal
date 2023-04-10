@@ -1,8 +1,10 @@
 #include "FootTrajectoryBezier.hpp"
+#include "ContactPhase.hpp"
 #include "Surface.hpp"
 
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <boost/python/converter/shared_ptr_to_python.hpp>
 #include <eigenpy/eigenpy.hpp>
 
 namespace bp = boost::python;
@@ -126,6 +128,33 @@ struct SurfacePythonVisitor : public bp::def_visitor<SurfacePythonVisitor<Surfac
 };
 void exposeSurface() { SurfacePythonVisitor<Surface>::expose(); }
 
+
+
+// Binding ContactType class
+void exposeContactType() {
+    bp::enum_<ContactType>("ContactType")
+        .value("POINT", ContactType::POINT)
+        .value("FULL", ContactType::FULL);
+}
+
+// Expose the ContactPhase class to Python
+void exposeContactPhase()
+{   bp::register_ptr_to_python<std::shared_ptr<FootTrajectoryBezier> >();
+    bp::register_ptr_to_python<std::shared_ptr<ContactPhase>>();
+    // bp::to_python_converter<std::shared_ptr<ContactPhase>, boost::python::converter::shared_ptr_to_python<ContactPhase>>();
+    bp::class_<ContactPhase,boost::noncopyable>("ContactPhase",bp::init<int, ContactType>(bp::args("T", "contactType"),"Constructor for a ContactPhase object without a trajectory."))
+    .def(bp::init<int, ContactType, std::shared_ptr<FootTrajectoryBezier>>(bp::args("T", "contactType", "trajectory"),
+               "Constructor for a ContactPhase object."))
+        .add_property("trajectory",
+                bp::make_function(&ContactPhase::getTrajectory, bp::return_value_policy<bp::return_by_value>()),
+                &ContactPhase::setTrajectory, "Trajectory in the ContactPhase.")
+        .def_readwrite("T", &ContactPhase::T_, "Number of nodes in the ContactPhase.")
+        .def_readwrite("contactType", &ContactPhase::contactType_, "Number of nodes in the ContactPhase.")
+        .def("__add__", &ContactPhase::operator+,  bp::return_value_policy<bp::return_by_value>())
+        .def("__copy__", &generic__copy__<ContactPhase>)
+        .def("__deepcopy__", &generic__deepcopy__<ContactPhase>);
+}
+
 /////////////////////////////////
 /// Exposing classes
 /////////////////////////////////
@@ -135,4 +164,6 @@ BOOST_PYTHON_MODULE(libwalkgen_footstep_planner_pywrap) {
 
   exposeFootTrajectoryBezier();
   exposeSurface();
+  exposeContactType();
+  exposeContactPhase();
 }

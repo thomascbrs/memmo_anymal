@@ -46,11 +46,13 @@ set(${FOOTSTEP_PLANNER_NAME}_HEADERS
   include/Types.hpp
   include/Surface.hpp
   include/FootTrajectoryBezier.hpp
+  include/ContactPhase.hpp
 )
 
 set(${FOOTSTEP_PLANNER_NAME}_SOURCES_CPP
   src/Surface.cpp
   src/FootTrajectoryBezier.cpp
+  src/ContactPhase.cpp
 )
 
 include_directories("${CMAKE_SOURCE_DIR}/${FOOTSTEP_PLANNER_NAME}/include")
