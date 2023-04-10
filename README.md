@@ -56,3 +56,15 @@ Allow to interface with ros message. It contains publisher interfaces, reading a
 ### Pipeline :
 
 ![](./doc/pipeline.png)
+
+
+
+---
+### Tag v1.0
+
+- memmo_planner_ros (commit 0377f96, tag v1.0) : https://github.com/thomascbrs/memmo_planner_ros
+- caracal_ros (commit f4556c8) : https://github.com/thomascbrs/caracal_ros
+- caracal (commit 49a94d0) : https://github.com/thomascbrs/caracal
+- Crocoddyl (commit 17cff47f) : https://github.com/cmastalli/crocoddyl-constraints/blob/topic/inv-dyn-solver/examples/arm_manipulation_invdyn.py
+- sl1m (commit 47c41fe):https://github.com/thomascbrs/sl1m
+- pinocchio (d3dbdf5f , tag v2.6.6): https://github.com/stack-of-tasks/pinocchio.git
