@@ -1,10 +1,10 @@
 #include "FootTrajectoryBezier.hpp"
 
 FootTrajectoryBezier::FootTrajectoryBezier()
-    : intersectionPoint_(Vector2::Zero()),
-      Ax(Vector6::Zero()),
+    : Ax(Vector6::Zero()),
       Ay(Vector6::Zero()),
       Az(Vector7::Zero()),
+      intersectionPoint_(Vector2::Zero()),
       t_swing_(0.),
       useBezier(true),
       elevation_(ElevationType(HORIZONTAL)),
@@ -33,7 +33,7 @@ void FootTrajectoryBezier::initialize(int const& N_samples_in, int const& N_samp
   N_samples = N_samples_in;
   N_samples_ineq = N_samples_ineq_in;
   degree = degree_in;
-  res_size = dim * (degree + 1 - 6);
+  res_size = dim *  (degree + 1 - 6);
 
   P_ = MatrixN::Zero(res_size, res_size);
   q_ = VectorN::Zero(res_size);
@@ -488,7 +488,7 @@ Vector3 FootTrajectoryBezier::evaluateBezier(int const& indice, double const& t)
   if (indice == 0) {
     return curve_(t);
   } else {
-    return curve_.derivate(t, indice);
+    return curve_.derivate(t, static_cast<size_t>(indice));
   }
 }
 
