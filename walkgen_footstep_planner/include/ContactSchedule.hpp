@@ -13,8 +13,8 @@ public:
     ContactSchedule(double dt, int T, int S_total, std::vector<std::string> contactNames);
     void addSchedule(const std::string& name, const std::vector<std::shared_ptr<ContactPhase>>& schedule);
     void updateSwitches();
-    // void checkSchedule();
-    // ContactSchedule operator+(const ContactSchedule& contactSchedule);
+    void checkSchedule();
+    std::shared_ptr<ContactSchedule> operator+(const ContactSchedule& contactSchedule);
 
     double dt_;  // time step
     int T_;  // number of nodes

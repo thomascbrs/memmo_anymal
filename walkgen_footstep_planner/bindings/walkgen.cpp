@@ -152,7 +152,6 @@ void exposeContactPhase()
 {
     bp::register_ptr_to_python<std::shared_ptr<FootTrajectoryBezier>>();
     bp::register_ptr_to_python<std::shared_ptr<ContactPhase>>();
-    // bp::to_python_converter<std::shared_ptr<ContactPhase>, boost::python::converter::shared_ptr_to_python<ContactPhase>>();
     bp::class_<ContactPhase, boost::noncopyable>("ContactPhase", bp::init<int, ContactType>(bp::args("T", "contactType"), "Constructor for a ContactPhase object without a trajectory."))
         .def(bp::init<int, ContactType, std::shared_ptr<FootTrajectoryBezier>>(bp::args("T", "contactType", "trajectory"),
                                                                                "Constructor for a ContactPhase object."))
@@ -167,17 +166,19 @@ void exposeContactPhase()
 }
 
 void exposeContactSchedule()
-{   typedef std::shared_ptr<ContactPhase> ContactPhasePtr;
+{
+
+    typedef std::shared_ptr<ContactPhase> ContactPhasePtr;
     typedef std::vector<std::shared_ptr<ContactPhase>> ContactPhaseVecPtr;
     walkgen::python::StdVectorPythonVisitor<ContactPhasePtr, std::allocator<ContactPhasePtr>>::expose("StdVec_ContactPhaseVec");
-    walkgen::python::StdVectorPythonVisitor<ContactPhaseVecPtr,std::allocator<ContactPhaseVecPtr> >::expose("StdVec_ContactPhaseVecVec");
-    walkgen::python::StdMapPythonVisitor<int, std::vector<int>,std::less<int>, std::allocator<std::pair<const int, std::vector<int>>>>::expose("StdMap_int_VecInt");
-   
+    walkgen::python::StdVectorPythonVisitor<ContactPhaseVecPtr, std::allocator<ContactPhaseVecPtr>>::expose("StdVec_ContactPhaseVecVec");
+    walkgen::python::StdMapPythonVisitor<int, std::vector<int>, std::less<int>, std::allocator<std::pair<const int, std::vector<int>>>>::expose("StdMap_int_VecInt");
+
     bp::register_ptr_to_python<std::shared_ptr<ContactSchedule>>();
     bp::class_<ContactSchedule, boost::noncopyable>("ContactSchedule", bp::init<double, int, int, std::vector<std::string>>(bp::args("dt", "T", "S_total", "contactNames"), "Constructor for a ContactSchedule object."))
-        // .def("addSchedule", &ContactSchedule::addSchedule)
+        .def("addSchedule", &ContactSchedule::addSchedule)
         .def("updateSwitches", &ContactSchedule::updateSwitches)
-        // .def("checkSchedule", &ContactSchedule::checkSchedule)
+        .def("checkSchedule", &ContactSchedule::checkSchedule)
         .def_readwrite("dt", &ContactSchedule::dt_)
         .def_readwrite("T", &ContactSchedule::T_)
         .def_readwrite("S_total", &ContactSchedule::S_total_)
@@ -186,8 +187,8 @@ void exposeContactSchedule()
         .def_readwrite("phases", &ContactSchedule::phases_)
         .def_readwrite("switches", &ContactSchedule::switches_)
         .def("__copy__", &generic__copy__<ContactSchedule>)
-        .def("__deepcopy__", &generic__deepcopy__<ContactSchedule>);
-        // .def("__add__", &ContactSchedule::operator+);
+        .def("__deepcopy__", &generic__deepcopy__<ContactSchedule>)
+        .def("__add__", &ContactSchedule::operator+, bp::return_value_policy<bp::return_by_value>());
 }
 
 /////////////////////////////////
@@ -196,7 +197,6 @@ void exposeContactSchedule()
 BOOST_PYTHON_MODULE(libwalkgen_footstep_planner_pywrap)
 {
     eigenpy::enableEigenPy();
-    // exposeList();
 
     exposeFootTrajectoryBezier();
     exposeSurface();
