@@ -32,6 +32,13 @@ public:
     // Operator overload to add two contact phases together
     std::shared_ptr<ContactPhase> operator+(const ContactPhase& phase) const;
 
+    // Operator ==, necessary to register a list
+    bool operator==(const ContactPhase& other) const {
+        return T_ == other.T_ &&
+               contactType_ == other.contactType_ &&
+               trajectory_ == other.trajectory_;
+    }
+
     int T_; // Number of nodes
     ContactType contactType_; // Type of contact
     std::shared_ptr<FootTrajectoryBezier> trajectory_; // Task-space trajectory during contact phase
