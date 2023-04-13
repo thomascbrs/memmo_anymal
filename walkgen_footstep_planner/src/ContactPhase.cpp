@@ -1,11 +1,25 @@
 #include "ContactPhase.hpp"
 #include "FootTrajectoryBezier.hpp"
 
+// Constructor with number of nodes
+ContactPhase::ContactPhase(int T) :
+    T_(T),
+    contactType_(ContactType::POINT),
+    trajectory_(nullptr)
+{}
+
 // Constructor with number of nodes and contact type
 ContactPhase::ContactPhase(int T, ContactType contactType) :
     T_(T),
     contactType_(contactType),
     trajectory_(nullptr)
+{}
+
+// Constructor with number of nodes and trajectory
+ContactPhase::ContactPhase(int T, std::shared_ptr<FootTrajectoryBezier> trajectory) :
+    T_(T),
+    contactType_(ContactType::POINT),
+    trajectory_(std::move(trajectory))
 {}
 
 // Constructor with number of nodes, contact type, and trajectory

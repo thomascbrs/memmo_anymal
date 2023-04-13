@@ -11,8 +11,14 @@ enum class ContactType {
 
 class ContactPhase {
 public:
+    // Constructor with number of nodes
+    ContactPhase(int T);
+
     // Constructor with number of nodes and contact type
     ContactPhase(int T, ContactType contactType);
+
+    // Constructor with number of nodes and trajectory
+    ContactPhase(int T, std::shared_ptr<FootTrajectoryBezier> trajectory);
 
     // Constructor with number of nodes, contact type, and trajectory
     ContactPhase(int T, ContactType contactType, std::shared_ptr<FootTrajectoryBezier> trajectory);
