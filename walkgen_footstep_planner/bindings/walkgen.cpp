@@ -2,6 +2,7 @@
 #include "ContactPhase.hpp"
 #include "ContactSchedule.hpp"
 #include "Surface.hpp"
+#include "Params.hpp"
 
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -139,6 +140,30 @@ struct SurfacePythonVisitor : public bp::def_visitor<SurfacePythonVisitor<Surfac
 };
 void exposeSurface() { SurfacePythonVisitor<Surface>::expose(); }
 
+// Expose the ContactPhase class to Python
+void exposeParams()
+{
+    bp::class_<Params, boost::noncopyable>("FootStepPlannerParams", bp::init< bp::optional<std::string> >(bp::args("filename"), "Constructor for parameter to laod the yaml."))
+        .def_readwrite("type", &Params::type, "Type of gait")
+        .def_readwrite("dt", &Params::dt, "Time step duration")
+        .def_readwrite("horizon", &Params::horizon, "Planning horizon (in steps)")
+        .def_readwrite("nsteps", &Params::nsteps, "Number of steps to plan")
+        .def_readwrite("stepHeight", &Params::stepHeight, "Step height")
+        .def_readwrite("N_ds", &Params::N_ds, "Number of double support phases")
+        .def_readwrite("N_ss", &Params::N_ss, "Number of single support phases")
+        .def_readwrite("N_uds", &Params::N_uds, "Number of unloading double support phases")
+        .def_readwrite("N_uss", &Params::N_uss, "Number of unloading single support phases")
+        .def_readwrite("N_phase_return", &Params::N_phase_return, "Number of phases for returning to the starting position")
+        .def_readwrite("margin", &Params::margin, "Margin for the Bezier curves")
+        .def_readwrite("t_margin", &Params::t_margin, "Time margin for the Bezier curves")
+        .def_readwrite("z_margin", &Params::z_margin, "Height margin for the Bezier curves")
+        .def_readwrite("N_sample", &Params::N_sample, "Number of samples for the Bezier curves")
+        .def_readwrite("N_sample_ineq", &Params::N_sample_ineq, "Number of samples for the inequality constraints")
+        .def_readwrite("degree", &Params::degree, "Degree of the Bezier curves")
+        .def("__copy__", &generic__copy__<ContactPhase>)
+        .def("__deepcopy__", &generic__deepcopy__<ContactPhase>);
+}
+
 // Binding ContactType class
 void exposeContactType()
 {
@@ -152,8 +177,11 @@ void exposeContactPhase()
 {
     bp::register_ptr_to_python<std::shared_ptr<FootTrajectoryBezier>>();
     bp::register_ptr_to_python<std::shared_ptr<ContactPhase>>();
-    bp::class_<ContactPhase, boost::noncopyable>("ContactPhase", bp::init<int, ContactType>(bp::args("T", "contactType"), "Constructor for a ContactPhase object without a trajectory."))
+    // TODO : bp::optionnal does not work for both variables.
+    bp::class_<ContactPhase, boost::noncopyable>("ContactPhase", bp::init<int, bp::optional<ContactType> >(bp::args("T", "contactType"), "Constructor for a ContactPhase object without a trajectory."))
         .def(bp::init<int, ContactType, std::shared_ptr<FootTrajectoryBezier>>(bp::args("T", "contactType", "trajectory"),
+                                                                               "Constructor for a ContactPhase object."))
+        .def(bp::init<int, std::shared_ptr<FootTrajectoryBezier>>(bp::args("T", "trajectory"),
                                                                                "Constructor for a ContactPhase object."))
         .add_property("trajectory",
                       bp::make_function(&ContactPhase::getTrajectory, bp::return_value_policy<bp::return_by_value>()),
@@ -200,6 +228,7 @@ BOOST_PYTHON_MODULE(libwalkgen_footstep_planner_pywrap)
 
     exposeFootTrajectoryBezier();
     exposeSurface();
+    exposeParams();
     exposeContactType();
     exposeContactPhase();
     exposeContactSchedule();

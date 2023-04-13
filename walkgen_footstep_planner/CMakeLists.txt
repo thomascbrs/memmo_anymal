@@ -48,6 +48,7 @@ set(${FOOTSTEP_PLANNER_NAME}_HEADERS
   include/FootTrajectoryBezier.hpp
   include/ContactPhase.hpp
   include/ContactSchedule.hpp
+  include/Params.hpp
 )
 
 set(${FOOTSTEP_PLANNER_NAME}_SOURCES_CPP
@@ -55,6 +56,7 @@ set(${FOOTSTEP_PLANNER_NAME}_SOURCES_CPP
   src/FootTrajectoryBezier.cpp
   src/ContactPhase.cpp
   src/ContactSchedule.cpp
+  src/Params.cpp
 )
 
 include_directories("${CMAKE_SOURCE_DIR}/${FOOTSTEP_PLANNER_NAME}/include")
@@ -75,6 +77,9 @@ TARGET_LINK_LIBRARIES(${FOOTSTEP_PLANNER_NAME}_cpp PUBLIC ndcurves::ndcurves)
 # Find eiquadprog library and headers
 ADD_PROJECT_DEPENDENCY(eiquadprog REQUIRED)
 TARGET_LINK_LIBRARIES(${FOOTSTEP_PLANNER_NAME}_cpp PUBLIC eiquadprog::eiquadprog)
+
+ADD_PROJECT_DEPENDENCY(yaml-cpp CONFIG REQUIRED)
+TARGET_LINK_LIBRARIES(${FOOTSTEP_PLANNER_NAME}_cpp PUBLIC ${YAML_CPP_LIBRARIES})
 
 # Add suffix version
 if(SUFFIX_SO_VERSION)
