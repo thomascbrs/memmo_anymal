@@ -126,11 +126,10 @@ namespace walkgen
       template <class Class>
       void visit(Class &cl) const
       {
-        cl
-            .def("__getitem__", &base_get_item, bp::return_value_policy<bp::return_by_value>());
+        cl.def("__getitem__", &overload_base_get_item_for_std_vector::base_get_item, bp::return_value_policy<bp::return_by_value>());
       }
 
-    private:
+    private:       
       static boost::python::object
       base_get_item(boost::python::back_reference<Container &> container, PyObject *i_)
       {
@@ -144,22 +143,23 @@ namespace walkgen
           PyErr_SetString(PyExc_KeyError, "Invalid index");
           bp::throw_error_already_set();
         }
-
-        typename bp::to_python_indirect<data_type &, bp::detail::make_reference_holder> convert;
-        return bp::object(bp::handle<>(convert(*i)));
+        
+        // typename bp::to_python_indirect<data_type &, bp::detail::make_reference_holder> convert;
+        // return bp::object(bp::handle<>(convert(*i)));
+        return bp::object(*i); 
       }
 
       static index_type
       convert_index(Container &container, PyObject *i_)
       {
         namespace bp = boost::python;
-        bp::extract<long> i(i_);
+        bp::extract<size_t> i(i_);
         if (i.check())
         {
-          long index = i();
+          size_t index = i();
           if (index < 0)
             index += container.size();
-          if (index >= long(container.size()) || index < 0)
+          if (index >= size_t(container.size()) || index < 0)
           {
             PyErr_SetString(PyExc_IndexError, "Index out of range");
             bp::throw_error_already_set();
@@ -193,13 +193,13 @@ namespace walkgen
 
         // Overload __getitem__ in order to return properly the std::shared_ptr. Taken from pinocchio3
         // Not working, indexing phases[0] works, phases[0][1] does not recognize the type even if registered
-        // overload_base_get_item_for_std_vector<Container> visitor = overload_base_get_item_for_std_vector<Container>();
+        overload_base_get_item_for_std_vector<Container> visitor = overload_base_get_item_for_std_vector<Container>();
 
         bp::class_<Container>(class_name.c_str(), doc_string.c_str())
             .def(StdVectorPythonVisitor())
             .def("tolist", &FromPythonListConverter::tolist, bp::arg("self"), "Returns the std::vector as a Python list.")
-            // .def(visitor)
-            .def_pickle(PickleVector<Container>());
+            .def_pickle(PickleVector<Container>())
+            .def(visitor);
         // Register conversion
         FromPythonListConverter::register_converter();
       }
