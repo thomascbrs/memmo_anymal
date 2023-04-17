@@ -15,7 +15,6 @@ ContactSchedule::ContactSchedule(double dt, int T, int S_total, std::vector<std:
 void ContactSchedule::updateSwitches() {
     switches_.clear();
     for (int c = 0; c < C_; ++c) {
-        std::cout  << "c : " << c << std::endl;
         const auto& phases = phases_[static_cast<size_t>(c)];
         int phase_index = 0;
         for (size_t p = 0; p < phases.size(); p += 2) {
@@ -59,9 +58,14 @@ void ContactSchedule::addSchedule(const std::string& name, const std::vector<std
     // Check if the total number of phases is within limits
     int N_switch = 0;
     for (size_t p = 0; p < schedule.size(); p += 2) {
-        const auto& phase_inactive = schedule[p + 1];
-        if (phase_inactive->T_ > 0) {
-            ++N_switch;
+        if (!schedule[p]) {
+            throw std::invalid_argument("Schedule contains null ContactPhase object");
+        }
+        if (p + 1 < schedule.size()){
+            const auto& phase_inactive = schedule[p + 1];
+            if (phase_inactive->T_ > 0) {
+                N_switch += 1;
+            }
         }
     }
     if (N_switch > S_total_) {
