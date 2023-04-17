@@ -2,6 +2,7 @@
 
 using namespace yaml_check;
 
+
 void Params::initialize_default() {
     type = "trot";
     dt = 0.01;
@@ -13,13 +14,18 @@ void Params::initialize_default() {
     N_uds = 0;
     N_uss = 0;
     N_phase_return = 2;
-    margin = 0.08;
-    t_margin = 0.3;
-    z_margin = 0.04;
+    margin_up = 0.1;
+    t_margin_up = 0.045;
+    z_margin_up = 0.045;
+    margin_down = 0.1;
+    t_margin_down = 0.2;
+    z_margin_down = 0.2;
     N_sample = 10;
     N_sample_ineq = 8;
     degree = 7;
 }
+
+Params::~Params(){}
 
 Params::Params() {
     initialize_default();
@@ -28,6 +34,30 @@ Params::Params() {
 Params::Params(const std::string& filename) {
     initialize_default();
     parse_yaml_file(filename);
+}
+
+Params::Params(const Params& other)
+{
+    // Copy all member variables from other to this.
+    this->type = other.type;
+    this->dt = other.dt;
+    this->horizon = other.horizon;
+    this->nsteps = other.nsteps;
+    this->stepHeight = other.stepHeight;
+    this->N_ds = other.N_ds;
+    this->N_ss = other.N_ss;
+    this->N_uds = other.N_uds;
+    this->N_uss = other.N_uss;
+    this->N_phase_return = other.N_phase_return;
+    this->margin_up = other.margin_up;
+    this->t_margin_up = other.t_margin_up;
+    this->z_margin_up = other.z_margin_up;
+    this->margin_down = other.margin_down;
+    this->t_margin_down = other.t_margin_down;
+    this->z_margin_down = other.z_margin_down;
+    this->N_sample = other.N_sample;
+    this->N_sample_ineq = other.N_sample_ineq;
+    this->degree = other.degree;
 }
 
 void Params::parse_yaml_file(const std::string& filename) {
@@ -41,7 +71,6 @@ void Params::parse_yaml_file(const std::string& filename) {
     N_phase_return = config["params"]["N_phase_return"].as<int>();
 
     // assert_yaml_parsing(config, filename, "gait");
-    const YAML::Node& params_gait = config["gait"];
     assert_yaml_parsing(config["gait"], filename, "type");
     assert_yaml_parsing(config["gait"], filename, "dt");
     assert_yaml_parsing(config["gait"], filename, "horizon");
@@ -78,15 +107,21 @@ void Params::parse_yaml_file(const std::string& filename) {
     }
 
     // Check the yaml file
-    assert_yaml_parsing(config["bezier"], filename, "margin");
-    assert_yaml_parsing(config["bezier"], filename, "t_margin");
-    assert_yaml_parsing(config["bezier"], filename, "z_margin");
+    assert_yaml_parsing(config["bezier"], filename, "margin_up");
+    assert_yaml_parsing(config["bezier"], filename, "t_margin_up");
+    assert_yaml_parsing(config["bezier"], filename, "z_margin_up");
+    assert_yaml_parsing(config["bezier"], filename, "margin_down");
+    assert_yaml_parsing(config["bezier"], filename, "t_margin_down");
+    assert_yaml_parsing(config["bezier"], filename, "z_margin_down");
     assert_yaml_parsing(config["bezier"], filename, "N_sample_ineq");
     assert_yaml_parsing(config["bezier"], filename, "degree");
 
-    margin = config["bezier"]["margin"].as<double>();
-    t_margin = config["bezier"]["t_margin"].as<double>();
-    z_margin = config["bezier"]["z_margin"].as<double>();
+    margin_up = config["bezier"]["margin_up"].as<double>();
+    t_margin_up = config["bezier"]["t_margin_up"].as<double>();
+    z_margin_up = config["bezier"]["z_margin_up"].as<double>();
+    margin_down = config["bezier"]["margin_down"].as<double>();
+    t_margin_down = config["bezier"]["t_margin_down"].as<double>();
+    z_margin_down = config["bezier"]["z_margin_down"].as<double>();
     N_sample = config["bezier"]["N_sample"].as<int>();
     N_sample_ineq = config["bezier"]["N_sample_ineq"].as<int>();
     degree = config["bezier"]["degree"].as<int>();

@@ -12,8 +12,14 @@ public:
     // Constructor without filename.
     Params();
 
+    // Destructor
+    ~Params();
+
     // Constructor with filename.
     Params(const std::string& filename);
+
+    // Copy constructor
+    Params(const Params& other);
 
     // Initialize with default variables.
     void initialize_default();
@@ -33,9 +39,12 @@ public:
     int N_uss;
     int N_phase_return;
     // Bezier parameters
-    double margin;
-    double t_margin;
-    double z_margin;
+    double margin_up;
+    double t_margin_up;
+    double z_margin_up;
+    double margin_down;
+    double t_margin_down;
+    double z_margin_down;
     int N_sample;
     int N_sample_ineq;
     int degree;

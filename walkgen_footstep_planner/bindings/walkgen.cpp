@@ -154,14 +154,17 @@ void exposeParams()
         .def_readwrite("N_uds", &Params::N_uds, "Number of unloading double support phases")
         .def_readwrite("N_uss", &Params::N_uss, "Number of unloading single support phases")
         .def_readwrite("N_phase_return", &Params::N_phase_return, "Number of phases for returning to the starting position")
-        .def_readwrite("margin", &Params::margin, "Margin for the Bezier curves")
-        .def_readwrite("t_margin", &Params::t_margin, "Time margin for the Bezier curves")
-        .def_readwrite("z_margin", &Params::z_margin, "Height margin for the Bezier curves")
+        .def_readwrite("margin_up", &Params::margin_up, "Margin for the Bezier curves")
+        .def_readwrite("t_margin_up", &Params::t_margin_up, "Time margin for the Bezier curves")
+        .def_readwrite("z_margin_up", &Params::z_margin_up, "Height margin for the Bezier curves")
+        .def_readwrite("margin_down", &Params::margin_down, "Margin for the Bezier curves")
+        .def_readwrite("t_margin_down", &Params::t_margin_down, "Time margin for the Bezier curves")
+        .def_readwrite("z_margin_down", &Params::z_margin_down, "Height margin for the Bezier curves")
         .def_readwrite("N_sample", &Params::N_sample, "Number of samples for the Bezier curves")
         .def_readwrite("N_sample_ineq", &Params::N_sample_ineq, "Number of samples for the inequality constraints")
         .def_readwrite("degree", &Params::degree, "Degree of the Bezier curves")
-        .def("__copy__", &generic__copy__<ContactPhase>)
-        .def("__deepcopy__", &generic__deepcopy__<ContactPhase>);
+        .def("__copy__", &generic__copy__<Params>)
+        .def("__deepcopy__", &generic__deepcopy__<Params>);
 }
 
 // Binding ContactType class
