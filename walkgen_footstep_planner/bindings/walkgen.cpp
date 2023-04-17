@@ -3,6 +3,8 @@
 #include "ContactSchedule.hpp"
 #include "Surface.hpp"
 #include "Params.hpp"
+#include "FootTrajectoryWrapper.hpp"
+#include <pinocchio/spatial/se3.hpp>
 
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -106,6 +108,21 @@ void exposeFootTrajectoryBezier()
     FootTrajectoryBezierPythonVisitor<FootTrajectoryBezier>::expose();
 }
 
+// Expose the FootTrajectoryBezierWrapper class to Python
+void exposeBezierWrapper()
+{   
+    bp::register_ptr_to_python<std::shared_ptr<FootTrajectoryWrapper>>();
+    bp::class_<FootTrajectoryWrapper, boost::noncopyable>("FootTrajectoryWrapper", bp::init<double, int, double, pinocchio::SE3, pinocchio::SE3, bp::optional<Params>>\
+    (bp::args("dt", "N", "step_height", "M_current", "M_next"), "Constructor for parameter to laod the yaml."))
+        .def("position", &FootTrajectoryWrapper::position, bp::args("k"))
+        .def("velocity", &FootTrajectoryWrapper::velocity, bp::args("k"))
+        .def("update", &FootTrajectoryWrapper::update, bp::args("x0", "v0", "xf", "t0", "init_surface", "end_surface"))
+        .def("get_coefficients", &FootTrajectoryWrapper::get_coefficients)
+        .def("get_curve", &FootTrajectoryWrapper::get_curve, bp::return_value_policy<bp::return_by_value>())
+        .def("__copy__", &generic__copy__<FootTrajectoryWrapper>)
+        .def("__deepcopy__", &generic__deepcopy__<FootTrajectoryWrapper>);
+}
+
 /////////////////////////////////
 /// Binding Surface class
 /////////////////////////////////
@@ -182,9 +199,9 @@ void exposeContactPhase()
     bp::register_ptr_to_python<std::shared_ptr<ContactPhase>>();
     // TODO : bp::optionnal does not work for both variables.
     bp::class_<ContactPhase, boost::noncopyable>("ContactPhase", bp::init<int, bp::optional<ContactType> >(bp::args("T", "contactType"), "Constructor for a ContactPhase object without a trajectory."))
-        .def(bp::init<int, ContactType, std::shared_ptr<FootTrajectoryBezier>>(bp::args("T", "contactType", "trajectory"),
+        .def(bp::init<int, ContactType, std::shared_ptr<FootTrajectoryWrapper>>(bp::args("T", "contactType", "trajectory"),
                                                                                "Constructor for a ContactPhase object."))
-        .def(bp::init<int, std::shared_ptr<FootTrajectoryBezier>>(bp::args("T", "trajectory"),
+        .def(bp::init<int, std::shared_ptr<FootTrajectoryWrapper>>(bp::args("T", "trajectory"),
                                                                                "Constructor for a ContactPhase object."))
         .add_property("trajectory",
                       bp::make_function(&ContactPhase::getTrajectory, bp::return_value_policy<bp::return_by_value>()),
@@ -230,6 +247,7 @@ BOOST_PYTHON_MODULE(libwalkgen_footstep_planner_pywrap)
     eigenpy::enableEigenPy();
 
     exposeFootTrajectoryBezier();
+    exposeBezierWrapper();
     exposeSurface();
     exposeParams();
     exposeContactType();

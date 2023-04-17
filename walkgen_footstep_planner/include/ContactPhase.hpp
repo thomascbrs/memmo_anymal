@@ -2,7 +2,7 @@
 #define CONTACTPHASE_H
 
 #include <memory>
-#include <FootTrajectoryBezier.hpp>
+#include <FootTrajectoryWrapper.hpp>
 
 enum class ContactType {
     POINT, // 3D
@@ -18,10 +18,10 @@ public:
     ContactPhase(int T, ContactType contactType);
 
     // Constructor with number of nodes and trajectory
-    ContactPhase(int T, std::shared_ptr<FootTrajectoryBezier> trajectory);
+    ContactPhase(int T, std::shared_ptr<FootTrajectoryWrapper> trajectory);
 
     // Constructor with number of nodes, contact type, and trajectory
-    ContactPhase(int T, ContactType contactType, std::shared_ptr<FootTrajectoryBezier> trajectory);
+    ContactPhase(int T, ContactType contactType, std::shared_ptr<FootTrajectoryWrapper> trajectory);
 
     // Getter for number of nodes
     int getT() const;
@@ -30,10 +30,10 @@ public:
     ContactType getContactType() const;
 
     // Getter for trajectory
-    std::shared_ptr<FootTrajectoryBezier>& getTrajectory();
+    std::shared_ptr<FootTrajectoryWrapper>& getTrajectory();
 
     // Setter for trajectory
-    void setTrajectory(std::shared_ptr<FootTrajectoryBezier> trajectory);
+    void setTrajectory(std::shared_ptr<FootTrajectoryWrapper> trajectory);
 
     // Operator overload to add two contact phases together
     std::shared_ptr<ContactPhase> operator+(const ContactPhase& phase) const;
@@ -47,7 +47,7 @@ public:
 
     int T_; // Number of nodes
     ContactType contactType_; // Type of contact
-    std::shared_ptr<FootTrajectoryBezier> trajectory_; // Task-space trajectory during contact phase
+    std::shared_ptr<FootTrajectoryWrapper> trajectory_; // Task-space trajectory during contact phase
 };
 
 #endif // CONTACTPHASE_H
