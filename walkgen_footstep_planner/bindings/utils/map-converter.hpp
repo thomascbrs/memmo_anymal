@@ -100,6 +100,33 @@ struct dict_to_map {
     data->convertible = storage;
   }
 
+  typedef typename Container::value_type value_type;
+  typedef typename Container::value_type data_type;
+  typedef size_t index_type;
+
+  static index_type
+  convert_index(Container &container, PyObject *i_)
+  {
+    namespace bp = boost::python;
+    bp::extract<size_t> i(i_);
+    if (i.check())
+    {
+      size_t index = i();
+      if (index < 0)
+        index += container.size();
+      if (index >= size_t(container.size()) || index < 0)
+      {
+        PyErr_SetString(PyExc_IndexError, "Index out of range");
+        bp::throw_error_already_set();
+      }
+      return index;
+    }
+
+    PyErr_SetString(PyExc_TypeError, "Invalid index type");
+    bp::throw_error_already_set();
+    return index_type();
+  }
+
   static bp::dict todict(Container& self) {
     bp::dict dict;
     typename Container::const_iterator it;
@@ -120,6 +147,31 @@ struct dict_to_map {
     }
     return result;
   }
+
+  static boost::python::list items(Container& self)
+  {
+    bp::list result;
+    typename Container::const_iterator it;
+    for(it=self.begin();it!=self.end();it++) {
+      result.append(bp::make_tuple(
+        it->first,
+        self[it->first]));
+    }
+    return result;
+  } 
+
+  static bp::list keys(Container& self)
+  {
+    bp::list result;
+    typename Container::const_iterator it;
+    for(it=self.begin();it!=self.end();it++) {
+      result.append(
+        // call through Python to use correct return value policy
+        it->first);
+    }
+    return result;
+  }
+
 };
 
 // template <typename Container>
@@ -163,6 +215,8 @@ struct StdMapPythonVisitor : public bp::map_indexing_suite<typename std::map<Key
         .def(StdMapPythonVisitor())
         .def("todict", &FromPythonDictConverter::todict, bp::arg("self"),"Returns the std::map as a Python dictionary.")
         .def("values", &FromPythonDictConverter::values)
+        .def("items", &FromPythonDictConverter::items)
+        .def("keys", &FromPythonDictConverter::keys)
         .def_pickle(PickleMap<Container>());
     // Register conversion
     FromPythonDictConverter::register_converter();
