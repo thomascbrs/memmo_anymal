@@ -135,9 +135,9 @@ std::shared_ptr<ContactSchedule> QuadrupedalGaitGenerator::trot(StdVec_Map_strin
     };
 
     gait->addSchedule(lh_, lh_schedule);
-    gait->addSchedule(lf_, rf_schedule);
-    gait->addSchedule(rh_, lf_schedule);
-    gait->addSchedule(rf_, rh_schedule);
+    gait->addSchedule(rf_, rf_schedule);
+    gait->addSchedule(lf_, lf_schedule);
+    gait->addSchedule(rh_, rh_schedule);
 
     return gait;
 };

@@ -18,7 +18,7 @@ public:
     ~QuadrupedalGaitGenerator();
     
     // Constructor
-    QuadrupedalGaitGenerator(double dt=0.02, int S=4, std::string lf="LF_FOOT", std::string lh="LH_FOOT", std::string rf="RF_FOOT", std::string rh="RH_FOOT");
+    QuadrupedalGaitGenerator(double dt=0.01, int S=4, std::string lf="LF_FOOT", std::string lh="LH_FOOT", std::string rf="RF_FOOT", std::string rh="RH_FOOT");
 
     std::shared_ptr<ContactSchedule> walk(StdVec_Map_string_SE3 contacts, int N_ds, int N_ss, int N_uds, int N_uss, double stepHeight, bool startPhase, bool endPhase);
 

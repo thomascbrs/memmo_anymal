@@ -133,7 +133,7 @@ void exposeQuadrupedalGait()
     walkgen::python::StdVectorPythonVisitor<typename StdVec_Map_string_SE3::value_type, typename StdVec_Map_string_SE3::allocator_type>::expose("StdVec_Map_string_SE3");
 
     bp::class_<QuadrupedalGaitGenerator>("QuadrupedalGaitGenerator", bp::init<double, int, std::string, std::string, std::string, std::string>(
-        (bp::arg("dt")=0.02, bp::arg("S")=4, bp::arg("lf")="LF_FOOT", bp::arg("lh")="LH_FOOT", bp::arg("rf")="RF_FOOT", bp::arg("rh")="RH_FOOT")
+        (bp::arg("dt")=0.01, bp::arg("S")=4, bp::arg("lf")="LF_FOOT", bp::arg("lh")="LH_FOOT", bp::arg("rf")="RF_FOOT", bp::arg("rh")="RH_FOOT")
     ))
     .def("walk", &QuadrupedalGaitGenerator::walk,
          (bp::arg("contacts"), bp::arg("N_ds"), bp::arg("N_ss"), 
