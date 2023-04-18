@@ -85,3 +85,8 @@ FootTrajectoryWrapper::FootTrajectoryWrapper(const FootTrajectoryWrapper &other)
     curve_ = std::move(other.curve_);
     params_ = other.params_;
 };
+
+double FootTrajectoryWrapper::getT0()
+{
+    return curve_->getT0();
+}

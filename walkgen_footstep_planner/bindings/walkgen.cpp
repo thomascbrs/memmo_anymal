@@ -118,6 +118,7 @@ void exposeBezierWrapper()
         .def("velocity", &FootTrajectoryWrapper::velocity, bp::args("k"))
         .def("update", &FootTrajectoryWrapper::update, bp::args("x0", "v0", "xf", "t0", "init_surface", "end_surface"))
         .def("get_coefficients", &FootTrajectoryWrapper::get_coefficients)
+        .def("get_t0", &FootTrajectoryWrapper::getT0)
         .def("get_curve", &FootTrajectoryWrapper::get_curve, bp::return_value_policy<bp::return_by_value>())
         .def("__copy__", &generic__copy__<FootTrajectoryWrapper>)
         .def("__deepcopy__", &generic__deepcopy__<FootTrajectoryWrapper>);

@@ -28,6 +28,7 @@ public:
     void update(const Vector3 &x0, const Vector3 &v0, const Vector3 &xf, double t0, const Surface &init_surface, const Surface &end_surface);
     MatrixN get_coefficients();
     std::shared_ptr<FootTrajectoryBezier> get_curve();
+    double getT0();
 
 private:
     double dt_;
