@@ -50,6 +50,7 @@ set(${FOOTSTEP_PLANNER_NAME}_HEADERS
   include/ContactSchedule.hpp
   include/Params.hpp
   include/FootTrajectoryWrapper.hpp
+  include/Gait.hpp
 )
 
 set(${FOOTSTEP_PLANNER_NAME}_SOURCES_CPP
@@ -59,6 +60,7 @@ set(${FOOTSTEP_PLANNER_NAME}_SOURCES_CPP
   src/ContactSchedule.cpp
   src/Params.cpp
   src/FootTrajectoryWrapper.cpp
+  src/Gait.cpp
 )
 
 include_directories("${CMAKE_SOURCE_DIR}/${FOOTSTEP_PLANNER_NAME}/include")

@@ -4,8 +4,9 @@
 #include "Surface.hpp"
 #include "Params.hpp"
 #include "FootTrajectoryWrapper.hpp"
-#include <pinocchio/spatial/se3.hpp>
+#include <Gait.hpp>
 
+#include <pinocchio/spatial/se3.hpp>
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/converter/shared_ptr_to_python.hpp>
@@ -122,6 +123,34 @@ void exposeBezierWrapper()
         .def("get_curve", &FootTrajectoryWrapper::get_curve, bp::return_value_policy<bp::return_by_value>())
         .def("__copy__", &generic__copy__<FootTrajectoryWrapper>)
         .def("__deepcopy__", &generic__deepcopy__<FootTrajectoryWrapper>);
+}
+
+void exposeQuadrupedalGait()
+{   
+    // typedef std::map<std::string, pinocchio::SE3> StdMap_string_SE3; // Defined in Gait.hpp
+    // typedef std::vector<StdMap_string_SE3> StdVec_Map_string_SE3; // Defined in Gait.hpp
+    walkgen::python::StdMapPythonVisitor<typename StdMap_string_SE3::key_type,typename StdMap_string_SE3::mapped_type,typename StdMap_string_SE3::key_compare,typename StdMap_string_SE3::allocator_type>::expose("StdMap_string_SE3");
+    walkgen::python::StdVectorPythonVisitor<typename StdVec_Map_string_SE3::value_type, typename StdVec_Map_string_SE3::allocator_type>::expose("StdVec_Map_string_SE3");
+
+    bp::class_<QuadrupedalGaitGenerator>("QuadrupedalGaitGenerator", bp::init<double, int, std::string, std::string, std::string, std::string>(
+        (bp::arg("dt")=0.02, bp::arg("S")=4, bp::arg("lf")="LF_FOOT", bp::arg("lh")="LH_FOOT", bp::arg("rf")="RF_FOOT", bp::arg("rh")="RH_FOOT")
+    ))
+    .def("walk", &QuadrupedalGaitGenerator::walk,
+         (bp::arg("contacts"), bp::arg("N_ds"), bp::arg("N_ss"), 
+          bp::arg("N_uds")=0, bp::arg("N_uss")=0, bp::arg("stepHeight")=0.15, 
+          bp::arg("startPhase")=true, bp::arg("endPhase")=true))
+    .def("trot", &QuadrupedalGaitGenerator::trot,
+         (bp::arg("contacts"), bp::arg("N_ds"), bp::arg("N_ss"), 
+          bp::arg("N_uds")=0, bp::arg("N_uss")=0, bp::arg("stepHeight")=0.15, 
+          bp::arg("startPhase")=true, bp::arg("endPhase")=true))
+    .def_readwrite("dt", &QuadrupedalGaitGenerator::dt_, "Time step duration")
+    .def_readwrite("S", &QuadrupedalGaitGenerator::S_, "Number of contact")
+    .def_readwrite("lf", &QuadrupedalGaitGenerator::lf_, "Left front leg")
+    .def_readwrite("lh", &QuadrupedalGaitGenerator::lh_, "Left hind leg")
+    .def_readwrite("rf", &QuadrupedalGaitGenerator::rf_, "Rigth front name")
+    .def_readwrite("rh", &QuadrupedalGaitGenerator::rh_, "Rigth front name")
+    .def("__copy__", &generic__copy__<QuadrupedalGaitGenerator>)
+    .def("__deepcopy__", &generic__deepcopy__<QuadrupedalGaitGenerator>);
 }
 
 /////////////////////////////////
@@ -254,4 +283,5 @@ BOOST_PYTHON_MODULE(libwalkgen_footstep_planner_pywrap)
     exposeContactType();
     exposeContactPhase();
     exposeContactSchedule();
+    exposeQuadrupedalGait();
 }
