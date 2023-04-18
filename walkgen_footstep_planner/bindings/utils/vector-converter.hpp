@@ -127,9 +127,15 @@ namespace walkgen
       void visit(Class &cl) const
       {
         cl.def("__getitem__", &overload_base_get_item_for_std_vector::base_get_item, bp::return_value_policy<bp::return_by_value>());
+          // .def("__str__", &overload_base_get_item_for_std_vector::base_str)
+          // .def("__repr__", &overload_base_get_item_for_std_vector::base_str);
       }
 
-    private:       
+    private:
+      void base_str(boost::python::back_reference<Container &> container)
+      {
+        std::cout << "HELLO" << std::endl;
+      }       
       static boost::python::object
       base_get_item(boost::python::back_reference<Container &> container, PyObject *i_)
       {
@@ -173,6 +179,19 @@ namespace walkgen
       }
     };
 
+    template<class C>
+    struct PrintableVisitor : public bp::def_visitor< PrintableVisitor<C> >
+    {
+      template<class PyClass>
+      void visit(PyClass & cl) const
+      {
+        cl
+        .def(bp::self_ns::str(bp::self_ns::self))
+        .def(bp::self_ns::repr(bp::self_ns::self))
+        ;
+      }
+    };
+
     /**
      * @brief Expose an std::vector from a type given as template argument.
      *
@@ -200,6 +219,7 @@ namespace walkgen
             .def("tolist", &FromPythonListConverter::tolist, bp::arg("self"), "Returns the std::vector as a Python list.")
             .def_pickle(PickleVector<Container>())
             .def(visitor);
+            // .def(PrintableVisitor<Container>());
         // Register conversion
         FromPythonListConverter::register_converter();
       }
