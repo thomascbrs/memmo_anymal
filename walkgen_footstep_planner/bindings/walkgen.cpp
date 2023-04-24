@@ -6,6 +6,7 @@
 #include "FootTrajectoryWrapper.hpp"
 #include <Gait.hpp>
 #include "GaitManager.hpp"
+#include "Filter.hpp"
 
 #include <pinocchio/spatial/se3.hpp>
 #include <boost/python.hpp>
@@ -296,6 +297,7 @@ private:
     else{
         PyErr_SetString(PyExc_IndexError, "Index out of range");
         bp::throw_error_already_set();
+        return bp::object(nullptr);
     }
     }
 };
@@ -336,6 +338,17 @@ void exposeGaitManager(){
         .def("__deepcopy__", &generic__deepcopy__<GaitManager>);
 }
 
+// Expose Filter
+void exposeFilter()
+{
+    bp::class_<FilterMean, boost::noncopyable>("FilterMean", bp::init<double,double>(bp::args("period", "dt"), "Constructor for Moving filter."))
+        .def("filter", &FilterMean::filter)
+        .def("__add__", &ContactPhase::operator+, bp::return_value_policy<bp::return_by_value>())
+        .def("__copy__", &generic__copy__<ContactPhase>)
+        .def("__deepcopy__", &generic__deepcopy__<ContactPhase>);
+}
+
+
 /////////////////////////////////
 /// Exposing classes
 /////////////////////////////////
@@ -352,4 +365,5 @@ BOOST_PYTHON_MODULE(libwalkgen_footstep_planner_pywrap)
     exposeContactSchedule();
     exposeQuadrupedalGait();
     exposeGaitManager();
+    exposeFilter();
 }

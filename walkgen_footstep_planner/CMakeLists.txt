@@ -52,6 +52,7 @@ set(${FOOTSTEP_PLANNER_NAME}_HEADERS
   include/FootTrajectoryWrapper.hpp
   include/Gait.hpp
   include/GaitManager.hpp
+  include/Filter.hpp
 )
 
 set(${FOOTSTEP_PLANNER_NAME}_SOURCES_CPP
