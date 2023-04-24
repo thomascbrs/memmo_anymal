@@ -51,6 +51,7 @@ set(${FOOTSTEP_PLANNER_NAME}_HEADERS
   include/Params.hpp
   include/FootTrajectoryWrapper.hpp
   include/Gait.hpp
+  include/GaitManager.hpp
 )
 
 set(${FOOTSTEP_PLANNER_NAME}_SOURCES_CPP
@@ -61,6 +62,7 @@ set(${FOOTSTEP_PLANNER_NAME}_SOURCES_CPP
   src/Params.cpp
   src/FootTrajectoryWrapper.cpp
   src/Gait.cpp
+  src/GaitManager.cpp
 )
 
 include_directories("${CMAKE_SOURCE_DIR}/${FOOTSTEP_PLANNER_NAME}/include")

@@ -5,6 +5,7 @@
 #include "Params.hpp"
 #include "FootTrajectoryWrapper.hpp"
 #include <Gait.hpp>
+#include "GaitManager.hpp"
 
 #include <pinocchio/spatial/se3.hpp>
 #include <boost/python.hpp>
@@ -191,7 +192,7 @@ void exposeSurface() { SurfacePythonVisitor<Surface>::expose(); }
 void exposeParams()
 {
     bp::class_<Params, boost::noncopyable>("FootStepPlannerParams", bp::init< bp::optional<std::string> >(bp::args("filename"), "Constructor for parameter to laod the yaml."))
-        .def_readwrite("type", &Params::type, "Type of gait")
+        .def_readwrite("typeGait", &Params::type, "Type of gait")
         .def_readwrite("dt", &Params::dt, "Time step duration")
         .def_readwrite("horizon", &Params::horizon, "Planning horizon (in steps)")
         .def_readwrite("nsteps", &Params::nsteps, "Number of steps to plan")
@@ -269,6 +270,72 @@ void exposeContactSchedule()
         .def("__add__", &ContactSchedule::operator+, bp::return_value_policy<bp::return_by_value>());
 }
 
+struct overload_CoeffBezier
+    : public boost::python::def_visitor<overload_CoeffBezier>
+{
+
+    template <class Class>
+    void visit(Class &cl) const
+    {
+    cl.def("__getitem__", &overload_CoeffBezier::base_get_item, bp::return_value_policy<bp::return_by_value>());
+    }
+
+private:
+    static boost::python::object
+    base_get_item(bp::object obj, PyObject *i_)
+    {
+    namespace bp = ::boost::python;
+    CoeffBezier& coeff_bezier = bp::extract<CoeffBezier&>(obj);
+    bp::extract<size_t> i(i_);
+    if (i > 1){
+        PyErr_SetString(PyExc_IndexError, "Index out of range");
+        bp::throw_error_already_set();
+    }
+    if (i == 0){return bp::object(coeff_bezier.get_t0());}
+    else if (i == 1){return  bp::object(coeff_bezier.coeffs);}
+    else{
+        PyErr_SetString(PyExc_IndexError, "Index out of range");
+        bp::throw_error_already_set();
+    }
+    }
+};
+
+void exposeGaitManager(){
+    ENABLE_SPECIFIC_MATRIX_TYPE(MatrixN_int); 
+    walkgen::python::StdVectorPythonVisitor<std::shared_ptr<ContactSchedule>, std::allocator<std::shared_ptr<ContactSchedule>>>::expose("StdVec_ContactSchedule");
+
+    // CoeffBEzier indexing, CoeffBezier[0] --> t0, CoeffBezier[1] --> coeffs
+    overload_CoeffBezier visitor = overload_CoeffBezier();
+
+    bp::class_<CoeffBezier>("CoeffBezier_tuple", bp::init<double, Eigen::MatrixXd>(bp::args("t0", "coeffs"), "Constructor for tuple like class CoeffBezier_tuple"))
+        .add_property("t0", bp::make_function(&CoeffBezier::get_t0, bp::return_value_policy<bp::return_by_value>()))
+        .add_property("coeffs", bp::make_function(&CoeffBezier::get_coeffs, bp::return_value_policy<bp::return_by_value>()))
+        .def("__copy__", &generic__copy__<CoeffBezier>)
+        .def("__deepcopy__", &generic__deepcopy__<CoeffBezier>)
+        .def(visitor);
+
+    walkgen::python::StdVectorPythonVisitor<CoeffBezier, std::allocator<CoeffBezier>>::expose("StdVec_CoeffBezier");
+    typedef std::vector<CoeffBezier> StdVec_CoeffBezier;
+    walkgen::python::StdVectorPythonVisitor<StdVec_CoeffBezier, std::allocator<StdVec_CoeffBezier>>::expose("StdVecVec_CoeffBezier");
+    typedef std::vector<StdVec_CoeffBezier> StdVecVec_CoeffBezier;
+    walkgen::python::StdVectorPythonVisitor<StdVecVec_CoeffBezier, std::allocator<StdVecVec_CoeffBezier>>::expose("StdVecVecVec_CoeffBezier");
+
+    bp::class_<GaitManager>("GaitManagerCpp", bp::init<pinocchio::Model, VectorN, bp::optional<Params>>(
+        (bp::args("model", "q", "params"), "Constructor for Gait manager.")))
+        .def("update", &GaitManager::update)
+        .def("print_queue", &GaitManager::print_queue)
+        .def("get_current_gait", &GaitManager::get_gait)
+        .def("is_new_step", &GaitManager::is_new_step)
+        .def("get_coefficients", &GaitManager::get_coefficients, bp::return_value_policy<bp::return_by_value>())
+        .def_readwrite("cs0", &GaitManager::cs0)
+        .def_readwrite("cs1", &GaitManager::cs1)
+        .def_readwrite("queue_cs", &GaitManager::queue_cs_)
+        .def("get_cs", &GaitManager::get_cs,bp::return_value_policy<bp::return_by_value>())
+        .add_property("_timeline", bp::make_function(&GaitManager::get_timeline, bp::return_value_policy<bp::return_by_value>()))
+        .def("__copy__", &generic__copy__<GaitManager>)
+        .def("__deepcopy__", &generic__deepcopy__<GaitManager>);
+}
+
 /////////////////////////////////
 /// Exposing classes
 /////////////////////////////////
@@ -284,4 +351,5 @@ BOOST_PYTHON_MODULE(libwalkgen_footstep_planner_pywrap)
     exposeContactPhase();
     exposeContactSchedule();
     exposeQuadrupedalGait();
+    exposeGaitManager();
 }
