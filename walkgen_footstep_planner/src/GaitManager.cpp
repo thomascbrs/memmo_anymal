@@ -169,6 +169,8 @@ bool GaitManager::update() {
             count += cs->T_;
         }
         if (count - timeline_ < (horizon_)) {
+            // This copy is expensive : 0.1ms compared to 0.003ms for the rest of the code
+            // TODO : Create a list
             std::shared_ptr<ContactSchedule> gait = std::make_shared<ContactSchedule>(*(default_schedule_));
             gait->updateSwitches();
             queue_cs_.insert(queue_cs_.begin(), gait);

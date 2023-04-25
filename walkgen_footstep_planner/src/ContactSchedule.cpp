@@ -21,11 +21,10 @@ ContactSchedule::ContactSchedule(const ContactSchedule& other)
         for (size_t i = 0; i < other.phases_.size(); i++) {
             std::vector<std::shared_ptr<ContactPhase>> phases_i;
             for (size_t p = 0; p < other.phases_[i].size(); p += 2) {
-                std::shared_ptr<ContactPhase> phase_cp = std::make_shared<ContactPhase>(*other.phases_[i][p]);
-                phases_i.push_back(phase_cp);
-                
+                // std::shared_ptr<ContactPhase> phase_cp = std::make_shared<ContactPhase>(*other.phases_[i][p]);
+                // phases_i.push_back(phase_cp);
+                phases_i.push_back(std::make_shared<ContactPhase>(*other.phases_[i][p]));                
                 if (p + 1 < other.phases_[i].size()) {
-                    int flag = other.phases_[i][p+1]->trajectory_->flag;
                     phases_i.push_back(std::make_shared<ContactPhase>(*other.phases_[i][p+1]));
                 }
             }

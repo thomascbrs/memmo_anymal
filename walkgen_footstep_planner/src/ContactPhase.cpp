@@ -34,8 +34,9 @@ ContactPhase::ContactPhase(const ContactPhase& other):
     contactType_(other.contactType_)
 {
     if (other.trajectory_ != nullptr){
-        std::shared_ptr<FootTrajectoryWrapper> wrapper_cp = std::make_shared<FootTrajectoryWrapper>(*other.trajectory_);
-        trajectory_ = std::move(wrapper_cp);
+        // std::shared_ptr<FootTrajectoryWrapper> wrapper_cp = std::make_shared<FootTrajectoryWrapper>(*other.trajectory_);
+        // trajectory_ = std::move(wrapper_cp);
+        trajectory_ = std::make_shared<FootTrajectoryWrapper>(*other.trajectory_);
     }
     else{
         trajectory_ = nullptr;

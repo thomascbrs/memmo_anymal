@@ -82,8 +82,9 @@ FootTrajectoryWrapper::FootTrajectoryWrapper(const FootTrajectoryWrapper &other)
     M_next_ = other.M_next_;
     M_tmp_ = other.M_tmp_;
     Vel_tmp_ = other.Vel_tmp_;
-    std::shared_ptr<FootTrajectoryBezier> curve_cp = std::make_shared<FootTrajectoryBezier>(*other.curve_);
-    curve_ = std::move(curve_cp);
+    // std::shared_ptr<FootTrajectoryBezier> curve_cp = std::make_shared<FootTrajectoryBezier>(*other.curve_);
+    // curve_ = std::move(curve_cp);
+    curve_ = std::make_shared<FootTrajectoryBezier>(*other.curve_);
     params_ = other.params_;
 };
 
