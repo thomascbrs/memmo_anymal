@@ -95,15 +95,16 @@ struct FootTrajectoryBezierPythonVisitor
             .def("getT0", &FootTrajectoryBezier::getT0, "Get the T_min argument of the curve.\n")
             .def("getCoefficients", &FootTrajectoryBezier::getCoefficients, "Get the coefficients.\n")
             .def("create_simple_curve", &FootTrajectoryBezier::create_simple_curve, "Create a Bezier curve without collision avoidance.\n")
+            .def_readwrite("flag", &FootTrajectoryBezier::flag)
             .def("update", &FootTrajectoryBezier::update, "Optimises the coefficients of the Bezier curve.\n");
     }
 
     static void expose()
     {
         bp::class_<FootTrajectoryBezier>("FootTrajectoryBezier", bp::no_init)
+            .def(FootTrajectoryBezierPythonVisitor<FootTrajectoryBezier>())
             .def("__copy__", &generic__copy__<FootTrajectoryBezier>)
-            .def("__deepcopy__", &generic__deepcopy__<FootTrajectoryBezier>)
-            .def(FootTrajectoryBezierPythonVisitor<FootTrajectoryBezier>());
+            .def("__deepcopy__", &generic__deepcopy__<FootTrajectoryBezier>);
     }
 };
 void exposeFootTrajectoryBezier()
@@ -115,13 +116,14 @@ void exposeFootTrajectoryBezier()
 void exposeBezierWrapper()
 {   
     bp::register_ptr_to_python<std::shared_ptr<FootTrajectoryWrapper>>();
-    bp::class_<FootTrajectoryWrapper, boost::noncopyable>("FootTrajectoryWrapper", bp::init<double, int, double, pinocchio::SE3, pinocchio::SE3, bp::optional<Params>>\
+    bp::class_<FootTrajectoryWrapper>("FootTrajectoryWrapper", bp::init<double, int, double, pinocchio::SE3, pinocchio::SE3, bp::optional<Params>>\
     (bp::args("dt", "N", "step_height", "M_current", "M_next"), "Constructor for parameter to laod the yaml."))
         .def("position", &FootTrajectoryWrapper::position, bp::args("k"))
         .def("velocity", &FootTrajectoryWrapper::velocity, bp::args("k"))
         .def("update", &FootTrajectoryWrapper::update, bp::args("x0", "v0", "xf", "t0", "init_surface", "end_surface"))
         .def("get_coefficients", &FootTrajectoryWrapper::get_coefficients)
         .def("get_t0", &FootTrajectoryWrapper::getT0)
+        .def_readwrite("flag", &FootTrajectoryWrapper::flag)
         .def("get_curve", &FootTrajectoryWrapper::get_curve, bp::return_value_policy<bp::return_by_value>())
         .def("__copy__", &generic__copy__<FootTrajectoryWrapper>)
         .def("__deepcopy__", &generic__deepcopy__<FootTrajectoryWrapper>);

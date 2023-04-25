@@ -28,6 +28,48 @@ FootTrajectoryBezier::FootTrajectoryBezier()
   fitBezier = evaluateLinear<bezier_t, bezier_linear_variable_t>(*bez, vector);
 }
 
+FootTrajectoryBezier::FootTrajectoryBezier(const FootTrajectoryBezier& other)
+    : Ax(other.Ax),
+      Ay(other.Ay),
+      Az(other.Az),
+      intersectionPoint_(other.intersectionPoint_),
+      starting_position_(other.starting_position_),
+      t_swing_(other.t_swing_),
+      useBezier(other.useBezier),
+      maxHeight_(other.maxHeight_),
+      t0_(other.t0_),
+      elevation_(other.elevation_),
+      N_samples(other.N_samples),
+      N_samples_ineq(other.N_samples_ineq),
+      degree(other.degree),
+      res_size(other.res_size),
+      pDef(other.pDef),
+      fitBezier(other.fitBezier),
+      curve_(other.curve_),
+      P_(other.P_),
+      q_(other.q_),
+      G_(other.G_),
+      h_(other.h_),
+      C_(other.C_),
+      d_(other.d_),
+      x(other.x),
+      ineq_(other.ineq_),
+      ineq_vector_(other.ineq_vector_),
+      margin_max_up_(other.margin_max_up_),
+      margin_max_down_(other.margin_max_down_),
+      t_margin_up_(other.t_margin_up_),
+      t_margin_down_(other.t_margin_down_),
+      t_stop_up_(other.t_stop_up_),
+      t_stop_down_(other.t_stop_down_),
+      z_margin_up_(other.z_margin_up_),
+      z_margin_down_(other.z_margin_down_),
+      margin_adapted_(other.margin_adapted_),
+      EPS_(other.EPS_),
+      expected(other.expected),      
+      status(other.status),
+      qp(other.qp)
+      {}
+
 void FootTrajectoryBezier::initialize(int const& N_samples_in, int const& N_samples_ineq_in, int const& degree_in,
                                       double const& t_swing, double const& maxHeight) {
   N_samples = N_samples_in;

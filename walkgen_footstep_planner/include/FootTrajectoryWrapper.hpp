@@ -29,6 +29,7 @@ public:
     MatrixN get_coefficients();
     std::shared_ptr<FootTrajectoryBezier> get_curve();
     double getT0();
+    int flag=0;
 
 private:
     double dt_;

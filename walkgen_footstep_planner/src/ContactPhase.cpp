@@ -28,6 +28,20 @@ ContactPhase::ContactPhase(int T, ContactType contactType, std::shared_ptr<FootT
     trajectory_(std::move(trajectory))
 {}
 
+// Copy constructor
+ContactPhase::ContactPhase(const ContactPhase& other):
+    T_(other.T_),
+    contactType_(other.contactType_)
+{
+    if (other.trajectory_ != nullptr){
+        std::shared_ptr<FootTrajectoryWrapper> wrapper_cp = std::make_shared<FootTrajectoryWrapper>(*other.trajectory_);
+        trajectory_ = std::move(wrapper_cp);
+    }
+    else{
+        trajectory_ = nullptr;
+    }
+};
+
 // Getter for number of nodes
 int ContactPhase::getT() const {
     return T_;
@@ -53,6 +67,6 @@ std::shared_ptr<ContactPhase> ContactPhase::operator+(const ContactPhase& phase)
     if (contactType_ != phase.contactType_) {
         throw std::invalid_argument("Couldn't append the contact phase since it doesn't belong to the same type");
     }
-
-    return std::make_shared<ContactPhase>(T_ + phase.T_, contactType_, std::move(trajectory_));
+    std::shared_ptr<FootTrajectoryWrapper> wrapper_cp = std::make_shared<FootTrajectoryWrapper>(*phase.trajectory_);
+    return std::make_shared<ContactPhase>(T_ + phase.T_, contactType_, std::move(wrapper_cp));
 }

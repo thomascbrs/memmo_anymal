@@ -11,6 +11,7 @@
 class ContactSchedule {
 public:
     ContactSchedule(double dt, int T, int S_total, std::vector<std::string> contactNames);
+    ContactSchedule(const ContactSchedule& other);
     void addSchedule(const std::string& name, const std::vector<std::shared_ptr<ContactPhase>>& schedule);
     void updateSwitches();
     void checkSchedule();

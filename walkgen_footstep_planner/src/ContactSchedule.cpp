@@ -12,6 +12,28 @@ ContactSchedule::ContactSchedule(double dt, int T, int S_total, std::vector<std:
     C_ = int(contactNames_.size());
 }
 
+ContactSchedule::ContactSchedule(const ContactSchedule& other)
+    : dt_(other.dt_), T_(other.T_), S_total_(other.S_total_), C_(other.C_), 
+      contactNames_(other.contactNames_), switches_(other.switches_)
+{
+    // Copy the phases for each contact
+    if (!other.phases_.empty()){
+        for (size_t i = 0; i < other.phases_.size(); i++) {
+            std::vector<std::shared_ptr<ContactPhase>> phases_i;
+            for (size_t p = 0; p < other.phases_[i].size(); p += 2) {
+                std::shared_ptr<ContactPhase> phase_cp = std::make_shared<ContactPhase>(*other.phases_[i][p]);
+                phases_i.push_back(phase_cp);
+                
+                if (p + 1 < other.phases_[i].size()) {
+                    int flag = other.phases_[i][p+1]->trajectory_->flag;
+                    phases_i.push_back(std::make_shared<ContactPhase>(*other.phases_[i][p+1]));
+                }
+            }
+            phases_.push_back(phases_i);
+        }
+    }
+}
+
 void ContactSchedule::updateSwitches() {
     switches_.clear();
     for (int c = 0; c < C_; ++c) {

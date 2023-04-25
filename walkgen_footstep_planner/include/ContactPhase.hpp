@@ -23,6 +23,9 @@ public:
     // Constructor with number of nodes, contact type, and trajectory
     ContactPhase(int T, ContactType contactType, std::shared_ptr<FootTrajectoryWrapper> trajectory);
 
+    // Copy constructor
+    ContactPhase(const ContactPhase& other);
+
     // Getter for number of nodes
     int getT() const;
 

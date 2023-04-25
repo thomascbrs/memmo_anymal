@@ -49,6 +49,9 @@ class FootTrajectoryBezier {
   ////////////////////////////////////////////////////////////////////////////////////////////////
   ~FootTrajectoryBezier(){};  // Empty constructor
 
+  // Copy constructor
+  FootTrajectoryBezier(const FootTrajectoryBezier& other);
+
   void initialize(int const& N_samples_in, int const& N_samples_ineq_in, int const& degree_in, double const& t_swing,
                   double const& maxHeight);
 
@@ -78,6 +81,8 @@ class FootTrajectoryBezier {
   double getT0() { return t0_; };
 
   MatrixN getCoefficients() { return vectorToEigenArray<bezier_t::t_point_t, MatrixN>(curve_.waypoints()); };
+
+  int flag=0;
 
  private:
   Vector6 Ax;  ///< Coefficients for the X component
