@@ -15,6 +15,7 @@ class Surface {
  public:
   // Constructor
   Surface();
+  Surface(const Surface& other);
   Surface(MatrixN const& A_in, VectorN const& b_in, MatrixN const& vertices_in);
 
   bool operator==(const Surface& other) const {
@@ -24,6 +25,15 @@ class Surface {
   bool operator!=(const Surface& other) const {
     return A_ != other.A_ or b_ != other.b_ or vertices_ != other.vertices_;
   }
+
+  Surface& operator=(const Surface& other) {
+  if (this != &other) {
+    vertices_ = other.vertices_;
+    A_ = other.A_;
+    b_ = other.b_;
+  }
+  return *this;
+}
 
   // Destructor
   ~Surface() {}

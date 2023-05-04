@@ -15,6 +15,11 @@ Surface::Surface(const MatrixN& A_in, const VectorN& b_in, const MatrixN& vertic
   }
 }
 
+Surface::Surface(const Surface& other)
+    : A_{other.A_}, b_{other.b_}, vertices_{other.vertices_}
+{
+}
+
 MatrixN Surface::getA() const { return A_; }
 
 void Surface::setA(MatrixN const& A_in) { A_ = A_in; }
