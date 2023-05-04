@@ -93,6 +93,7 @@ private:
     const double href_ = 0.48;
     const double g_ = 9.81;
     const double L_ = 0.5;
+    const double beta_ = 1.35;
     
     int nsteps_;
     int horizon_;
@@ -103,22 +104,40 @@ private:
     EiquadprogFast_status expected = EIQUADPROG_FAST_OPTIMAL;
     EiquadprogFast_status status;
     EiquadprogFast qp;
-    
-    // int m_nsteps;
-    // double m_stop_heuristic;
-    // int m_horizon;
 
-    // bool m_debug;
-    // bool m_RECORDING;
-    // std::vector<Eigen::VectorXd> m_footstep_plan;
 
-    // double m_dt;
-    // walkgen::FilterMean m_q_filter;
-    // Eigen::VectorXd m_q_f;
-    // walkgen::FilterMean m_qv_filter;
-    // Eigen::VectorXd m_qv_f;
+    // Temporary vairables
+    // To avoid create the variable at each new loop.
+    pinocchio::SE3 oMf_tmp;
+    pinocchio::Motion v_tmp;
+    Vector3 footstep_tmp; // heuristic function
+    Vector3 cross_tmp;
+    Vector6 q_filter_tmp;
 
-    // std::map<std::string, walkgen::Surface> m_previous_surfaces;
+    Matrix3 Rz;
+    Matrix3 Rxy;
+    Vector3 q_tmp;
+    Matrix34 P0;
+    Matrix34 V0;
+    int cs_index;
+    int timeline;
+    std::vector<size_t> foot_timeline;
+    MatrixN target_fsteps;
+    Matrix3 Rz_tmp;
+    double dt_i;
+    double dx;
+    double dy;
+    Vector3 q_dxdy;
+    Vector3 heuristic_tmp;
+    Vector3 footstep_ref;
+
+    MatrixN C_;
+    MatrixN d_;
+    VectorN delta_x;
+    MatrixN G_;
+    VectorN h_;
+    Vector3 fsteps_optim;
+    Surface previous_sf;
 };
 
 #endif // FOOTSTEPPLANNER_H

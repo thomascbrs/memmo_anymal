@@ -82,6 +82,34 @@ void FootStepPlanner::initialize(const Eigen::VectorXd &q)
     {
         previous_surfaces_[contactNames_[foot]] = Surface(MatrixN(A), b, MatrixN(vertices));
     }
+
+    // Initialize the tmp variables 
+    oMf_tmp = pinocchio::SE3::Identity();
+    v_tmp = pinocchio::Motion::Zero();   
+    footstep_tmp.setZero();
+    cross_tmp.setZero();
+    q_filter_tmp.setZero();
+    Rz.setZero();
+    Rxy.setZero();
+    q_tmp.setZero();
+    P0.setZero();
+    V0.setZero();
+    cs_index = 0;
+    timeline = 0;
+    foot_timeline = {0, 0, 0, 0};
+    target_fsteps = MatrixN::Zero(3, 4);
+    Rz_tmp = Matrix3::Identity();
+    dt_i = 0.;
+    dx = 0.;
+    dy = 0.;
+    q_dxdy.setZero();
+    C_ = MatrixN::Zero(3, 0);
+    d_ = VectorN::Zero(0);
+    delta_x = VectorN::Zero(3);
+    G_ = MatrixN::Zero(3, 3); // Random size
+    h_ = VectorN::Zero(3);
+    fsteps_optim.setZero();
+    previous_sf = Surface(MatrixN(A), b, MatrixN(vertices));
 };
 
 // From python, it is easier to use and return only MatrixN, otherwise, a binding is necessary for each type.
@@ -110,17 +138,12 @@ MatrixN FootStepPlanner::compute_footstep(std::vector<std::shared_ptr<ContactSch
     update_current_state(q, vq);
 
     // Filter quantities
-    Vector3 rpy = pinocchio::rpy::matrixToRpy(pinocchio::SE3::Quaternion(q(6), q(3), q(4), q(5)).toRotationMatrix());
-    Vector6 q_ = Vector6::Zero();
-    q_.head<3>() = q.head<3>();
-    q_.tail<3>() = rpy;
-    qf_ = filter_q.filter(q_);
-
+    q_filter_tmp.head<3>() = q.head<3>();
+    q_filter_tmp.tail<3>() = pinocchio::rpy::matrixToRpy(pinocchio::SE3::Quaternion(q(6), q(3), q(4), q(5)).toRotationMatrix());
+    
+    qf_ = filter_q.filter(q_filter_tmp);
     qvf_ = filter_v.filter(vq.head<6>());
 
-    MatrixN XX = MatrixN::Zero(3, 3);
-
-    // Return placeholder matrix for demonstration purposes
     return update_position(queue_cs, qf_, qvf_, bvref, timeline, selected_surfaces);
 }
 
@@ -135,26 +158,21 @@ MatrixN FootStepPlanner::update_position(std::vector<std::shared_ptr<ContactSche
     {
         counter_gait_ += 1;
     }
-    Matrix3 Rz = pinocchio::rpy::rpyToMatrix(double(0.), double(0.), q(5));
-    // Matrix3 Rz = Matrix3::Identity();
-    Matrix3 Rxy = pinocchio::rpy::rpyToMatrix(q(3), q(4), double(0.));
+    Rz = pinocchio::rpy::rpyToMatrix(double(0.), double(0.), q(5));
+    Rxy = pinocchio::rpy::rpyToMatrix(q(3), q(4), double(0.));
 
-    Vector3 q_tmp = q.head<3>();
+    q_tmp = q.head<3>();
     q_tmp(2) = double(0.);
-
-    Matrix34 P0 = Matrix34(current_position_);
-    // Matrix34 V0 = Matrix34::Zero();
-    Matrix34 V0 = Matrix34(current_velocities_);
-    int timeline = timeline_in;
-    int cs_index = int(0);
-    std::vector<size_t> foot_timeline = {0, 0, 0, 0};
-    MatrixN target_fsteps = MatrixN::Zero(3, 4);
-
-    // Define tmp variables
-    double dt_i = 0.;
-    double dx = 0.;
-    double dy = 0.;
-    Matrix3 Rz_tmp = Matrix3::Identity();
+    
+    P0 = current_position_;
+    V0 = current_velocities_;
+    timeline = timeline_in;
+    
+    // Reset quantities
+    cs_index = 0;
+    std::fill(foot_timeline.begin(), foot_timeline.end(), 0);
+    target_fsteps.setZero();    
+    Rz_tmp.setIdentity();
 
     for (auto cs_iter = queue_cs.rbegin(); cs_iter != queue_cs.rend(); ++cs_iter)
     {
@@ -193,10 +211,9 @@ MatrixN FootStepPlanner::update_position(std::vector<std::shared_ptr<ContactSche
                                 dy = bvref(1) * dt_i;
                                 Rz_tmp = Matrix3::Identity();
                             }
-                            Vector3 q_dxdy;
                             q_dxdy << dx, dy, double(0.);
-                            Vector3 heuristic = compute_heuristic(vq, bvref, Rxy, T_stance, name, false);
-                            Vector3 footstep = Rz * (Rz_tmp * heuristic) + q_tmp + Rz * q_dxdy;
+                            heuristic_tmp = compute_heuristic(vq, bvref, Rxy, T_stance, name, false);
+                            footstep_ref = Rz * (Rz_tmp * heuristic_tmp) + q_tmp + Rz * q_dxdy;
 
                             Matrix3 P_ = Matrix3::Identity();
                             Vector3 q_ = Vector3::Zero();
@@ -206,13 +223,10 @@ MatrixN FootStepPlanner::update_position(std::vector<std::shared_ptr<ContactSche
                                 throw std::runtime_error("Naming non consistent in surface dictionnary.");
                             }
                             auto &sf_ = (iter->second).at(foot_timeline.at(j));
-                            MatrixN G_ = -sf_.getA();                        // Inverse sign in python
-                            VectorN h_ = sf_.getb() - sf_.getA() * footstep; // Inverse sign in python
+                            G_ = -sf_.getA();                        // Inverse sign in python
+                            h_ = sf_.getb() - sf_.getA() * footstep_ref; // Inverse sign in python
 
-                            MatrixN C_ = MatrixN::Zero(3, 0);
-                            MatrixN d_ = VectorN::Zero(0);
-                            VectorN delta_x = VectorN::Zero(3);
-
+                            delta_x.setZero();
                             // In python code
                             // delta_x = quadprog_solve_qp(P_, q_, G_, h_)
                             // min (1/2)x' P x + q' x
@@ -224,7 +238,7 @@ MatrixN FootStepPlanner::update_position(std::vector<std::shared_ptr<ContactSche
                             // s.t. C_ x + d_ = 0
                             //      G_ x + h_ >= 0
                             status = qp.solve_quadprog(P_, q_, C_, d_, G_, h_, delta_x);
-                            Vector3 fsteps_optim = footstep + delta_x;
+                            fsteps_optim = footstep_ref + delta_x;
 
                             // Update target fsteps for sl1m
                             if (foot_timeline.at(j) == 0)
@@ -234,7 +248,6 @@ MatrixN FootStepPlanner::update_position(std::vector<std::shared_ptr<ContactSche
                             }
 
                             // Update previous surface mechanism
-                            Surface previous_sf = sf_;
                             if (foot_timeline.at(j) == 0)
                             {
                                 auto iter = previous_surfaces_.find(name);
@@ -326,13 +339,14 @@ void FootStepPlanner::update_current_state(const Eigen::VectorXd &q, const Eigen
         throw std::runtime_error("Current velocity vq should be an array of size 18 [lin vel (x3), ang vel (x3), joint vel(x12)]");
     }
     pinocchio::forwardKinematics(model_, data_, q, vq);
+    size_t frame_id;
     for (size_t i = 0; i < contactNames_.size(); i++)
     {
-        size_t frame_id = model_.getFrameId(contactNames_[i]);
-        pinocchio::SE3 oMf = pinocchio::updateFramePlacement(model_, data_, frame_id);
-        pinocchio::Motion v = pinocchio::getFrameVelocity(model_, data_, frame_id);
-        current_position_.col(static_cast<Eigen::Index>(i)) = oMf.translation();
-        current_velocities_.col(static_cast<Eigen::Index>(i)) = v.linear();
+        frame_id = model_.getFrameId(contactNames_[i]);
+        oMf_tmp = pinocchio::updateFramePlacement(model_, data_, frame_id);
+        v_tmp = pinocchio::getFrameVelocity(model_, data_, frame_id);
+        current_position_.col(static_cast<Eigen::Index>(i)) = oMf_tmp.translation();
+        current_velocities_.col(static_cast<Eigen::Index>(i)) = v_tmp.linear();
     }
 }
 
@@ -343,42 +357,41 @@ Vector3 FootStepPlanner::compute_heuristic(const Eigen::VectorXd &bv,
                                            const std::string &name,
                                            const bool feedback_term)
 {
-    Vector3 footstep;
-    footstep.setZero();
-
-    double beta = 1.35;
+    // Reset tmp variables.
+    footstep_tmp.setZero();
+    cross_tmp.setZero();
 
     // Add symmetry term
-    footstep += beta * T_stance * bvref.head<3>();
+    footstep_tmp += beta_ * T_stance * bvref.head<3>();
 
     // Add feedback term
     if (feedback_term)
     {
-        footstep += k_feedback_ * bv.head<3>();
-        footstep += -k_feedback_ * bvref.head<3>();
+        footstep_tmp += k_feedback_ * bv.head<3>();
+        footstep_tmp += -k_feedback_ * bvref.head<3>();
     }
 
     // Add centrifugal term
     Vector3 cross;
-    cross << bv(1) * bvref(5) - bv(2) * bvref(4),
+    cross_tmp << bv(1) * bvref(5) - bv(2) * bvref(4),
         bv(2) * bvref(3) - bv(0) * bvref(5),
         0.0;
-    footstep += 0.5 * std::sqrt(href_ / g_) * cross;
+    footstep_tmp += 0.5 * std::sqrt(href_ / g_) * cross_tmp;
 
     // Limit deviation
-    footstep(0) = std::min(footstep(0), L_);
-    footstep(0) = std::max(footstep(0), -L_);
-    footstep(1) = std::min(footstep(1), L_);
-    footstep(1) = std::max(footstep(1), -L_);
+    footstep_tmp(0) = std::min(footstep_tmp(0), L_);
+    footstep_tmp(0) = std::max(footstep_tmp(0), -L_);
+    footstep_tmp(1) = std::min(footstep_tmp(1), L_);
+    footstep_tmp(1) = std::max(footstep_tmp(1), -L_);
 
     // Add shoulders, Yaw axis taken into account later
     // size_t j = find_stdVec(contactNames_,name);
-    footstep += Rxy * offsets_feet_.at(name);
+    footstep_tmp += Rxy * offsets_feet_.at(name);
 
     // Remove Z component (working on flat ground)
-    footstep(2) = 0.0;
+    footstep_tmp(2) = 0.0;
 
-    return footstep;
+    return footstep_tmp;
 }
 
 // find element inside vector list.
