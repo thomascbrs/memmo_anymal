@@ -1,3 +1,6 @@
+#ifndef FILTERMEAN_H_INCLUDED
+#define FILTERMEAN_H_INCLUDED
+
 #include <vector>
 #include <cmath>
 #include <stdexcept>
@@ -5,6 +8,9 @@
 
 class FilterMean {
 public:
+    // Default constructor
+    FilterMean(){};
+
     FilterMean(double period, double dt)
         : _Nx(static_cast<size_t>(int(period / dt)))
     {
@@ -46,3 +52,5 @@ private:
     size_t _Nx;
     std::vector<Eigen::VectorXd> _x_queue;
 };
+
+#endif  // FILTERMEAN_H_INCLUDED
