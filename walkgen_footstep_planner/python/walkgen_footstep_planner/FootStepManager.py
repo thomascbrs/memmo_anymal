@@ -35,11 +35,18 @@ import copy
 import numpy as np
 from caracal import QuadrupedalGaitGenerator
 
-import walkgen_footstep_planner.FootStepPlanner as FootStepPlanner
-import walkgen_footstep_planner.GaitManager as GaitManager
-from walkgen_footstep_planner.tools.Surface import Surface
+# Python
+# import walkgen_footstep_planner.FootStepPlanner as FootStepPlanner
+# import walkgen_footstep_planner.GaitManager as GaitManager
+# from walkgen_footstep_planner.tools.Surface import Surface
+# from walkgen_footstep_planner.params import FootStepPlannerParams
 from walkgen_footstep_planner.tools.Logger import Logger
-from walkgen_footstep_planner.params import FootStepPlannerParams
+
+# C++
+from walkgen_footstep_planner.libwalkgen_footstep_planner_pywrap import FootStepPlanner
+from walkgen_footstep_planner.libwalkgen_footstep_planner_pywrap import GaitManager
+from walkgen_footstep_planner.libwalkgen_footstep_planner_pywrap import Surface
+from walkgen_footstep_planner.libwalkgen_footstep_planner_pywrap import FootStepPlannerParams
 
 # Usefull when not dealing with a proper list but cpp binding.
 def index(lst, elem):
@@ -97,8 +104,14 @@ class FootStepManager:
              q[0], height + epsilon, -height + epsilon]
         vertices = [[q[0]-dx, q[1]+dy, height], [q[0]-dx, q[1]-dy, height],
                     [q[0]+dx, q[1]-dy, height], [q[0]+dx, q[1]+dy, height]]
-        self._init_surface = Surface(
-            np.array(A), np.array(b), np.array(vertices).T)
+        try:
+            self._init_surface = Surface(
+                np.array(A), np.array(b), np.array(vertices).T)
+        except ValueError as e:
+            print("c++ version of fsteps planner.")
+            self._init_surface = Surface(
+                np.array(A), np.array(b), np.array(vertices))
+
 
         # Add initial surface to the result structure.
         self._selected_surfaces = dict()
