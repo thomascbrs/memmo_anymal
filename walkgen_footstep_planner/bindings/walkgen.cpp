@@ -7,6 +7,7 @@
 #include <Gait.hpp>
 #include "GaitManager.hpp"
 #include "Filter.hpp"
+#include "FootStepPlanner.hpp"
 
 #include <pinocchio/spatial/se3.hpp>
 #include <boost/python.hpp>
@@ -179,12 +180,14 @@ struct SurfacePythonVisitor : public bp::def_visitor<SurfacePythonVisitor<Surfac
                           bp::make_function(&Surface::getVertices, bp::return_value_policy<bp::return_by_value>()))
 
             .def("getHeight", &Surface::getHeight, bp::args("point"), "get the height of a point of the surface.\n")
-            .def("has_point", &Surface::hasPoint, bp::args("point"), "return true if the point is in the surface.\n");
+            .def("has_point", &Surface::hasPoint, bp::args("point"), "return true if the point is in the surface.\n")
+            .def("__copy__", &generic__copy__<Surface>)
+            .def("__deepcopy__", &generic__deepcopy__<Surface>);
     }
 
     static void expose()
     {
-        bp::class_<Surface>("Surface", bp::no_init).def(SurfacePythonVisitor<Surface>());
+        bp::class_<Surface>("SurfaceCpp", bp::no_init).def(SurfacePythonVisitor<Surface>());
 
         ENABLE_SPECIFIC_MATRIX_TYPE(MatrixN);
     }
@@ -350,6 +353,26 @@ void exposeFilter()
         .def("__deepcopy__", &generic__deepcopy__<ContactPhase>);
 }
 
+// Expose FootStepPlanner
+void exposeFootStepPlanner()
+{
+    typedef std::vector<Surface> StdVec_Surface;
+    walkgen::python::StdVectorPythonVisitor<Surface, std::allocator<Surface>>::expose("StdVec_Surface");
+    walkgen::python::StdMapPythonVisitor<std::string, Surface, std::less<std::string>, std::allocator<std::pair<const std::string, Surface>>>::expose("StdMap_string_Surface");
+    walkgen::python::StdMapPythonVisitor<std::string, StdVec_Surface, std::less<std::string>, std::allocator<std::pair<const std::string, StdVec_Surface>>>::expose("StdMap_string_VecSurface");
+    bp::class_<FootStepPlanner, boost::noncopyable>("FootStepPlannerCpp", bp::init<pinocchio::Model,VectorN,Params,double>(
+        (bp::args("model"), bp::args("q"), bp::args("params"), bp::args("period")=0.5)))
+        .def(bp::init<pinocchio::Model,Eigen::VectorXd,double>((bp::args("model"), bp::args("q"), bp::args("period")=0.5)))
+        .add_property("q_f", bp::make_function(&FootStepPlanner::get_qf, bp::return_value_policy<bp::return_by_value>()))
+        .add_property("qv_f", bp::make_function(&FootStepPlanner::get_qvf, bp::return_value_policy<bp::return_by_value>()))
+        .add_property("_contact_names_SL1M", bp::make_function(&FootStepPlanner::get_contact_name_sl1m, bp::return_value_policy<bp::return_by_value>()))
+        .add_property("_contactNames", bp::make_function(&FootStepPlanner::get_contact_name, bp::return_value_policy<bp::return_by_value>()))
+        .add_property("_current_position", bp::make_function(&FootStepPlanner::get_current_position, bp::return_value_policy<bp::return_by_value>()))
+        .def("compute_footstep", &FootStepPlanner::compute_footstep)
+        .def("__copy__", &generic__copy__<FootStepPlanner>)
+        .def("__deepcopy__", &generic__deepcopy__<FootStepPlanner>);
+}
+
 
 /////////////////////////////////
 /// Exposing classes
@@ -368,4 +391,5 @@ BOOST_PYTHON_MODULE(libwalkgen_footstep_planner_pywrap)
     exposeQuadrupedalGait();
     exposeGaitManager();
     exposeFilter();
+    exposeFootStepPlanner();
 }
