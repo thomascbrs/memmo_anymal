@@ -113,6 +113,22 @@ namespace walkgen
         bp::list list(iterator()(self));
         return list;
       }
+
+      // Need bool operator == for each of the vector (ContactPhase ..etc)
+      // TODO: Add a flag and a visitor for index function
+      // static int index(Container &self, PyObject *name)
+      // {
+      //   typedef typename bp::iterator<Container> iterator;
+      //   iterator it = std::find(self.begin(), self.end(), name);
+      //   if (it != self.end())
+      //   {
+      //     return static_cast<int>(std::distance(self.begin(), it));
+      //   }
+      //   else
+      //   {
+      //     throw std::runtime_error("ValueError : the value is not present.");
+      //   }
+      // }
     };
 
     template <typename Container>
@@ -217,6 +233,7 @@ namespace walkgen
         bp::class_<Container>(class_name.c_str(), doc_string.c_str())
             .def(StdVectorPythonVisitor())
             .def("tolist", &FromPythonListConverter::tolist, bp::arg("self"), "Returns the std::vector as a Python list.")
+            // .def("index", &FromPythonListConverter::index, bp::arg("element"), "Returns the index of the element in the list")
             .def_pickle(PickleVector<Container>())
             .def(visitor);
             // .def(PrintableVisitor<Container>());
