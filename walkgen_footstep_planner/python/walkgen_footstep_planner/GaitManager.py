@@ -316,7 +316,8 @@ class GaitManager:
             for cs in self._queue_cs:
                 count += cs.T
             if count - self._timeline < (self._horizon):
-                gait = self._default_cs
+                # gait = self._default_cs
+                gait = copy.deepcopy(self._default_cs)
                 gait.updateSwitches()
                 self._queue_cs.insert(0, gait)
                 addContact = True
