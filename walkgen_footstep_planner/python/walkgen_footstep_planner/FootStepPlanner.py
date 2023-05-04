@@ -48,7 +48,7 @@ class FootStepPlanner():
     Use RBPRM as a guide path since the env is available.
     """
 
-    def __init__(self, model, q, params=None, debug=False, period=0.5, RECORDING= True):
+    def __init__(self, model, q, params=None, period=0.5, debug=False, RECORDING= True):
         """ Initialize the FootStepPlanner.
 
         Args:

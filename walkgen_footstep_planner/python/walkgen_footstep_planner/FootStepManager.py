@@ -31,15 +31,22 @@ try:
     from time import perf_counter as clock
 except ImportError:
     from time import time as clock
+import copy
+import numpy as np
+from caracal import QuadrupedalGaitGenerator
+
 import walkgen_footstep_planner.FootStepPlanner as FootStepPlanner
 import walkgen_footstep_planner.GaitManager as GaitManager
 from walkgen_footstep_planner.tools.Surface import Surface
 from walkgen_footstep_planner.tools.Logger import Logger
-import copy
-import numpy as np
 from walkgen_footstep_planner.params import FootStepPlannerParams
-from caracal import QuadrupedalGaitGenerator
 
+# Usefull when not dealing with a proper list but cpp binding.
+def index(lst, elem):
+    for i, x in enumerate(lst):
+        if x == elem:
+            return i
+    raise ValueError("ValueError: the value is not present.")
 
 class FootStepManager:
     """ Wrapper class to manage the footstep planning of the Walkgen library.
@@ -117,7 +124,7 @@ class FootStepManager:
         self._coeffs = []
         self.initialize_default_cs()
         self._foostep_planner = FootStepPlanner(
-            model, q, self._params, debug, self._params.dt * self._default_cs.T)  # Foostep planner
+            model, q, self._params, self._params.dt * self._default_cs.T)  # Foostep planner
         
         self._RECORDING = RECORDING
         if self._RECORDING:
@@ -202,13 +209,12 @@ class FootStepManager:
         # Run Footstepplanner
         ti2 = clock()
         target_foostep = self._foostep_planner.compute_footstep(self._gait_manager.get_cs(), q.copy(), vq.copy(),
-                                                                b_v_ref, self._gait_manager._timeline,
+                                                                b_v_ref, int(self._gait_manager._timeline),
                                                                 self._selected_surfaces, self._previous_surfaces)
         tf2 = clock()
 
         # Check if a new flying phase is starting to trigger SL1M.
         if self._gait_manager.is_new_step():
-            print("NEW STEPS ---> SL1M")
             self._gait_sl1m = self._gait_manager.get_current_gait()  # Current walking gait
 
             # Target foosteps for SL1M.
@@ -218,20 +224,21 @@ class FootStepManager:
                 if self._gait_sl1m[
                         0, j] == 0.:  # Flying phase has started, the SL1M problem start for the next one (delay)
                     self._target_foostep[:, j] = target_foostep[:, j]
-                else:
+                else: 
                     self._target_foostep[:, j] = self._foostep_planner._current_position[:,
-                                                                                         self._foostep_planner.
-                                                                                         _contactNames.index(name)]
+                                                                                         index(self._foostep_planner.
+                                                                                         _contactNames,name)]
 
         self._coeffs = self._gait_manager.get_coefficients()
+        
         tf0 = clock()
         if self._RECORDING:
             # Update logger
-            self._logger.update_fsteps_data(self._foostep_planner.get_profiler())
+            # self._logger.update_fsteps_data(self._foostep_planner.get_profiler())
             self._logger.update_global_timings(tf0 - ti0, tf1 - ti1, tf2 - ti2)
             self._logger.write_data()
             # Reset data
-            self._foostep_planner.reset_profiler()
+            # self._foostep_planner.reset_profiler()
             self._logger.reset_data()
 
     def update_previous_surfaces(self):

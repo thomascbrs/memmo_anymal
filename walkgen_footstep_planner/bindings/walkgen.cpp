@@ -187,7 +187,7 @@ struct SurfacePythonVisitor : public bp::def_visitor<SurfacePythonVisitor<Surfac
 
     static void expose()
     {
-        bp::class_<Surface>("SurfaceCpp", bp::no_init).def(SurfacePythonVisitor<Surface>());
+        bp::class_<Surface>("Surface", bp::no_init).def(SurfacePythonVisitor<Surface>());
 
         ENABLE_SPECIFIC_MATRIX_TYPE(MatrixN);
     }
@@ -327,7 +327,7 @@ void exposeGaitManager(){
     typedef std::vector<StdVec_CoeffBezier> StdVecVec_CoeffBezier;
     walkgen::python::StdVectorPythonVisitor<StdVecVec_CoeffBezier, std::allocator<StdVecVec_CoeffBezier>>::expose("StdVecVecVec_CoeffBezier");
 
-    bp::class_<GaitManager>("GaitManagerCpp", bp::init<pinocchio::Model, VectorN, bp::optional<Params>>(
+    bp::class_<GaitManager>("GaitManager", bp::init<pinocchio::Model, VectorN, bp::optional<Params>>(
         (bp::args("model", "q", "params"), "Constructor for Gait manager.")))
         .def("update", &GaitManager::update)
         .def("print_queue", &GaitManager::print_queue)
@@ -360,7 +360,7 @@ void exposeFootStepPlanner()
     walkgen::python::StdVectorPythonVisitor<Surface, std::allocator<Surface>>::expose("StdVec_Surface");
     walkgen::python::StdMapPythonVisitor<std::string, Surface, std::less<std::string>, std::allocator<std::pair<const std::string, Surface>>>::expose("StdMap_string_Surface");
     walkgen::python::StdMapPythonVisitor<std::string, StdVec_Surface, std::less<std::string>, std::allocator<std::pair<const std::string, StdVec_Surface>>>::expose("StdMap_string_VecSurface");
-    bp::class_<FootStepPlanner, boost::noncopyable>("FootStepPlannerCpp", bp::init<pinocchio::Model,VectorN,Params,double>(
+    bp::class_<FootStepPlanner, boost::noncopyable>("FootStepPlanner", bp::init<pinocchio::Model,VectorN,Params,double>(
         (bp::args("model"), bp::args("q"), bp::args("params"), bp::args("period")=0.5)))
         .def(bp::init<pinocchio::Model,Eigen::VectorXd,double>((bp::args("model"), bp::args("q"), bp::args("period")=0.5)))
         .add_property("q_f", bp::make_function(&FootStepPlanner::get_qf, bp::return_value_policy<bp::return_by_value>()))
