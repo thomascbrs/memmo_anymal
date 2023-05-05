@@ -34,6 +34,7 @@ import numpy as np
 from walkgen_footstep_planner.libwalkgen_footstep_planner_pywrap import FootTrajectoryBezier
 from walkgen_footstep_planner.params import FootStepPlannerParams
 
+
 class FootStepTrajectoryBezier():
 
     def __init__(self, dt, N, stepHeight, M_current, M_next, params=None):
@@ -88,7 +89,7 @@ class FootStepTrajectoryBezier():
         return pinocchio.Motion(self._curve.evaluateBezier(1, k * self._dt), np.zeros(3))
 
     def update(self, x0, v0, xf, t0, init_surface, end_surface):
-        self._curve.update(x0,v0,xf,t0, init_surface, end_surface)
+        self._curve.update(x0, v0, xf, t0, init_surface, end_surface)
         return 0
 
     def get_coefficients(self):

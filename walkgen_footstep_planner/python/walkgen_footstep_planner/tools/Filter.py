@@ -31,10 +31,12 @@ from argparse import ArgumentTypeError
 import numpy as np
 from scipy.signal import butter
 
+
 class FilterMean():
+
     def __init__(self, period, dt):
         self._Nx = int(period / dt)
-        self._x_queue = [] # List of precedent values
+        self._x_queue = []  # List of precedent values
 
     def filter(self, q):
         """ Moving mean over period * dt sample.
@@ -42,22 +44,22 @@ class FilterMean():
         Args :
             - q (list) : List of size 6.
         """
-        if len(q) != 6 :
+        if len(q) != 6:
             raise ArgumentTypeError("q should be size 6")
         if len(self._x_queue) == self._Nx:
             self._x_queue.pop(0)
-        
+
         # Handle modulo for orientation
-        if len(self._x_queue) > 0  and abs(q[5] - self._x_queue[0][5]) > 1.5 * np.pi:
+        if len(self._x_queue) > 0 and abs(q[5] - self._x_queue[0][5]) > 1.5 * np.pi:
             self.handle_modulo(q[5] - self._x_queue[0][5] > 0)
-            
-        if type(q) == np.ndarray :
+
+        if type(q) == np.ndarray:
             self._x_queue.append(q.tolist())
         else:
             self._x_queue.append(q)
 
         return np.mean(self._x_queue, axis=0)
-    
+
     def handle_modulo(self, dir):
         """ Add or remove 2 PI to all elements in the queue for yaw angle.
         """
@@ -65,7 +67,8 @@ class FilterMean():
             if dir:
                 x[5] += 2 * np.pi
             else:
-                x[5] += - 2 * np.pi
+                x[5] += -2 * np.pi
+
 
 class Filter():
     """ Simple implementation of a lowpass filter.
@@ -107,7 +110,7 @@ class Filter():
         """
         if not self._is_initialized:
             self._x_queue = self._nb * [q]
-            self._y_queue = (self._na-1) * [q]
+            self._y_queue = (self._na - 1) * [q]
             self._is_initialized = True
 
         # Handle modulo for orientation
@@ -120,8 +123,8 @@ class Filter():
         acc_ = 0
         for i in range(self._nb):
             acc_ += self._b[:, i] * self._x_queue[i]
-        for i in range(self._na-1):
-            acc_ -= self._a[:, i+1] * self._y_queue[i]
+        for i in range(self._na - 1):
+            acc_ -= self._a[:, i + 1] * self._y_queue[i]
         self._y_queue.pop()
         self._y_queue.insert(0, acc_ / self._a[:, 0])
         return np.array(self._y_queue[0])
@@ -133,10 +136,10 @@ class Filter():
             if dir:
                 x[5] += 2 * np.pi
             else:
-                x[5] += - 2 * np.pi
+                x[5] += -2 * np.pi
 
         for y in self._y_queue:
             if dir:
                 y[5] += 2 * np.pi
             else:
-                y[5] += - 2 * np.pi
+                y[5] += -2 * np.pi

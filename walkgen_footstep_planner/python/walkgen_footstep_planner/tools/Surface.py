@@ -42,11 +42,9 @@ class Surface():
                                        [z0, z1, ... , zn]])
         """
         if A.shape[1] != 3:
-            raise ArithmeticError(
-                "Number column of the inequality array should be 3.")
+            raise ArithmeticError("Number column of the inequality array should be 3.")
         if vertices.shape[0] != 3:
-            raise ArithmeticError(
-                "Number of rows of the vertice array should be 3.")
+            raise ArithmeticError("Number of rows of the vertice array should be 3.")
 
         self.A = A
         self.b = b
