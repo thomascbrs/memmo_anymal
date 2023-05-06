@@ -1,68 +1,67 @@
 #ifndef PARAMS_HPP
 #define PARAMS_HPP
 
-#include <yaml-cpp/yaml.h>
-#include <string>
 #include <fstream>
 #include <iostream>
+#include <string>
+#include <yaml-cpp/yaml.h>
 
 class Params {
 public:
+  // Constructor without filename.
+  Params();
 
-    // Constructor without filename.
-    Params();
+  // Destructor
+  ~Params();
 
-    // Destructor
-    ~Params();
+  // Constructor with filename.
+  Params(const std::string &filename);
 
-    // Constructor with filename.
-    Params(const std::string& filename);
+  // Copy constructor
+  Params(const Params &other);
 
-    // Copy constructor
-    Params(const Params& other);
+  // Initialize with default variables.
+  void initialize_default();
 
-    // Initialize with default variables.
-    void initialize_default();
+  // Constructor with filename.
+  void parse_yaml_file(const std::string &filename);
 
-    // Constructor with filename.
-    void parse_yaml_file(const std::string& filename);
-
-    // Gait parameters
-    std::string type;
-    double dt;
-    int horizon;
-    int nsteps;
-    double stepHeight;
-    int N_ds;
-    int N_ss;
-    int N_uds;
-    int N_uss;
-    int N_phase_return;
-    // Bezier parameters
-    double margin_up;
-    double t_margin_up;
-    double z_margin_up;
-    double margin_down;
-    double t_margin_down;
-    double z_margin_down;
-    int N_sample;
-    int N_sample_ineq;
-    int degree;
+  // Gait parameters
+  std::string type;
+  double dt;
+  int horizon;
+  int nsteps;
+  double stepHeight;
+  int N_ds;
+  int N_ss;
+  int N_uds;
+  int N_uss;
+  int N_phase_return;
+  // Bezier parameters
+  double margin_up;
+  double t_margin_up;
+  double z_margin_up;
+  double margin_down;
+  double t_margin_down;
+  double z_margin_down;
+  int N_sample;
+  int N_sample_ineq;
+  int degree;
 };
 
-// From https://gitlab.laas.fr/gepetto/quadruped-reactive-walking/-/blob/article-ral-iros-improved/include/qrw/Params.hpp
-namespace yaml_check
-{
+// From
+// https://gitlab.laas.fr/gepetto/quadruped-reactive-walking/-/blob/article-ral-iros-improved/include/qrw/Params.hpp
+namespace yaml_check {
 
-#define assert_yaml_parsing(yaml_node, parent_node_name, child_node_name)                                     \
-    if (!yaml_node[child_node_name])                                                                          \
-    {                                                                                                         \
-        std::ostringstream oss;                                                                               \
-        oss << "Error: Wrong parsing of the YAML file from source file: [" << __FILE__ << "], in function: [" \
-            << __FUNCTION__ << "], line: [" << __LINE__ << "]. Node [" << child_node_name                     \
-            << "] does not exist under the node [" << parent_node_name << "].";                               \
-        throw std::runtime_error(oss.str());                                                                  \
-    }
+#define assert_yaml_parsing(yaml_node, parent_node_name, child_node_name)      \
+  if (!yaml_node[child_node_name]) {                                           \
+    std::ostringstream oss;                                                    \
+    oss << "Error: Wrong parsing of the YAML file from source file: ["         \
+        << __FILE__ << "], in function: [" << __FUNCTION__ << "], line: ["     \
+        << __LINE__ << "]. Node [" << child_node_name                          \
+        << "] does not exist under the node [" << parent_node_name << "].";    \
+    throw std::runtime_error(oss.str());                                       \
+  }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ///
@@ -71,15 +70,16 @@ namespace yaml_check
 /// \param[in] filename File path to check
 ///
 ////////////////////////////////////////////////////////////////////////////////////////////////
-#define assert_file_exists(filename)                                                                            \
-    std::ifstream f(filename.c_str());                                                                          \
-    if (!f.good())                                                                                              \
-    {                                                                                                           \
-        std::ostringstream oss;                                                                                 \
-        oss << "Error: Problem opening the file [" << filename << "], from source file: [" << __FILE__          \
-            << "], in function: [" << __FUNCTION__ << "], line: [" << __LINE__ << "]. The file may not exist."; \
-        throw std::runtime_error(oss.str());                                                                    \
-    }
+#define assert_file_exists(filename)                                           \
+  std::ifstream f(filename.c_str());                                           \
+  if (!f.good()) {                                                             \
+    std::ostringstream oss;                                                    \
+    oss << "Error: Problem opening the file [" << filename                     \
+        << "], from source file: [" << __FILE__ << "], in function: ["         \
+        << __FUNCTION__ << "], line: [" << __LINE__                            \
+        << "]. The file may not exist.";                                       \
+    throw std::runtime_error(oss.str());                                       \
+  }
 
 } // namespace yaml_check
 

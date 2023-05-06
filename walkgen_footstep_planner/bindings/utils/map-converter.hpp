@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // This code is copied from https://github.com/loco-3d/crocoddyl
 // Modifications : - Namespace have been changed.
-//                 
+//
 // The code is release under the following license :
 //
 // BSD 3-Clause License
@@ -15,11 +15,11 @@
 #ifndef BINDINGS_PYTHON_WALKGEN_UTILS_MAP_CONVERTER_HPP_
 #define BINDINGS_PYTHON_WALKGEN_UTILS_MAP_CONVERTER_HPP_
 
-#include <map>
-#include <boost/python/stl_iterator.hpp>
-#include <boost/python/to_python_converter.hpp>
-#include <boost/python/suite/indexing/map_indexing_suite.hpp>
 #include "vector-converter.hpp"
+#include <boost/python/stl_iterator.hpp>
+#include <boost/python/suite/indexing/map_indexing_suite.hpp>
+#include <boost/python/to_python_converter.hpp>
+#include <map>
 
 namespace walkgen {
 namespace python {
@@ -35,7 +35,7 @@ namespace bp = boost::python;
 template <typename Container>
 struct PickleMap : public PickleVector<Container> {
   static void setstate(bp::object op, bp::tuple tup) {
-    Container& o = bp::extract<Container&>(op)();
+    Container &o = bp::extract<Container &>(op)();
     bp::stl_input_iterator<typename Container::value_type> begin(tup[0]), end;
     o.insert(begin, end);
   }
@@ -44,35 +44,38 @@ struct PickleMap : public PickleVector<Container> {
 /// Conversion from dict to map solution proposed in
 /// https://stackoverflow.com/questions/6116345/boostpython-possible-to-automatically-convert-from-dict-stdmap
 /// This template encapsulates the conversion machinery.
-template <typename Container>
-struct dict_to_map {
+template <typename Container> struct dict_to_map {
   static void register_converter() {
-    bp::converter::registry::push_back(&dict_to_map::convertible, &dict_to_map::construct, bp::type_id<Container>());
+    bp::converter::registry::push_back(&dict_to_map::convertible,
+                                       &dict_to_map::construct,
+                                       bp::type_id<Container>());
   }
 
   /// Check if conversion is possible
-  static void* convertible(PyObject* object) {
+  static void *convertible(PyObject *object) {
     // Check if it is a list
-    if (!PyObject_GetIter(object)) return 0;
+    if (!PyObject_GetIter(object))
+      return 0;
     return object;
   }
 
   /// Perform the conversion
-  static void construct(PyObject* object, bp::converter::rvalue_from_python_stage1_data* data) {
+  static void construct(PyObject *object,
+                        bp::converter::rvalue_from_python_stage1_data *data) {
     // convert the PyObject pointed to by `object` to a bp::dict
-    bp::handle<> handle(bp::borrowed(object));  // "smart ptr"
+    bp::handle<> handle(bp::borrowed(object)); // "smart ptr"
     bp::dict dict(handle);
 
     // get a pointer to memory into which we construct the map
     // this is provided by the Python runtime
     typedef bp::converter::rvalue_from_python_storage<Container> storage_type;
-    void* storage = reinterpret_cast<storage_type*>(data)->storage.bytes;
+    void *storage = reinterpret_cast<storage_type *>(data)->storage.bytes;
 
     // placement-new allocate the result
     new (storage) Container();
 
     // iterate over the dictionary `dict`, fill up the map `map`
-    Container& map(*(static_cast<Container*>(storage)));
+    Container &map(*(static_cast<Container *>(storage)));
     bp::list keys(dict.keys());
     int keycount(static_cast<int>(bp::len(keys)));
     for (int i = 0; i < keycount; ++i) {
@@ -104,18 +107,14 @@ struct dict_to_map {
   typedef typename Container::value_type data_type;
   typedef size_t index_type;
 
-  static index_type
-  convert_index(Container &container, PyObject *i_)
-  {
+  static index_type convert_index(Container &container, PyObject *i_) {
     namespace bp = boost::python;
     bp::extract<size_t> i(i_);
-    if (i.check())
-    {
+    if (i.check()) {
       size_t index = i();
       if (index < 0)
         index += container.size();
-      if (index >= size_t(container.size()) || index < 0)
-      {
+      if (index >= size_t(container.size()) || index < 0) {
         PyErr_SetString(PyExc_IndexError, "Index out of range");
         bp::throw_error_already_set();
       }
@@ -127,7 +126,7 @@ struct dict_to_map {
     return index_type();
   }
 
-  static bp::dict todict(Container& self) {
+  static bp::dict todict(Container &self) {
     bp::dict dict;
     typename Container::const_iterator it;
     for (it = self.begin(); it != self.end(); ++it) {
@@ -136,42 +135,36 @@ struct dict_to_map {
     return dict;
   }
 
-  static bp::list values(Container& self)
-  {
+  static bp::list values(Container &self) {
     bp::list result;
     typename Container::const_iterator it;
-    for(it=self.begin();it!=self.end();it++) {
+    for (it = self.begin(); it != self.end(); it++) {
       result.append(
-        // call through Python to use correct return value policy
-        self[it->first]);
+          // call through Python to use correct return value policy
+          self[it->first]);
     }
     return result;
   }
 
-  static boost::python::list items(Container& self)
-  {
+  static boost::python::list items(Container &self) {
     bp::list result;
     typename Container::const_iterator it;
-    for(it=self.begin();it!=self.end();it++) {
-      result.append(bp::make_tuple(
-        it->first,
-        self[it->first]));
-    }
-    return result;
-  } 
-
-  static bp::list keys(Container& self)
-  {
-    bp::list result;
-    typename Container::const_iterator it;
-    for(it=self.begin();it!=self.end();it++) {
-      result.append(
-        // call through Python to use correct return value policy
-        it->first);
+    for (it = self.begin(); it != self.end(); it++) {
+      result.append(bp::make_tuple(it->first, self[it->first]));
     }
     return result;
   }
 
+  static bp::list keys(Container &self) {
+    bp::list result;
+    typename Container::const_iterator it;
+    for (it = self.begin(); it != self.end(); it++) {
+      result.append(
+          // call through Python to use correct return value policy
+          it->first);
+    }
+    return result;
+  }
 };
 
 // template <typename Container>
@@ -194,26 +187,33 @@ struct dict_to_map {
  *
  * @param[in] T          Type to expose as std::map<T>.
  * @param[in] Compare    Type for the Compare in std::map<T,Compare,Allocator>.
- * @param[in] Allocator  Type for the Allocator in std::map<T,Compare,Allocator>.
- * @param[in] NoProxy    When set to false, the elements will be copied when returned to Python.
+ * @param[in] Allocator  Type for the Allocator in
+ * std::map<T,Compare,Allocator>.
+ * @param[in] NoProxy    When set to false, the elements will be copied when
+ * returned to Python.
  */
 template <class Key, class T, class Compare = std::less<Key>,
-          class Allocator = std::allocator<std::pair<const Key, T> >, bool NoProxy = false>
-struct StdMapPythonVisitor : public bp::map_indexing_suite<typename std::map<Key, T, Compare, Allocator>, NoProxy>,
-                             public dict_to_map<std::map<Key, T, Compare, Allocator> > {
+          class Allocator = std::allocator<std::pair<const Key, T>>,
+          bool NoProxy = false>
+struct StdMapPythonVisitor
+    : public bp::map_indexing_suite<
+          typename std::map<Key, T, Compare, Allocator>, NoProxy>,
+      public dict_to_map<std::map<Key, T, Compare, Allocator>> {
   typedef std::map<Key, T, Compare, Allocator> Container;
   typedef dict_to_map<Container> FromPythonDictConverter;
 
-  static void expose(const std::string& class_name, const std::string& doc_string = "") {
+  static void expose(const std::string &class_name,
+                     const std::string &doc_string = "") {
     namespace bp = bp;
 
     // Exposing directly as a dictionary type, avoid .todict() method.
     // This does not work. I don't understand why.
-    // bp::to_python_converter<Container,Map_to_python_dict<Container>, true>();    
+    // bp::to_python_converter<Container,Map_to_python_dict<Container>, true>();
 
     bp::class_<Container>(class_name.c_str(), doc_string.c_str())
         .def(StdMapPythonVisitor())
-        .def("todict", &FromPythonDictConverter::todict, bp::arg("self"),"Returns the std::map as a Python dictionary.")
+        .def("todict", &FromPythonDictConverter::todict, bp::arg("self"),
+             "Returns the std::map as a Python dictionary.")
         .def("values", &FromPythonDictConverter::values)
         .def("items", &FromPythonDictConverter::items)
         .def("keys", &FromPythonDictConverter::keys)
@@ -223,7 +223,7 @@ struct StdMapPythonVisitor : public bp::map_indexing_suite<typename std::map<Key
   }
 };
 
-}  // namespace python
-}  // namespace walkgen
+} // namespace python
+} // namespace walkgen
 
-#endif  // BINDINGS_PYTHON_WALKGEN_UTILS_MAP_CONVERTER_HPP_
+#endif // BINDINGS_PYTHON_WALKGEN_UTILS_MAP_CONVERTER_HPP_

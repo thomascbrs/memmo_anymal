@@ -12,51 +12,52 @@
 #include "Types.hpp"
 
 class Surface {
- public:
+public:
   // Constructor
   Surface();
-  Surface(const Surface& other);
-  Surface(MatrixN const& A_in, VectorN const& b_in, MatrixN const& vertices_in);
+  Surface(const Surface &other);
+  Surface(MatrixN const &A_in, VectorN const &b_in, MatrixN const &vertices_in);
 
-  bool operator==(const Surface& other) const {
+  bool operator==(const Surface &other) const {
     return A_ == other.A_ && b_ == other.b_ && vertices_ == other.vertices_;
   }
 
-  bool operator!=(const Surface& other) const {
+  bool operator!=(const Surface &other) const {
     return A_ != other.A_ or b_ != other.b_ or vertices_ != other.vertices_;
   }
 
-  Surface& operator=(const Surface& other) {
-  if (this != &other) {
-    vertices_ = other.vertices_;
-    A_ = other.A_;
-    b_ = other.b_;
+  Surface &operator=(const Surface &other) {
+    if (this != &other) {
+      vertices_ = other.vertices_;
+      A_ = other.A_;
+      b_ = other.b_;
+    }
+    return *this;
   }
-  return *this;
-}
 
   // Destructor
   ~Surface() {}
 
   // Usefull for python binding
   MatrixN getA() const;
-  void setA(MatrixN const& A_in);
+  void setA(MatrixN const &A_in);
 
   VectorN getb() const;
-  void setb(VectorN const& b_in);
+  void setb(VectorN const &b_in);
 
   MatrixN getVertices() const;
-  void setVertices(MatrixN const& vertices_in);
+  void setVertices(MatrixN const &vertices_in);
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
   ///
-  /// \brief For a given X,Y point that belongs to the surface, return the height
+  /// \brief For a given X,Y point that belongs to the surface, return the
+  /// height
   ///        d/c -a/c*x -b/c*y
   ///
   /// \param[in] point Vecto3 [x, y, z]
   ///
   //////////////////////////////////////////////////////////////////////////////////////////////////
-  double getHeight(Vector2 const& point) const;
+  double getHeight(Vector2 const &point) const;
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
   ///
@@ -65,13 +66,13 @@ class Surface {
   /// \param[in] point Vecto3 [x, y]
   ///
   //////////////////////////////////////////////////////////////////////////////////////////////////
-  bool hasPoint(Vector2 const& point) const;
+  bool hasPoint(Vector2 const &point) const;
 
   MatrixN vertices_;
 
- private:
+private:
   MatrixN A_;
   VectorN b_;
 };
 
-#endif  // SURFACE_H_INCLUDED
+#endif // SURFACE_H_INCLUDED
