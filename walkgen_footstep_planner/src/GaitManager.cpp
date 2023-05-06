@@ -82,6 +82,8 @@ void GaitManager::initialize(const pinocchio::Model &model, const VectorN &q) {
   new_step_ = false;
   is_first_gait_ = true;
   current_gait_ = MatrixN_int::Zero(4, 4); // Initialization
+  NGAIT = 20; // Number of switches to return, should be large enought for sl1m
+  timings.push_back(0.); // Random number for initialisation.
 
   // Send new step flag only 1 over n_new_steps :
   ratio_nsteps_ = 1;
@@ -245,6 +247,8 @@ void GaitManager::update_switches(std::map<int, std::vector<int>> &switches,
 }
 
 MatrixN_int GaitManager::compute_gait(int timeline) {
+  // Reset timings
+  timings.clear();
   // Warning : The switches has been updated previously.
   std::vector<std::vector<int>> gait;
   auto it = current_switches_.begin();
@@ -259,8 +263,56 @@ MatrixN_int GaitManager::compute_gait(int timeline) {
        ++itr) {
     if (timeline <= itr->first) {
       gait.push_back(itr->second);
+      if (timings.size() == 0) {
+        timings.push_back(0.);
+      } else {
+        timings.push_back(itr->first - (std::prev(itr))->first);
+      }
     }
   }
+
+  // Increase size of the gait list to 10 for sl1m.
+  // Copy the gait corresponding to the last CS.
+
+  // First case : only 1 CS :
+  // --> The current_switches defines totally the CS
+  if (queue_cs_.size() == 1) {
+    while (gait.size() < static_cast<size_t>(NGAIT)) {
+      for (auto itr = current_switches_.begin(); itr != current_switches_.end();
+           ++itr) {
+        if (gait.size() < static_cast<size_t>(NGAIT)) {
+          gait.push_back(itr->second);
+          if (itr == current_switches_.begin()) {
+            timings.push_back(itr->first +
+                              1); // First element if timings with -1 offset
+          } else {
+            timings.push_back(itr->first - (std::prev(itr))->first);
+          }
+        }
+      }
+    }
+  }
+  // Second case : multiple CS
+  // --> Get the switches corresponding to the last CS
+  else {
+    // Get last switche time of the last CS
+    int switches_nxt = 0;
+    for (auto itr = queue_cs_.begin(); itr != queue_cs_.end() - 1; itr++) {
+      switches_nxt += (*itr)->T_;
+    }
+    // Add the gait only after the last switche time.
+    while (gait.size() < static_cast<size_t>(NGAIT)) {
+      for (auto itr = current_switches_.begin(); itr != current_switches_.end();
+           ++itr) {
+        if (gait.size() < static_cast<size_t>(NGAIT) &&
+            itr->first > switches_nxt) {
+          gait.push_back(itr->second);
+          timings.push_back(itr->first - (std::prev(itr))->first);
+        }
+      }
+    }
+  }
+
   const size_t nCols = gait[0].size();
   const size_t nRows = gait.size();
   // Reset size of the current gait

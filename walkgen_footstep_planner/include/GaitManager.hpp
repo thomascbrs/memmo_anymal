@@ -40,6 +40,7 @@ public:
               const Params &params);
   void initialize(const pinocchio::Model &model, const VectorN &q);
   void print_queue();
+  void print_current_switches() { print_switches(current_switches_); };
   bool update();
   MatrixN_int get_gait() { return current_gait_; };
   double get_timeline() { return timeline_; };
@@ -49,6 +50,7 @@ public:
   std::map<std::string, pinocchio::SE3> cs1;
   std::vector<std::shared_ptr<ContactSchedule>> queue_cs_;
   std::vector<std::shared_ptr<ContactSchedule>> get_cs() { return queue_cs_; };
+  std::vector<double> get_timings() { return timings; };
 
 private:
   std::vector<int> evaluate_config(const ContactSchedule &schedule,
@@ -84,6 +86,8 @@ private:
   int ratio_nsteps_;
   int new_step_counter_;
   std::map<int, std::vector<int>> current_switches_;
+  int NGAIT;
+  std::vector<double> timings;
   // std::map<int, std::vector<int>> switches_tmp_;
 };
 
