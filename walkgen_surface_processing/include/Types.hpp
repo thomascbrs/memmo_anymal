@@ -6,8 +6,8 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
-#include <string>
 #include <memory>
+#include <string>
 
 using Vector2 = Eigen::Matrix<double, 2, 1>;
 using Vector3 = Eigen::Matrix<double, 3, 1>;
@@ -24,4 +24,4 @@ using Matrix43 = Eigen::Matrix<double, 4, 3>;
 using Matrix3N = Eigen::Matrix<double, 3, Eigen::Dynamic>;
 using MatrixN = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
 
-#endif  // TYPES_H_INCLUDED
+#endif // TYPES_H_INCLUDED

@@ -30,7 +30,6 @@
 import numpy as np
 from shapely.geometry import Polygon
 from walkgen_surface_processing.tools.transforms import apply_margin, cross
-
 """
 Usefull structure to work on surface decomposition.
 """
