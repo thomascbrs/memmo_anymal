@@ -85,8 +85,8 @@ class SurfaceProcessing:
         self._margin_outer = self._params.margin_outer
         self._offsets = -0.03
 
-        self._offsets_clearmap = 0.02 # (initial_height + offsets_clearmap) height under which the surfaces are removed.
-        self._clearmap = False # Boolean to remove the some of the ground surfaces.
+        self._offsets_clearmap = 0.02  # (initial_height + offsets_clearmap) height under which the surfaces are removed.
+        self._clearmap = False  # Boolean to remove the some of the ground surfaces.
 
     def run(self, position, markerArray):
         """ Process the surfaces list from markerArray data type.
@@ -112,23 +112,20 @@ class SurfaceProcessing:
 
         # Add floor around robot position.
         vertices = np.array([[position[0] - self._dx, position[1] + self._dy, self._initial_height],
-                    [position[0] - self._dx, position[1] -
-                        self._dy, self._initial_height],
-                    [position[0] + self._dx, position[1] -
-                        self._dy, self._initial_height],
-                    [position[0] + self._dx, position[1] + self._dy, self._initial_height]])
+                             [position[0] - self._dx, position[1] - self._dy, self._initial_height],
+                             [position[0] + self._dx, position[1] - self._dy, self._initial_height],
+                             [position[0] + self._dx, position[1] + self._dy, self._initial_height]])
         surface_reduced.append(vertices)
 
         # Apply process to filter and decompose the surfaces to avoid overlap and apply a security margin.
-        surfaces_processed = process_surfaces(
-            surface_reduced,
-            polySize=self._poly_size,
-            method=self._method_id,
-            min_area=self._min_area,
-            margin_inner=self._margin_inner,
-            margin_outer=self._margin_outer,
-            clearmap= self._clearmap,
-            clearmap_limit= (self._initial_height + self._offsets_clearmap) )
+        surfaces_processed = process_surfaces(surface_reduced,
+                                              polySize=self._poly_size,
+                                              method=self._method_id,
+                                              min_area=self._min_area,
+                                              margin_inner=self._margin_inner,
+                                              margin_outer=self._margin_outer,
+                                              clearmap=self._clearmap,
+                                              clearmap_limit=(self._initial_height + self._offsets_clearmap))
 
         return dict(zip([str(k) for k in range(len(surfaces_processed))], [sf.tolist() for sf in surfaces_processed]))
 

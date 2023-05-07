@@ -11,20 +11,19 @@
 
 #include "Types.hpp"
 #include <Eigen/Dense>
-#include <hpp/fcl/mesh_loader/loader.h>
 #include <boost/smart_ptr.hpp>
+#include <hpp/affordance/affordance-extraction.hh>
+#include <hpp/affordance/operations.hh>
 #include <hpp/fcl/BVH/BVH_model.h>
 #include <hpp/fcl/data_types.h>
 #include <hpp/fcl/fwd.hh>
-#include <hpp/affordance/affordance-extraction.hh>
-#include <hpp/affordance/operations.hh>
-
+#include <hpp/fcl/mesh_loader/loader.h>
 
 typedef std::vector<std::vector<Vector3>> StdVecVec_Vector3;
 
 using namespace hpp;
 class AffordanceLoader {
- public:
+public:
   // Constructor
   AffordanceLoader();
 
@@ -41,8 +40,8 @@ class AffordanceLoader {
   /// \param[in] affordanceName char. type of affordance
   ///
   ///////////////////////////////////////////////////////////////////////////
-  AffordanceLoader(double const& margin_in, double const& nbTriMargin_in, double const& minArea_in,
-                   char* const& affordanceName_in);
+  AffordanceLoader(double const &margin_in, double const &nbTriMargin_in,
+                   double const &minArea_in, char *const &affordanceName_in);
 
   ///////////////////////////////////////////////////////////////////////////
   ///
@@ -53,7 +52,7 @@ class AffordanceLoader {
   /// \param[in] T Translation vector.
   ///
   ///////////////////////////////////////////////////////////////////////////
-  void load(std::string const& filename, MatrixN const& R, VectorN const& T);
+  void load(std::string const &filename, MatrixN const &R, VectorN const &T);
 
   ///////////////////////////////////////////////////////////////////////////
   ///
@@ -62,13 +61,13 @@ class AffordanceLoader {
   ///////////////////////////////////////////////////////////////////////////
   StdVecVec_Vector3 getAffordances() const { return affordances_; };
 
- private:
+private:
   StdVecVec_Vector3 affordances_;
   // Parameters to select the relevant surfaces
   double margin;
   double nbTriMargin;
   double minArea;
-  char* affordanceName;
+  char *affordanceName;
 };
 
-#endif  // AffordanceLoader_H_INCLUDED
+#endif // AffordanceLoader_H_INCLUDED

@@ -17,18 +17,18 @@ rpy = np.array([0., 0., 0.])  # Roll,pitch & yaw.
 R = pin.rpy.rpyToMatrix(rpy)  # Rotation matrix
 
 # Extract surfaces from .stl file.
-surface_detector = SurfaceDetector(params.path + params.stl, R, translation, 0. , "environment_")
+surface_detector = SurfaceDetector(params.path + params.stl, R, translation, 0., "environment_")
 all_surfaces = surface_detector.extract_surfaces()
 
-surface_detector = SurfaceDetector(params.path + params.stl, R, translation, params.margin_inner , "environment_")
+surface_detector = SurfaceDetector(params.path + params.stl, R, translation, params.margin_inner, "environment_")
 all_surfaces_reduced = surface_detector.extract_surfaces()
 
 # Plot surfaces.
 fig = plt.figure(figsize=(10, 6))
 ax = plt.axes(projection='3d')
 for sf in all_surfaces.values():
-    plot_surface( np.array(sf), ax,color = "k")
+    plot_surface(np.array(sf), ax, color="k")
 for sf in all_surfaces_reduced.values():
-    plot_surface( np.array(sf), ax,color = "r")
+    plot_surface(np.array(sf), ax, color="r")
 plt.title("Surfaces extracted from .stl file")
 plt.show()
