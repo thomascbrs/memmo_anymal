@@ -23,7 +23,8 @@ R = pin.rpy.rpyToMatrix(rpy)  # Rotation matrix
 
 # Extract surfaces from multiple .stl files.
 # 1 file corresponds to 1 surface (usefull for large areas)
-params.path = "/home/thomas_cbrs/devel/walkgen-environment-data/environments"
+# TODO : Setup your path.
+params.path = "/home/thomas_cbrs/install/share/walkgen-environment-data/environments"
 params.stl = "/meshes/rendering/ICRA_parkour_g5r/"
 surface_detector = SurfaceLoader(params.path + params.stl, R, translation, "environment_", params, True)
 all_surfaces_processed = surface_detector.extract_surfaces()
