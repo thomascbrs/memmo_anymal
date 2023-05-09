@@ -68,3 +68,15 @@ alias format-py-flake='flake8 --config=/home/thomas_cbrs/devel/linters/setup.cfg
 alias format-cpp="cp /home/thomas_cbrs/devel/linters/.clang-format-6.0 . &&
 find . -path ./cmake -prune -o -iregex '.*\.\(h\|c\|hh\|cc\|hpp\|cpp\|hxx\|cxx\)$' -exec clang-format-6.0 -style=file -i {} + && rm .clang-format-6.0"
 ```
+---
+## Tag v0.1.1
+
+c++ version of the library walkgen. Here are the dependencies to work with :
+
+- memmo_planner_ros (branch v0.1.1) : https://github.com/thomascbrs/memmo_planner_ros/tree/v0.1.1
+- caracal_ros (branch v0.1.1) : https://github.com/thomascbrs/caracal_ros/tree/v0.1.1
+- caracal (branch v0.1.1) : https://github.com/thomascbrs/caracal/tree/v0.1.1
+- Crocoddyl (commit 17cff47f) : https://github.com/cmastalli/crocoddyl-constraints/blob/topic/inv-dyn-solver/examples/arm_manipulation_invdyn.py
+- sl1m (branch v0.1.1):https://github.com/thomascbrs/sl1m/tree/v0.1.1-walkgen
+- pinocchio (d3dbdf5f , tag v2.6.6): https://github.com/stack-of-tasks/pinocchio.git
+- walkgen-environment-data (branch main)https://github.com/thomascbrs/walkgen-environment-data
