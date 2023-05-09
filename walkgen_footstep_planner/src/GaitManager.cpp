@@ -266,7 +266,8 @@ MatrixN_int GaitManager::compute_gait(int timeline) {
       if (timings.size() == 0) {
         timings.push_back(0.);
       } else {
-        timings.push_back(itr->first - (std::prev(itr))->first);
+        timings.push_back(
+            dt_ * static_cast<double>(itr->first - (std::prev(itr))->first));
       }
     }
   }
@@ -283,10 +284,13 @@ MatrixN_int GaitManager::compute_gait(int timeline) {
         if (gait.size() < static_cast<size_t>(NGAIT)) {
           gait.push_back(itr->second);
           if (itr == current_switches_.begin()) {
-            timings.push_back(itr->first +
-                              1); // First element if timings with -1 offset
+            timings.push_back(
+                dt_ *
+                static_cast<double>(
+                    itr->first + 1)); // First element if timings with -1 offset
           } else {
-            timings.push_back(itr->first - (std::prev(itr))->first);
+            timings.push_back(dt_ * static_cast<double>(
+                                        itr->first - (std::prev(itr))->first));
           }
         }
       }
@@ -307,7 +311,8 @@ MatrixN_int GaitManager::compute_gait(int timeline) {
         if (gait.size() < static_cast<size_t>(NGAIT) &&
             itr->first > switches_nxt) {
           gait.push_back(itr->second);
-          timings.push_back(itr->first - (std::prev(itr))->first);
+          timings.push_back(
+              dt_ * static_cast<double>(itr->first - (std::prev(itr))->first));
         }
       }
     }

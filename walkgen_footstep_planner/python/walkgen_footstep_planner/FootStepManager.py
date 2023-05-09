@@ -265,7 +265,15 @@ class FootStepManager:
             - surfaces (dict): The set of new surfaces.
         """
         # TODO: Implement a method to adjust the height of the surface according to the state of the robot.
-        self._new_surfaces = copy.deepcopy(surfaces)
+        # self._new_surfaces = copy.deepcopy(surfaces)
+        t0 = clock()
+        self._new_surfaces = dict()
+        for key in surfaces.keys():
+            self._new_surfaces[key] = []
+            for sf in surfaces[key]:
+                self._new_surfaces[key].append(Surface(sf.A, sf.b, sf.vertices.T))
+        t1 = clock()
+        print("TIME TO CONVERT SURFACES [ms] : ", 1000 * (t1 - t0))
 
     def get_target_footstep(self):
         """ Returns the target foostep for SL1M. (SL1M feet order)
@@ -320,6 +328,11 @@ class FootStepManager:
         """ Reset dict containing timing information
         """
         self._foostep_planner.reset_profiler()
+
+    def get_gait_timings(self):
+        """Return the list of timing associated with the gait matrix.
+        """
+        return self._gait_manager.get_gait_timings().tolist()
 
 
 if __name__ == "__main__":

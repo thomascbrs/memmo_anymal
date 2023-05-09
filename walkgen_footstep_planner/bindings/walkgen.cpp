@@ -399,7 +399,7 @@ void exposeGaitManager() {
       .def("update", &GaitManager::update)
       .def("print_queue", &GaitManager::print_queue)
       .def("print_switches", &GaitManager::print_current_switches)
-      .def("get_timings", &GaitManager::get_timings)
+      .def("get_gait_timings", &GaitManager::get_timings)
       .def("get_current_gait", &GaitManager::get_gait)
       .def("is_new_step", &GaitManager::is_new_step)
       .def("get_coefficients", &GaitManager::get_coefficients,
