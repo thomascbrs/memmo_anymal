@@ -56,3 +56,15 @@ Allow to interface with ros message. It contains publisher interfaces, reading a
 ### Pipeline :
 
 ![](./doc/pipeline.png)
+
+---
+### Formatting code
+
+https://github.com/gepetto/linters
+with the following bashrc commands : 
+```
+alias format-py='yapf --recursive --exclude="*/cmake/*" --in-place --parallel --style=/home/thomas_cbrs/devel/linters/setup.cfg $(find . -name "*.py")'
+alias format-py-flake='flake8 --config=/home/thomas_cbrs/devel/linters/setup.cfg $(find . -name "*.py")'
+alias format-cpp="cp /home/thomas_cbrs/devel/linters/.clang-format-6.0 . &&
+find . -path ./cmake -prune -o -iregex '.*\.\(h\|c\|hh\|cc\|hpp\|cpp\|hxx\|cxx\)$' -exec clang-format-6.0 -style=file -i {} + && rm .clang-format-6.0"
+```

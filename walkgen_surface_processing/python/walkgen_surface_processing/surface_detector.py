@@ -42,10 +42,10 @@ class SurfaceDetector:
                  translation=np.zeros(3),
                  margin=0.,
                  prefix="environment_",
-                 margin_aff = 0.03,
-                 nbTriMargin = 0.03,
-                 minArea = 0.005,
-                 affordanceName = "Support"):
+                 margin_aff=0.03,
+                 nbTriMargin=0.03,
+                 minArea=0.005,
+                 affordanceName="Support"):
         """ Initialize the surface detector.
 
         Args:
@@ -60,7 +60,7 @@ class SurfaceDetector:
             - affordanceName(String) : affordanceName hpp-affordance params
         """
         self._loader = AffordanceLoader(margin_aff, nbTriMargin, minArea, affordanceName)
-        self._loader.load(filename, orientation_matrix ,translation)
+        self._loader.load(filename, orientation_matrix, translation)
         names = [prefix + str(k) for k in range(len(self._loader.get_affordances()))]
         affordances = dict(
             zip(names, [(order(align_points(affordance)), get_normal(affordance).tolist())

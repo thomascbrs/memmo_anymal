@@ -31,14 +31,30 @@ try:
     from time import perf_counter as clock
 except ImportError:
     from time import time as clock
-import walkgen_footstep_planner.FootStepPlanner as FootStepPlanner
-import walkgen_footstep_planner.GaitManager as GaitManager
-from walkgen_footstep_planner.tools.Surface import Surface
-from walkgen_footstep_planner.tools.Logger import Logger
 import copy
 import numpy as np
-from walkgen_footstep_planner.params import FootStepPlannerParams
 from caracal import QuadrupedalGaitGenerator
+
+# Python
+# import walkgen_footstep_planner.FootStepPlanner as FootStepPlanner
+# import walkgen_footstep_planner.GaitManager as GaitManager
+# from walkgen_footstep_planner.tools.Surface import Surface
+# from walkgen_footstep_planner.params import FootStepPlannerParams
+from walkgen_footstep_planner.tools.Logger import Logger
+
+# C++
+from walkgen_footstep_planner.libwalkgen_footstep_planner_pywrap import FootStepPlanner
+from walkgen_footstep_planner.libwalkgen_footstep_planner_pywrap import GaitManager
+from walkgen_footstep_planner.libwalkgen_footstep_planner_pywrap import Surface
+from walkgen_footstep_planner.libwalkgen_footstep_planner_pywrap import FootStepPlannerParams
+
+
+# Usefull when not dealing with a proper list but cpp binding.
+def index(lst, elem):
+    for i, x in enumerate(lst):
+        if x == elem:
+            return i
+    raise ValueError("ValueError: the value is not present.")
 
 
 class FootStepManager:
@@ -81,17 +97,17 @@ class FootStepManager:
         dy = 1.5  # Distance on y-axis around the initial position.
         # Assume 4 feet are on the ground
         lfeet = ["LF_FOOT", "LH_FOOT", "RF_FOOT", "RH_FOOT"]
-        height = np.mean(
-            [self._gait_manager.cs0[lfeet[k]].translation[2] for k in range(4)])
+        height = np.mean([self._gait_manager.cs0[lfeet[k]].translation[2] for k in range(4)])
         epsilon = 10e-6
-        A = [[-1., 0., 0.], [0., -1., 0.], [0., 1., 0.],
-             [1., 0., 0.], [0., 0., 1.], [-0., -0., -1.]]
-        b = [dx - q[0], dy - q[1], dy + q[1], dx +
-             q[0], height + epsilon, -height + epsilon]
-        vertices = [[q[0]-dx, q[1]+dy, height], [q[0]-dx, q[1]-dy, height],
-                    [q[0]+dx, q[1]-dy, height], [q[0]+dx, q[1]+dy, height]]
-        self._init_surface = Surface(
-            np.array(A), np.array(b), np.array(vertices).T)
+        A = [[-1., 0., 0.], [0., -1., 0.], [0., 1., 0.], [1., 0., 0.], [0., 0., 1.], [-0., -0., -1.]]
+        b = [dx - q[0], dy - q[1], dy + q[1], dx + q[0], height + epsilon, -height + epsilon]
+        vertices = [[q[0] - dx, q[1] + dy, height], [q[0] - dx, q[1] - dy, height], [q[0] + dx, q[1] - dy, height],
+                    [q[0] + dx, q[1] + dy, height]]
+        try:
+            self._init_surface = Surface(np.array(A), np.array(b), np.array(vertices).T)
+        except ValueError as e:
+            print("c++ version of fsteps planner.")
+            self._init_surface = Surface(np.array(A), np.array(b), np.array(vertices))
 
         # Add initial surface to the result structure.
         self._selected_surfaces = dict()
@@ -116,9 +132,9 @@ class FootStepManager:
         self._firstIteration = True
         self._coeffs = []
         self.initialize_default_cs()
-        self._foostep_planner = FootStepPlanner(
-            model, q, self._params, debug, self._params.dt * self._default_cs.T)  # Foostep planner
-        
+        self._foostep_planner = FootStepPlanner(model, q, self._params,
+                                                self._params.dt * self._default_cs.T)  # Foostep planner
+
         self._RECORDING = RECORDING
         if self._RECORDING:
             self._logger = Logger(folder_path)
@@ -150,7 +166,7 @@ class FootStepManager:
         elif self._typeGait == "walk":
             self._initial_cs = copy.deepcopy(
                 gait_generator.walk(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
-                                    N_ds= 100,
+                                    N_ds=100,
                                     N_ss=self._N_ss,
                                     N_uss=self._N_uss,
                                     N_uds=self._N_uds,
@@ -202,13 +218,12 @@ class FootStepManager:
         # Run Footstepplanner
         ti2 = clock()
         target_foostep = self._foostep_planner.compute_footstep(self._gait_manager.get_cs(), q.copy(), vq.copy(),
-                                                                b_v_ref, self._gait_manager._timeline,
+                                                                b_v_ref, int(self._gait_manager._timeline),
                                                                 self._selected_surfaces, self._previous_surfaces)
         tf2 = clock()
 
         # Check if a new flying phase is starting to trigger SL1M.
         if self._gait_manager.is_new_step():
-            print("NEW STEPS ---> SL1M")
             self._gait_sl1m = self._gait_manager.get_current_gait()  # Current walking gait
 
             # Target foosteps for SL1M.
@@ -220,18 +235,20 @@ class FootStepManager:
                     self._target_foostep[:, j] = target_foostep[:, j]
                 else:
                     self._target_foostep[:, j] = self._foostep_planner._current_position[:,
-                                                                                         self._foostep_planner.
-                                                                                         _contactNames.index(name)]
+                                                                                         index(
+                                                                                             self._foostep_planner.
+                                                                                             _contactNames, name)]
 
         self._coeffs = self._gait_manager.get_coefficients()
+
         tf0 = clock()
         if self._RECORDING:
             # Update logger
-            self._logger.update_fsteps_data(self._foostep_planner.get_profiler())
+            # self._logger.update_fsteps_data(self._foostep_planner.get_profiler())
             self._logger.update_global_timings(tf0 - ti0, tf1 - ti1, tf2 - ti2)
             self._logger.write_data()
             # Reset data
-            self._foostep_planner.reset_profiler()
+            # self._foostep_planner.reset_profiler()
             self._logger.reset_data()
 
     def update_previous_surfaces(self):
@@ -248,7 +265,15 @@ class FootStepManager:
             - surfaces (dict): The set of new surfaces.
         """
         # TODO: Implement a method to adjust the height of the surface according to the state of the robot.
-        self._new_surfaces = copy.deepcopy(surfaces)
+        # self._new_surfaces = copy.deepcopy(surfaces)
+        t0 = clock()
+        self._new_surfaces = dict()
+        for key in surfaces.keys():
+            self._new_surfaces[key] = []
+            for sf in surfaces[key]:
+                self._new_surfaces[key].append(Surface(sf.A, sf.b, sf.vertices.T))
+        t1 = clock()
+        print("TIME TO CONVERT SURFACES [ms] : ", 1000 * (t1 - t0))
 
     def get_target_footstep(self):
         """ Returns the target foostep for SL1M. (SL1M feet order)
@@ -288,7 +313,7 @@ class FootStepManager:
         """ Returns the state filtered. (x 18)
         """
         return self._foostep_planner.q_f
-    
+
     def get_qv_filter(self):
         """ Returns the state velocity filtered. (x 6)
         """
@@ -298,11 +323,17 @@ class FootStepManager:
         """ Returns profiler dict() from Footstepplanner
         """
         return self._foostep_planner.profiler
-    
+
     def reset_profiler(self):
         """ Reset dict containing timing information
         """
         self._foostep_planner.reset_profiler()
+
+    def get_gait_timings(self):
+        """Return the list of timing associated with the gait matrix.
+        """
+        return self._gait_manager.get_gait_timings().tolist()
+
 
 if __name__ == "__main__":
     """ Run a simple example of the FootStepManager wrapper.
@@ -315,8 +346,7 @@ if __name__ == "__main__":
     bvref[5] = 0.06
     bvref[0] = 0.06
 
-    filepath = os.path.dirname(os.path.abspath(
-        __file__)) + "/config/params.yaml"
+    filepath = os.path.dirname(os.path.abspath(__file__)) + "/config/params.yaml"
 
     # Load Anymal model to get the current feet position by forward kinematic.
     ANYmalLoader.free_flyer = True

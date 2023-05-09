@@ -48,7 +48,7 @@ class FootStepPlanner():
     Use RBPRM as a guide path since the env is available.
     """
 
-    def __init__(self, model, q, params=None, debug=False, period=0.5, RECORDING= True):
+    def __init__(self, model, q, params=None, period=0.5, debug=False, RECORDING=True):
         """ Initialize the FootStepPlanner.
 
         Args:
@@ -85,8 +85,7 @@ class FootStepPlanner():
             self._current_position[:, i] = self._data.oMf[Id].translation
 
         # Obtained with anymal.q0 configuration
-        self._offsets_feet = np.array(
-            [[0.367, -0.367, 0.367, -0.367], [0.2, 0.2, -0.2, -0.2], [0., 0., 0., 0.]])
+        self._offsets_feet = np.array([[0.367, -0.367, 0.367, -0.367], [0.2, 0.2, -0.2, -0.2], [0., 0., 0., 0.]])
 
         self._k_feedback = 0.03
         self._href = 0.48
@@ -94,7 +93,7 @@ class FootStepPlanner():
         self._L = 0.5
         self._nsteps = params.nsteps
         # range [0.,1.], % of the curve to fix the position of the targetfoostep --> avoid slipping.
-        self._stop_heuristic = 5/8
+        self._stop_heuristic = 5 / 8
         if params.horizon is None:
             self._horizon = period / params.dt
         else:
@@ -108,10 +107,10 @@ class FootStepPlanner():
 
         # Low pass filter
         if params.typeGait == "walk":
-            cutoff = 6*[1/(2*period)]
-            cutoff[1] = 1/(2*period)
+            cutoff = 6 * [1 / (2 * period)]
+            cutoff[1] = 1 / (2 * period)
         elif params.typeGait == "trot":
-            cutoff = 6 * [1/(2*period)]
+            cutoff = 6 * [1 / (2 * period)]
         else:
             raise ArgumentError("Wrong type of gait. Try walk or trot")
 
@@ -128,14 +127,14 @@ class FootStepPlanner():
         dx, dy = 0.5, 0.5
         height = 0.
         epsilon = 10e-6
-        A = [[-1., 0., 0.], [0., -1., 0.], [0., 1., 0.],
-             [1., 0., 0.], [0., 0., 1.], [-0., -0., -1.]]
-        b = [dx - q[0], dy - q[1], dy + q[1], dx +
-             q[0], height + epsilon, -height + epsilon]
-        vertices = [[q[0]-dx, q[1]+dy, height], [q[0]-dx, q[1]-dy, height],
-                    [q[0]+dx, q[1]-dy, height], [q[0]+dx, q[1]+dy, height]]
+        A = [[-1., 0., 0.], [0., -1., 0.], [0., 1., 0.], [1., 0., 0.], [0., 0., 1.], [-0., -0., -1.]]
+        b = [dx - q[0], dy - q[1], dy + q[1], dx + q[0], height + epsilon, -height + epsilon]
+        vertices = [[q[0] - dx, q[1] + dy, height], [q[0] - dx, q[1] - dy, height], [q[0] + dx, q[1] - dy, height],
+                    [q[0] + dx, q[1] + dy, height]]
         for foot in range(4):
-            self._previous_surfaces[self._contactNames[foot]] = copy.deepcopy(Surface(np.array(A), np.array(b), np.array(vertices).T))
+            self._previous_surfaces[self._contactNames[foot]] = copy.deepcopy(
+                Surface(np.array(A), np.array(b),
+                        np.array(vertices).T))
 
         # Quick debug tools
         self.q_save = []
@@ -143,26 +142,22 @@ class FootStepPlanner():
         self.q_filter_save = []
 
         self._counter_gait = 0
-        
+
         # Profiling surface planner
         self._RECORDING = RECORDING
         if self._RECORDING:
-            self.profiler = {"update_position":[],
-                            "foot_position":[],
-                            "foot_trajectory":[],
-                            "surface_binding":[]
-                            }
+            self.profiler = {"update_position": [], "foot_position": [], "foot_trajectory": [], "surface_binding": []}
         else:
             self.profiler = {}
-            
+
     def reset_profiler(self):
         self.profiler["update_position"] = []
         self.profiler["foot_position"] = []
-        self.profiler["foot_trajectory"] = [] 
+        self.profiler["foot_trajectory"] = []
         self.profiler["surface_binding"] = []
-    
+
     def get_profiler(self):
-        return self.profiler  
+        return self.profiler
 
     def compute_footstep(self, queue_cs, q, vq, bvref, timeline, selected_surfaces, previous_surfaces):
         """ Run the queue in reverse order and update the position for each Contact Schedule (CS)
@@ -187,8 +182,7 @@ class FootStepPlanner():
             raise ArithmeticError(
                 "Current velocity vq should be an array of size 18 [lin vel (x3), ang vel (x3), joint vel(x12)]")
         if bvref.shape[0] != 6:
-            raise ArithmeticError(
-                "Reference velocity should be an array of size 6 [lin vel (x3), ang vel (x3)]")
+            raise ArithmeticError("Reference velocity should be an array of size 6 [lin vel (x3), ang vel (x3)]")
 
         # Update current feet position
         self._update_current_state(q, vq)
@@ -212,7 +206,8 @@ class FootStepPlanner():
         # np.save("/home/thomas_cbrs/Desktop/edin/tmp/memmo_anymal_test/CoM_analysis/q_filter_9070", np.array(self.q_filter_save))
 
         # Update position for each CS in the queue.
-        return self.update_position(queue_cs, self.q_f.copy(), vq[:6].copy(), bvref.copy(), timeline, selected_surfaces, previous_surfaces)
+        return self.update_position(queue_cs, self.q_f.copy(), vq[:6].copy(), bvref.copy(), timeline,
+                                    selected_surfaces, previous_surfaces)
 
     def update_position(self, queue_cs, q, bv, bvref, timeline_, selected_surfaces, previous_surfaces):
         """ Update the position for a contact schedule.
@@ -233,17 +228,15 @@ class FootStepPlanner():
             self.footstep.clear()
             self.footstep = [[], [], [], []]
             for j in range(4):
-                self.footstep[j].append(copy.deepcopy(
-                    self._current_position[:, j].tolist()))
+                self.footstep[j].append(copy.deepcopy(self._current_position[:, j].tolist()))
 
-        if timeline_ == 0 :
+        if timeline_ == 0:
             self._counter_gait += 1
-            print("counter gait : " , self._counter_gait)
+            print("counter gait : ", self._counter_gait)
 
         # Get current orientation of the robot
         rpy = q[3:]
-        Rz = pin.rpy.rpyToMatrix(
-            np.array([0., 0., rpy[2]]))  # Yaw rotation matrix
+        Rz = pin.rpy.rpyToMatrix(np.array([0., 0., rpy[2]]))  # Yaw rotation matrix
         # Roll/Pitch rotation matrix
         Rxy = pin.rpy.rpyToMatrix(np.array([rpy[0], rpy[1], 0.]))
 
@@ -270,23 +263,19 @@ class FootStepPlanner():
 
                         if cs_index + active_phase.T - timeline <= self._horizon + 2:
                             # Displacement following the reference velocity compared to current position
-                            if active_phase.T + inactive_phase.T - timeline > 0:  # case 1 & 2 
+                            if active_phase.T + inactive_phase.T - timeline > 0:  # case 1 & 2
                                 t1 = clock()
                                 if abs(bvref[5]) > 10e-3:
-                                    dt_ = (cs_index + active_phase.T +
-                                           inactive_phase.T - timeline) * cs.dt
+                                    dt_ = (cs_index + active_phase.T + inactive_phase.T - timeline) * cs.dt
                                     dx_ = (bvref[0] * np.sin(bvref[5] * dt_) + bvref[1] *
                                            (np.cos(bvref[5] * dt_) - 1.0)) / bvref[5]
                                     dy_ = (bvref[1] * np.sin(bvref[5] * dt_) - bvref[0] *
                                            (np.cos(bvref[5] * dt_) - 1.0)) / bvref[5]
-                                    dt_ = (cs_index + active_phase.T +
-                                           inactive_phase.T ) * cs.dt
+                                    dt_ = (cs_index + active_phase.T + inactive_phase.T) * cs.dt
                                     yaw = bvref[5] * dt_
-                                    Rz_tmp = pin.rpy.rpyToMatrix(
-                                        np.array([0., 0., yaw]))
+                                    Rz_tmp = pin.rpy.rpyToMatrix(np.array([0., 0., yaw]))
                                 else:
-                                    dt_ = (cs_index + active_phase.T +
-                                           inactive_phase.T - timeline) * cs.dt
+                                    dt_ = (cs_index + active_phase.T + inactive_phase.T - timeline) * cs.dt
                                     dx_ = bvref[0] * dt_
                                     dy_ = bvref[1] * dt_
                                     Rz_tmp = np.identity(3)
@@ -294,23 +283,20 @@ class FootStepPlanner():
                                 q_dxdy = np.array([dx_, dy_, 0.])
                                 heuristic = self.compute_heuristic(bv, bvref, Rxy, T_stance, name,
                                                                    feedback_term=False)  # without feedback term
-                                footstep = np.dot(Rz, np.dot(
-                                    Rz_tmp, heuristic)) + q_tmp + np.dot(Rz, q_dxdy)
+                                footstep = np.dot(Rz, np.dot(Rz_tmp, heuristic)) + q_tmp + np.dot(Rz, q_dxdy)
 
                                 P_ = np.identity(3)
                                 q_ = np.zeros(3)
-                                sf = selected_surfaces.get(
-                                    name)[foot_timeline[j]]
+                                sf = selected_surfaces.get(name)[foot_timeline[j]]
                                 G_ = sf.A
                                 h_ = sf.b - np.dot(sf.A, footstep)
                                 delta_x = quadprog_solve_qp(P_, q_, G_, h_)
                                 footstep_optim = footstep + delta_x
                                 t2 = clock()
                                 if self._RECORDING:
-                                    self.profiler["foot_position"].append(t2 - t1) 
+                                    self.profiler["foot_position"].append(t2 - t1)
                                 if foot_timeline[j] == 0:
-                                    target_footstep[:, self._contact_names_SL1M.index(
-                                        name)] = footstep_optim
+                                    target_footstep[:, self._contact_names_SL1M.index(name)] = footstep_optim
 
                                 # else: # if heightmap
                                 #     footstep_optim = footstep
@@ -324,7 +310,7 @@ class FootStepPlanner():
                                 if foot_timeline[j] == 0:
                                     previous_sf = self._previous_surfaces.get(name)
                                 else:
-                                    previous_sf = selected_surfaces.get(name)[foot_timeline[j] -1]
+                                    previous_sf = selected_surfaces.get(name)[foot_timeline[j] - 1]
 
                                 # Update the trajectory
                                 if active_phase.T - timeline >= 0:
@@ -333,7 +319,7 @@ class FootStepPlanner():
                                 else:
                                     t0 = timeline - active_phase.T
 
-                                if self._counter_gait < 3 :
+                                if self._counter_gait < 3:
                                     footstep_optim[:2] = P0[:2, j]
 
                                 if t0 <= inactive_phase.T * 0.70:
@@ -342,12 +328,12 @@ class FootStepPlanner():
                                     surface_end = Surface_cpp(sf.A, sf.b, sf.vertices.T)
                                     t1f = clock()
 
-                                    phases[1].trajectory.update(
-                                        P0[:, j], V0[:, j], footstep_optim, t0 * cs.dt, surface_init, surface_end)
+                                    phases[1].trajectory.update(P0[:, j], V0[:, j], footstep_optim, t0 * cs.dt,
+                                                                surface_init, surface_end)
                                     t2 = clock()
                                     if self._RECORDING:
-                                        self.profiler["foot_trajectory"].append(t2 - t1) 
-                                        self.profiler["surface_binding"].append(t1f - t1) 
+                                        self.profiler["foot_trajectory"].append(t2 - t1)
+                                        self.profiler["surface_binding"].append(t1f - t1)
 
                                 # End of the flying phase, register the surface.
                                 if t0 >= inactive_phase.T - self._nsteps:
@@ -360,8 +346,7 @@ class FootStepPlanner():
                                 foot_timeline[j] += 1
 
                                 if self.debug:
-                                    self.footstep[j].append(
-                                        footstep_optim.tolist())
+                                    self.footstep[j].append(footstep_optim.tolist())
 
                             else:  # case 3
                                 V0[:, j] = np.zeros(3)
@@ -371,10 +356,10 @@ class FootStepPlanner():
                 break
             cs_index += cs.T - timeline
             timeline = 0.
-            
+
         tf = clock()
         if self._RECORDING:
-            self.profiler["update_position"].append(tf - ti) 
+            self.profiler["update_position"].append(tf - ti)
 
         return target_footstep
 
@@ -387,7 +372,7 @@ class FootStepPlanner():
 
         # Add symmetry term
         # footstep += T_stance * 0.5 * bvref[:3]
-        footstep += beta * T_stance *  bvref[:3]
+        footstep += beta * T_stance * bvref[:3]
 
         # Add feedback term
         if feedback_term:
@@ -395,8 +380,7 @@ class FootStepPlanner():
             footstep += -self._k_feedback * bvref[:3]
 
         #  Add centrifugal term
-        cross = np.array([bv[1] * bvref[5] - bv[2] * bvref[4],
-                         bv[2] * bvref[3] - bv[0] * bvref[5], 0.0])
+        cross = np.array([bv[1] * bvref[5] - bv[2] * bvref[4], bv[2] * bvref[3] - bv[0] * bvref[5], 0.0])
         footstep += 0.5 * np.sqrt(self._href / self._g) * cross
 
         # Legs have a limited length so the deviation has to be limited

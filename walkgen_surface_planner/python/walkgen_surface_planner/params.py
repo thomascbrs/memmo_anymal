@@ -39,19 +39,10 @@ class SurfacePlannerParams:
         Args:
             - filename (string): path to the config file.
         """
-        # Number of step to proceed (--> N_phase * n_gait step in SL1M)
-        self.N_phase = 3
         # Number of step to return (N_phase_return surfaces for each foot)
         self.N_phase_return = 3
         self.com = False  # Optimisation of the CoM
-
-        # Gait parameters
-        self.typeGait = "trot"  # Only "walk" or "trot" working
-        self.dt = 0.01
-        self.N_ss = 35
-        self.N_ds = 80
-        self.N_uds = 0
-        self.N_uss = 0
+        self.horizon = 8 # Number of fsteps optimised. 
 
         # Get slope of the terrain to rotate SL1M inequalities.
         self.fitsize_x = 10
@@ -69,15 +60,9 @@ class SurfacePlannerParams:
             - filename (string): path to the config file.
         """
         config = yaml.load(open(filename, 'r'), Loader=yaml.FullLoader)
-        self.N_phase = config["walkgen_params"]["params"]["N_phase"]
         self.N_phase_return = config["walkgen_params"]["params"]["N_phase_return"]
         self.com = config["walkgen_params"]["params"]["com"]
-        self.typeGait = config["walkgen_params"]["gait"]["type"]
-        self.dt = config["walkgen_params"]["gait"]["dt"]
-        self.N_ds = config["walkgen_params"]["gait"][self.typeGait]["N_ds"]
-        self.N_ss = config["walkgen_params"]["gait"][self.typeGait]["N_ss"]
-        self.N_uds = config["walkgen_params"]["gait"][self.typeGait]["N_uds"]
-        self.N_uss = config["walkgen_params"]["gait"][self.typeGait]["N_uss"]
+        self.horizon = config["walkgen_params"]["params"]["horizon"]
         self.fitsize_x = config["walkgen_params"]["heightmap"]["fitsize_x"]
         self.fitsize_y = config["walkgen_params"]["heightmap"]["fitsize_y"]
         self.fitlength = config["walkgen_params"]["heightmap"]["fitlength"]

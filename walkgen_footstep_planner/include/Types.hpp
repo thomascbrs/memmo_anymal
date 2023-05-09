@@ -6,16 +6,17 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
-#include <string>
 #include <memory>
+#include <string>
 
 template <typename T_point, typename PointList>
-PointList vectorToEigenArray(const T_point& vect) {
+PointList vectorToEigenArray(const T_point &vect) {
   const size_t nCols = vect.size();
-  const size_t nRows = vect[0].rows();
+  const size_t nRows = static_cast<size_t>(vect[0].rows());
   PointList res(nRows, nCols);
   for (size_t i = 0; i < vect.size(); ++i) {
-    res.block(0, i, nRows, 1) = vect[i];
+    res.block(0, static_cast<Eigen::Index>(i), static_cast<Eigen::Index>(nRows),
+              1) = vect[i];
   }
   return res;
 }
@@ -34,4 +35,6 @@ using Matrix43 = Eigen::Matrix<double, 4, 3>;
 using Matrix3N = Eigen::Matrix<double, 3, Eigen::Dynamic>;
 using MatrixN = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
 
-#endif  // TYPES_H_INCLUDED
+using MatrixN_int = Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic>;
+
+#endif // TYPES_H_INCLUDED

@@ -40,6 +40,7 @@ import walkgen_surface_processing.tools.Tess2 as Tess2
 from pyhull import qconvex
 from copy import copy
 
+
 class DECOMPO_type(Enum):
     BASIC = 0
     AREA = 1
@@ -50,7 +51,7 @@ class DECOMPO_type(Enum):
 tess = Tess2.hxGeomAlgo_Tess2()
 
 
-def convert_from_marker_array(marker_array ,offset = 0.0):
+def convert_from_marker_array(marker_array, offset=0.0):
     '''Convert to a list of list from ros msg.'''
     surface_list = []
     for marker in marker_array.markers:
@@ -99,7 +100,14 @@ def reduce_surfaces(surface_list, n_points=None):
     return out_surface_list
 
 
-def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inner=0., margin_outer=0., clearmap=False,clearmap_limit = 0. ):
+def process_surfaces(surfacesIn,
+                     polySize=10,
+                     method=0,
+                     min_area=0.,
+                     margin_inner=0.,
+                     margin_outer=0.,
+                     clearmap=False,
+                     clearmap_limit=0.):
     """Filter the surfaces. Projection of the surfaces in X,Y plan and reshape them to avoid overlaying
     using Tesselation algorithm following the method:
     1. Run the list of surfaces starting with the lowest.
@@ -154,13 +162,12 @@ def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inne
 
     # Run the list of surfaces starting with the lowest.
     while len(surfaces) > 1:
-        try :
+        try:
             contours_intersect.clear()
             surfaces_intersect.clear()
         except AttributeError:
             del contours_intersect[:]
             del surfaces_intersect[:]
-
 
         h_mean = [sf.h_mean for sf in surfaces]
         id_ = np.argmin(h_mean)
@@ -175,7 +182,7 @@ def process_surfaces(surfacesIn, polySize=10, method=0, min_area=0., margin_inne
             # If only one surface, no need for the convex union
             if len(surfaces_intersect) > 1:
                 # Redefine the contour for the difference
-                try :
+                try:
                     contours_intersect.clear()
                 except AttributeError:
                     del contours_intersect[:]
@@ -354,7 +361,7 @@ def getAllSurfacesDict_inner(all_surfaces, margin):
     #         max_name = copy(name_surface)
 
     for name_surface in all_surfaces:
-        try :
+        try:
             vertices = order(np.array(all_surfaces.get(name_surface)[0]))
             normal = get_normal(np.array(vertices))
             vertices_inner = apply_margin(np.array(vertices), margin)
@@ -369,7 +376,7 @@ def getAllSurfacesDict_inner(all_surfaces, margin):
             # Save inner vertices
             all_names.append(name_surface)
             surfaces.append((vertices_inner, normal.tolist()))
-        except :
+        except:
             print("Surface unusable : ", name_surface)
 
     surfaces_dict = dict(zip(all_names, surfaces))

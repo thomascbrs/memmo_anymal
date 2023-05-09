@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# !/usr/bin/env python3
 #
 # Copyright 2022 University of Edinburgh
 # All rights reserved.
@@ -6,14 +6,14 @@
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
-#  * Redistributions of source code must retain the above copyright notice,
-#    this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of  nor the names of its contributors may be used to
-#    endorse or promote products derived from this software without specific
-#    prior written permission.
+# * Redistributions of source code must retain the above copyright notice,
+# this list of conditions and the following disclaimer.
+# * Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
+# * Neither the name of  nor the names of its contributors may be used to
+# endorse or promote products derived from this software without specific
+# prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -46,11 +46,26 @@ set(${FOOTSTEP_PLANNER_NAME}_HEADERS
   include/Types.hpp
   include/Surface.hpp
   include/FootTrajectoryBezier.hpp
+  include/ContactPhase.hpp
+  include/ContactSchedule.hpp
+  include/Params.hpp
+  include/FootTrajectoryWrapper.hpp
+  include/Gait.hpp
+  include/GaitManager.hpp
+  include/Filter.hpp
+  include/FootStepPlanner.hpp
 )
 
 set(${FOOTSTEP_PLANNER_NAME}_SOURCES_CPP
   src/Surface.cpp
   src/FootTrajectoryBezier.cpp
+  src/ContactPhase.cpp
+  src/ContactSchedule.cpp
+  src/Params.cpp
+  src/FootTrajectoryWrapper.cpp
+  src/Gait.cpp
+  src/GaitManager.cpp
+  src/FootStepPlanner.cpp
 )
 
 include_directories("${CMAKE_SOURCE_DIR}/${FOOTSTEP_PLANNER_NAME}/include")
@@ -71,6 +86,9 @@ TARGET_LINK_LIBRARIES(${FOOTSTEP_PLANNER_NAME}_cpp PUBLIC ndcurves::ndcurves)
 # Find eiquadprog library and headers
 ADD_PROJECT_DEPENDENCY(eiquadprog REQUIRED)
 TARGET_LINK_LIBRARIES(${FOOTSTEP_PLANNER_NAME}_cpp PUBLIC eiquadprog::eiquadprog)
+
+ADD_PROJECT_DEPENDENCY(yaml-cpp CONFIG REQUIRED)
+TARGET_LINK_LIBRARIES(${FOOTSTEP_PLANNER_NAME}_cpp PUBLIC ${YAML_CPP_LIBRARIES})
 
 # Add suffix version
 if(SUFFIX_SO_VERSION)

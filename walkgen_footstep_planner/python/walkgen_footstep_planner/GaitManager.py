@@ -129,8 +129,7 @@ class GaitManager:
                                          startPhase=False,
                                          endPhase=False))
         else:
-            raise SyntaxError(
-                "Unknown gait type in the config file. Try Trot or Walk.")
+            raise SyntaxError("Unknown gait type in the config file. Try Trot or Walk.")
 
         if self._params.horizon is None:
             # horizon of one gait.
@@ -143,7 +142,7 @@ class GaitManager:
         self._is_first_gait = True
         self._queue_cs = []  # Queue of contact
         self._surface_planner_gait = None
-        
+
         # Send new step flag only 1 over n_new_steps :
         self._ratio_nsteps = 1
         # self._ratio_nsteps = 2 # trot in simu with a lot of surfaces
@@ -236,15 +235,12 @@ class GaitManager:
                     if switch_active > 0.:
                         if not switch_active in switches:
                             if (T_active + T_inactive - 1) == cs.T - 1:
-                                switches[switch_active] = self._evaluate_config(
-                                    cs, 0)
+                                switches[switch_active] = self._evaluate_config(cs, 0)
                             else:
-                                switches[switch_active] = self._evaluate_config(
-                                    cs, T_active + T_inactive - 1)
+                                switches[switch_active] = self._evaluate_config(cs, T_active + T_inactive - 1)
                     if switch_inactive > 0.:
                         if not switch_inactive in switches:
-                            switches[switch_inactive] = self._evaluate_config(
-                                cs, T_active - 1)
+                            switches[switch_inactive] = self._evaluate_config(cs, T_active - 1)
                 phase_index += T_active + T_inactive
 
         s_list = np.sort([t for t in switches])
@@ -256,15 +252,13 @@ class GaitManager:
         # Usefull list to get quickly the current configuration
         list_sorted = np.sort([t for t in switches])
         self._timelines_list = list_sorted.tolist()
-        self._timelines_array_double = np.concatenate(
-            [list_sorted, list_sorted])
+        self._timelines_array_double = np.concatenate([list_sorted, list_sorted])
         if self._typeGait == "trot":
             self._n_gait = 2
         elif self._typeGait == "walk":
             self._n_gait = 4
         else:
-            raise SyntaxError(
-                "Unknown gait type in the config file. Try Trot or Walk.")
+            raise SyntaxError("Unknown gait type in the config file. Try Trot or Walk.")
 
         self.switches = switches
 
@@ -288,7 +282,8 @@ class GaitManager:
                 N_phase = len(phases)
                 for p in range(0, N_phase, 2):
                     if p + 1 < N_phase:  # otherwise no inactive phase
-                        foot_list.append( (phases[p + 1].trajectory.get_t0() , phases[p + 1].trajectory.get_coefficients()))
+                        foot_list.append(
+                            (phases[p + 1].trajectory.get_t0(), phases[p + 1].trajectory.get_coefficients()))
                 cs_list.append(foot_list)
             coeffs.append(cs_list)
         return coeffs
@@ -316,7 +311,8 @@ class GaitManager:
             for cs in self._queue_cs:
                 count += cs.T
             if count - self._timeline < (self._horizon):
-                gait = self._default_cs
+                # gait = self._default_cs
+                gait = copy.deepcopy(self._default_cs)
                 gait.updateSwitches()
                 self._queue_cs.insert(0, gait)
                 addContact = True
@@ -324,20 +320,18 @@ class GaitManager:
                 if (self._timeline - self._N_ds) in self.switches:
                     # self._new_step = True
                     self._new_step_counter += 1
-                    if self._new_step_counter % self._ratio_nsteps == 0 :
+                    if self._new_step_counter % self._ratio_nsteps == 0:
                         self._new_step = True
                         self._new_step_counter = 0
-                    self._surface_planner_gait = self._retrieve_gait(
-                        self._timeline - self._N_ds)
+                    self._surface_planner_gait = self._retrieve_gait(self._timeline - self._N_ds)
             else:
                 if self._timeline in self.switches:
                     # self._new_step = True
                     self._new_step_counter += 1
-                    if self._new_step_counter % self._ratio_nsteps == 0 :
+                    if self._new_step_counter % self._ratio_nsteps == 0:
                         self._new_step = True
                         self._new_step_counter = 0
-                    self._surface_planner_gait = self._retrieve_gait(
-                        self._timeline)
+                    self._surface_planner_gait = self._retrieve_gait(self._timeline)
 
         return addContact
 
@@ -397,15 +391,12 @@ class GaitManager:
                         if switch_active > self._timeline:
                             if not switch_active in switches:
                                 if (T_active + T_inactive - 1) == cs.T - 1:
-                                    switches[switch_active] = self._evaluate_config(
-                                        cs, 0)
+                                    switches[switch_active] = self._evaluate_config(cs, 0)
                                 else:
-                                    switches[switch_active] = self._evaluate_config(
-                                        cs, T_active + T_inactive - 1)
+                                    switches[switch_active] = self._evaluate_config(cs, T_active + T_inactive - 1)
                         if switch_inactive > self._timeline:
                             if not switch_inactive in switches:
-                                switches[switch_inactive] = self._evaluate_config(
-                                    cs, T_active - 1)
+                                switches[switch_inactive] = self._evaluate_config(cs, T_active - 1)
                     phase_index += T_active + T_inactive
             index_cs += 1
 
@@ -474,14 +465,10 @@ class QuadrupedalGaitGenerator:
             N = N_0 + N_ds + 4 * N_ss - 2 * N_uss - N_uds
         gait = ContactSchedule(self._dt, N, self._S, self._contactNames)
         lf, lh, rf, rh = self._contactNames
-        lfSwingTraj = FootStepTrajectoryBezier(
-            self._dt, N_ss, stepHeight, contacts[0][lf], contacts[1][lf])
-        lhSwingTraj = FootStepTrajectoryBezier(
-            self._dt, N_ss, stepHeight, contacts[0][lh], contacts[1][lh])
-        rfSwingTraj = FootStepTrajectoryBezier(
-            self._dt, N_ss, stepHeight, contacts[0][rf], contacts[1][rf])
-        rhSwingTraj = FootStepTrajectoryBezier(
-            self._dt, N_ss, stepHeight, contacts[0][rh], contacts[1][rh])
+        lfSwingTraj = FootStepTrajectoryBezier(self._dt, N_ss, stepHeight, contacts[0][lf], contacts[1][lf])
+        lhSwingTraj = FootStepTrajectoryBezier(self._dt, N_ss, stepHeight, contacts[0][lh], contacts[1][lh])
+        rfSwingTraj = FootStepTrajectoryBezier(self._dt, N_ss, stepHeight, contacts[0][rf], contacts[1][rf])
+        rhSwingTraj = FootStepTrajectoryBezier(self._dt, N_ss, stepHeight, contacts[0][rh], contacts[1][rh])
         gait.addSchedule(
             lh, [ContactPhase(N_0),
                  ContactPhase(N_ss, trajectory=lhSwingTraj),
@@ -513,14 +500,10 @@ class QuadrupedalGaitGenerator:
             N = N_0 + 2 * N_ss - N_uss
         gait = ContactSchedule(self._dt, N, self._S, self._contactNames)
         lf, lh, rf, rh = self._contactNames
-        lfSwingTraj = FootStepTrajectoryBezier(
-            self._dt, N_ss, stepHeight, contacts[0][lf], contacts[1][lf])
-        lhSwingTraj = FootStepTrajectoryBezier(
-            self._dt, N_ss, stepHeight, contacts[0][lh], contacts[1][lh])
-        rfSwingTraj = FootStepTrajectoryBezier(
-            self._dt, N_ss, stepHeight, contacts[0][rf], contacts[1][rf])
-        rhSwingTraj = FootStepTrajectoryBezier(
-            self._dt, N_ss, stepHeight, contacts[0][rh], contacts[1][rh])
+        lfSwingTraj = FootStepTrajectoryBezier(self._dt, N_ss, stepHeight, contacts[0][lf], contacts[1][lf])
+        lhSwingTraj = FootStepTrajectoryBezier(self._dt, N_ss, stepHeight, contacts[0][lh], contacts[1][lh])
+        rfSwingTraj = FootStepTrajectoryBezier(self._dt, N_ss, stepHeight, contacts[0][rf], contacts[1][rf])
+        rhSwingTraj = FootStepTrajectoryBezier(self._dt, N_ss, stepHeight, contacts[0][rh], contacts[1][rh])
         gait.addSchedule(
             lh, [ContactPhase(N_0),
                  ContactPhase(N_ss, trajectory=lhSwingTraj),
