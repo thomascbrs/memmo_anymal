@@ -19,8 +19,7 @@ void AffordanceLoader::load(std::string const &filename, MatrixN const &R,
                             VectorN const &T) {
   hpp::fcl::MeshLoader loader;
 
-  typedef boost::shared_ptr<hpp::fcl::BVHModelBase> BVHModelBase_Ptr_t;
-  BVHModelBase_Ptr_t bvh_mdel = loader.load(filename);
+  hpp::fcl::BVHModelPtr_t bvh_mdel = loader.load(filename);
 
   fcl::CollisionObject *obj(new fcl::CollisionObject(bvh_mdel, R, T));
 
