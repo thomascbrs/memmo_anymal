@@ -25,47 +25,76 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
-SET(CMAKE_CXX_STANDARD 11)
+cmake_minimum_required(VERSION 3.16)
 
-# ----------------------------------------------------
-# --- CXX FLAGS --------------------------------------
-# ----------------------------------------------------
-
-SET(CXX_DISABLE_WERROR True)
-SET(CMAKE_VERBOSE_MAKEFILE True)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-undefined")
-
-# Project properties
-SET(PROJECT_ORG thomascbrs)
-SET(PROJECT_NAME walkgen)
+# Set up project properties
+set(PROJECT_NAME walkgen)
 SET(PROJECT_DESCRIPTION "Implementation of reactive footstepplanner with Mixed-integer for surface choices.")
-SET(PROJECT_URL "https://github.com/thomascbrs/memmo_anymal")
+set(PROJECT_URL https://github.com/thomas_cbrs/memmo_anymal)
 
-# Project options
+option(INSTALL_DOCUMENTATION "Generate and install the documentation" OFF)
+
+# Check if the submodule cmake have been initialized
+set(JRL_CMAKE_MODULES "${CMAKE_CURRENT_LIST_DIR}/cmake")
+if(NOT EXISTS "${CMAKE_SOURCE_DIR}/cmake/base.cmake")
+  message(STATUS "JRL cmakemodules not found. Let's fetch it.")
+  include(FetchContent)
+  FetchContent_Declare(
+    "jrl-cmakemodules"
+    GIT_REPOSITORY "https://github.com/jrl-umi3218/jrl-cmakemodules.git")
+  FetchContent_MakeAvailable("jrl-cmakemodules")
+  FetchContent_GetProperties("jrl-cmakemodules" SOURCE_DIR JRL_CMAKE_MODULES)
+endif()
+
+# Include important cmake modules
+include("${JRL_CMAKE_MODULES}/base.cmake")
+include("${JRL_CMAKE_MODULES}/boost.cmake")
+include("${JRL_CMAKE_MODULES}/stubs.cmake")
+
+# Print initial message
+message(STATUS "${PROJECT_DESCRIPTION}, version ${PROJECT_VERSION}")
+message("University of Edinburgh")
+message(STATUS "All rights reserved.")
+message(STATUS "Released under the BSD 3-Clause License.")
+
+# Set a default build type to 'Release' if none was specified
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to 'Release' as none was specified.")
+  set(CMAKE_BUILD_TYPE
+      Release
+      CACHE STRING "Choose the type of build." FORCE)
+  # Set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
+                                               "MinSizeRel" "RelWithDebInfo")
+endif()
+
+set(DOXYGEN_USE_MATHJAX YES)
+set(DOXYGEN_USE_TEMPLATE_CSS YES)
+
+set(CXX_DISABLE_WERROR False)
+set(PROJECT_USE_CMAKE_EXPORT True)
+
+# Create different building options
+option(BUILD_PYTHON_INTERFACE "Build the python binding" ON)
 option(SUFFIX_SO_VERSION "Suffix library name with its version" ON)
 option(FOOTSTEP_PLANNER "Install foostep planner library" ON)
 option(SURFACE_PLANNER "Install surface planner library" ON)
 option(SURFACE_PROCESSING "Install surface processing library" ON)
 
-# Check if the submodule cmake have been initialized
-if(NOT EXISTS "${CMAKE_SOURCE_DIR}/cmake/base.cmake")
-  message(FATAL_ERROR "\nPlease run the following command first:\ngit submodule update --init\n")
-endif()
-
-# JRL-cmakemodule setup
-INCLUDE(cmake/base.cmake)
-INCLUDE(cmake/boost.cmake)
-INCLUDE(cmake/python.cmake)
-
-SET(PROJECT_USE_CMAKE_EXPORT TRUE)
-
+compute_project_args(PROJECT_ARGS LANGUAGES CXX)
 project(${PROJECT_NAME} ${PROJECT_ARGS})
 
-FINDPYTHON()
-ADD_PROJECT_DEPENDENCY(pinocchio)
+check_minimal_cxx_standard(14 ENFORCE)
 
-# Naming project libraries
+# Add the different required and optional dependencies
+if(BUILD_PYTHON_INTERFACE)
+  add_project_dependency(eigenpy 2.8.0 REQUIRED PKG_CONFIG_REQUIRES
+                         "eigenpy >= 2.8.0")
+endif(BUILD_PYTHON_INTERFACE)
+add_project_dependency(pinocchio 2.6.3 REQUIRED PKG_CONFIG_REQUIRES
+                       "pinocchio >= 2.6.3")
+
+# # Naming project libraries
 SET(FOOTSTEP_PLANNER_NAME ${PROJECT_NAME}_footstep_planner)
 SET(SURFACE_PLANNER_NAME ${PROJECT_NAME}_surface_planner)
 SET(SURFACE_PROCESSING_NAME ${PROJECT_NAME}_surface_processing)
