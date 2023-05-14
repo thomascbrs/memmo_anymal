@@ -49,6 +49,10 @@ class SurfacePlannerParams:
         self.fitsize_y = 5
         self.fitlength = 0.3 # half-square size centered around position of the robot.
         self.recompute_slope = False # Recompute the slope of the terrain for each contact phase configuration.
+        
+        # order matters! LF LH RF RH
+        self.contact_names =  ["FL_foot","RL_foot","FR_foot","RR_foot"]
+        self.shoulder_offsets = [[0.367, 0.2],[0.367, -0.2],[-0.367, 0.2],[-0.367, -0.2]] 
 
         if filename is not None:
             self.parse_file(filename)
@@ -61,6 +65,8 @@ class SurfacePlannerParams:
         """
         config = yaml.load(open(filename, 'r'), Loader=yaml.FullLoader)
         self.N_phase_return = config["walkgen_params"]["params"]["N_phase_return"]
+        self.contact_names = config["walkgen_params"]["params"]["contact_names"]
+        self.shoulder_offsets = config["walkgen_params"]["params"]["shoulder_offsets"]
         self.com = config["walkgen_params"]["params"]["com"]
         self.horizon = config["walkgen_params"]["params"]["horizon"]
         self.fitsize_x = config["walkgen_params"]["heightmap"]["fitsize_x"]

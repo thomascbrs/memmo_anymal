@@ -77,19 +77,31 @@ class SurfacePlanner():
 
         # SL1M Problem initialization
         self.pb = Problem(limb_names=limbs,
-                          other_names=others,
-                          constraint_paths=paths,
-                          suffix_com=suffix_com,
-                          suffix_feet=suffix_feet)
+                            other_names=others,
+                            constraint_paths=paths,
+                            suffix_com=suffix_com,
+                            suffix_feet=suffix_feet)
 
         # Slope of the terrain given a set of convex surfaces.
         self._box = hppfcl.Box(np.array([4., 2., 4]))  # Reduce number of surfaces for the terrain evaluation.
         self._tf = hppfcl.Transform3f()
         self._terrain = TerrainSlope(self._params.fitsize_x, self._params.fitsize_y, self._params.fitlength)
         self._recompute_slope = self._params.recompute_slope
-
-        self._contact_names = ['LF_FOOT', 'RF_FOOT', 'LH_FOOT', 'RH_FOOT'] # Feet order in sl1m.
-        self._shoulders = np.array([[0.37, 0.37, -0.37, -0.37], [0.2, -0.2, 0.2, -0.2], [0., 0., 0., 0.]]) # Base frame
+        
+        # Usual order LF LH RF RH
+        # SL1M order : LF RF LH RH
+        self._contact_names = [] 
+        self._contact_names.append(self._params.contact_names[0])
+        self._contact_names.append(self._params.contact_names[2])
+        self._contact_names.append(self._params.contact_names[1])
+        self._contact_names.append(self._params.contact_names[3])
+        offsets = self._params.shoulder_offsets # In usual order.
+        self._shoulders = np.zeros((3,4))
+        self._shoulders[:2,0] = offsets[0]
+        self._shoulders[:2,1] = offsets[2]
+        self._shoulders[:2,2] = offsets[1]
+        self._shoulders[:2,3] = offsets[3]
+        # self._shoulders = np.array([[0.37, 0.37, -0.37, -0.37], [0.2, -0.2, 0.2, -0.2], [0., 0., 0., 0.]]) # Base frame
         self._reference_height = 0.4792
 
         # Load rom .stl objects for collision tools to select only the relevant surfaces.
@@ -102,6 +114,7 @@ class SurfacePlanner():
             obj.apply_scale(1.2)
             obj.apply_translation( self._shoulders[:,i])
             obj_stl.append(obj)
+        
         # Dictionnary containing the convex set of roms for collisions.
         self.roms_collision = dict(zip(self._contact_names, [convert_to_convexFcl(obj.vertices) for obj in obj_stl]))
 
