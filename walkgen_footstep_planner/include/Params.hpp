@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <yaml-cpp/yaml.h>
+#include <Types.hpp>
 
 class Params {
 public:
@@ -37,6 +38,9 @@ public:
   int N_uds;
   int N_uss;
   int N_phase_return;
+  std::vector<std::string> feet_names;
+  std::vector<std::string> feet_names_sl1m;
+  std::vector<std::vector<double>> shoulder_offsets;
   // Bezier parameters
   double margin_up;
   double t_margin_up;

@@ -18,6 +18,9 @@ walkgen_params:
       N_ss: 70
       N_uds: 0
       N_uss: 0
+    feet_names: ["FL_foot","RL_foot","FR_foot","RR_foot"]
+    feet_names_sl1m:  [FL_foot, FR_foot, RL_foot, RR_foot]
+    shoulder_offsets: [[0.367, 0.2],[0.367, -0.2],[-0.367, 0.2],[-0.367, -0.2]] 
   bezier:
     margin_up: 0.08  # Margin [m] wrt to the segment crossed in the surface.
     t_margin_up: 0.045  # % of the curve constrained around critical point.

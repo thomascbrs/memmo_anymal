@@ -16,14 +16,22 @@ GaitManager::GaitManager(const pinocchio::Model &model, const VectorN &q,
 }
 
 void GaitManager::initialize(const pinocchio::Model &model, const VectorN &q) {
-  // Gait parameters
-  const std::string lf = "LF_FOOT";
-  const std::string lh = "LH_FOOT";
-  const std::string rf = "RF_FOOT";
-  const std::string rh = "RH_FOOT";
 
-  contactNames_ = {lf, lh, rf, rh};
-  contactNames_sl1m_ = {lf, rf, lh, rh};
+  // contactNames_ = {lf, lh, rf, rh};
+  // contactNames_sl1m_ = {lf, rf, lh, rh};
+
+  contactNames_ = params_.feet_names;
+  contactNames_sl1m_ = params_.feet_names_sl1m;
+
+  for (auto elem : contactNames_){
+    std :: cout << "params_.feet_names" << elem << std::endl;
+  }
+  // Contcat names always in this order.
+  // order matters! LF LH RF RH
+  const std::string lf = contactNames_[0];
+  const std::string lh = contactNames_[1];
+  const std::string rf = contactNames_[2];
+  const std::string rh = contactNames_[3];
 
   // Update parameters with the parameters
   type_ = params_.type;
@@ -44,18 +52,18 @@ void GaitManager::initialize(const pinocchio::Model &model, const VectorN &q) {
   // std::map<std::string, pinocchio::SE3> cs0, cs1;
 
   // Populate cs0 with SE3 transforms for each foot
-  cs0["LH_FOOT"] = data.oMf[model.getFrameId("LH_FOOT")];
-  cs0["LF_FOOT"] = data.oMf[model.getFrameId("LF_FOOT")];
-  cs0["RH_FOOT"] = data.oMf[model.getFrameId("RH_FOOT")];
-  cs0["RF_FOOT"] = data.oMf[model.getFrameId("RF_FOOT")];
+  cs0[lh] = data.oMf[model.getFrameId(lh)];
+  cs0[lf] = data.oMf[model.getFrameId(lf)];
+  cs0[rh] = data.oMf[model.getFrameId(rh)];
+  cs0[rf] = data.oMf[model.getFrameId(rf)];
 
   // Populate cs1 with SE3 transforms for each foot
-  cs1["LH_FOOT"] = data.oMf[model.getFrameId("LH_FOOT")];
-  cs1["LF_FOOT"] = data.oMf[model.getFrameId("LF_FOOT")];
-  cs1["RH_FOOT"] = data.oMf[model.getFrameId("RH_FOOT")];
-  cs1["RF_FOOT"] = data.oMf[model.getFrameId("RF_FOOT")];
+  cs1[lh] = data.oMf[model.getFrameId(lh)];
+  cs1[lf] = data.oMf[model.getFrameId(lf)];
+  cs1[rh] = data.oMf[model.getFrameId(rh)];
+  cs1[rf] = data.oMf[model.getFrameId(rf)];
 
-  QuadrupedalGaitGenerator gait_generator_ = QuadrupedalGaitGenerator();
+  QuadrupedalGaitGenerator gait_generator_ = QuadrupedalGaitGenerator(dt_,4,lf,lh,rf,rh);
   if (type_ == "trot") {
     initial_schedule_ = gait_generator_.trot({cs0, cs1}, 50, N_ss_, N_uss_,
                                              N_uds_, stepHeight_, true, false);

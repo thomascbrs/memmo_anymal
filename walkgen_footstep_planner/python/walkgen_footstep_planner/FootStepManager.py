@@ -86,17 +86,13 @@ class FootStepManager:
         self._nsteps = self._params.nsteps
         self._stepHeight = self._params.stepHeight
 
-        lf = "LF_FOOT"
-        lh = "LH_FOOT"
-        rf = "RF_FOOT"
-        rh = "RH_FOOT"
-        self._contactNames = [lf, lh, rf, rh]
+        self._contactNames = self._params.feet_names
 
         # Initial selected surface, rectangle of 4dxdy m2 around the initial position.
         dx = 1.5  # Distance on x-axis around the initial position.
         dy = 1.5  # Distance on y-axis around the initial position.
         # Assume 4 feet are on the ground
-        lfeet = ["LF_FOOT", "LH_FOOT", "RF_FOOT", "RH_FOOT"]
+        lfeet = self._params.feet_names
         height = np.mean([self._gait_manager.cs0[lfeet[k]].translation[2] for k in range(4)])
         epsilon = 10e-6
         A = [[-1., 0., 0.], [0., -1., 0.], [0., 1., 0.], [1., 0., 0.], [0., 0., 1.], [-0., -0., -1.]]
@@ -143,7 +139,12 @@ class FootStepManager:
         """ Create a default contact schedule compatible with Caracal CS.
         contacts, N_ds, N_ss, N_uss=0, N_uds=0, stepHeight=0.15, startPhase=True, endPhase=True
         """
-        gait_generator = QuadrupedalGaitGenerator()
+        gait_generator = QuadrupedalGaitGenerator(dt=self._dt,
+                                                    S=4,
+                                                    lf=self._contactNames[0],
+                                                    lh=self._contactNames[1],
+                                                    rf=self._contactNames[2],
+                                                    rh=self._contactNames[3])
         if self._typeGait == "trot":
             self._initial_cs = copy.deepcopy(
                 gait_generator.trot(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
@@ -273,7 +274,6 @@ class FootStepManager:
             for sf in surfaces[key]:
                 self._new_surfaces[key].append(Surface(sf.A, sf.b, sf.vertices.T))
         t1 = clock()
-        print("TIME TO CONVERT SURFACES [ms] : ", 1000 * (t1 - t0))
 
     def get_target_footstep(self):
         """ Returns the target foostep for SL1M. (SL1M feet order)

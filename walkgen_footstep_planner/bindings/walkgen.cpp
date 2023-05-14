@@ -214,6 +214,9 @@ void exposeSurface() { SurfacePythonVisitor<Surface>::expose(); }
 
 // Expose the ContactPhase class to Python
 void exposeParams() {
+
+  walkgen::python::StdVectorPythonVisitor<std::vector<double>,std::allocator<std::vector<double>>>::expose("StdVecVec_double");
+
   bp::class_<Params, boost::noncopyable>(
       "FootStepPlannerParams",
       bp::init<bp::optional<std::string>>(
@@ -231,6 +234,12 @@ void exposeParams() {
                      "Number of unloading single support phases")
       .def_readwrite("N_phase_return", &Params::N_phase_return,
                      "Number of phases for returning to the starting position")
+      .def_readwrite("feet_names", &Params::feet_names,
+                     "List of the contact names.")
+      .def_readwrite("feet_names_sl1m", &Params::feet_names_sl1m,
+                     "List of the contact names in sl1m order.")
+      .def_readwrite("shoulder_offsets", &Params::shoulder_offsets,
+                     "List of the contact names in sl1m order.")
       .def_readwrite("margin_up", &Params::margin_up,
                      "Margin for the Bezier curves")
       .def_readwrite("t_margin_up", &Params::t_margin_up,
