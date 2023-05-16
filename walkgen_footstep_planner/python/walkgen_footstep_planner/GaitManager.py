@@ -111,8 +111,6 @@ class GaitManager:
                                          startPhase=False,
                                          endPhase=False))
         elif self._typeGait == "walk":
-            from IPython import embed
-            embed()
             self._initial_cs = copy.deepcopy(
                 self.gait_generator.walk(contacts=[self.cs0, self.cs1],
                                             N_ds=100,
