@@ -339,7 +339,7 @@ def projection_surface(vertices2D, equation):
     return np.vstack([vertices2D[:2, :], z]).T
 
 
-def getAllSurfacesDict_inner(all_surfaces, margin):
+def getAllSurfacesDict_inner(all_surfaces, margin, offset_z = 0.):
     '''
     Computes the inner vertices of the given convex surface, with a margin.
     Args :
@@ -365,6 +365,9 @@ def getAllSurfacesDict_inner(all_surfaces, margin):
             vertices = order(np.array(all_surfaces.get(name_surface)[0]))
             normal = get_normal(np.array(vertices))
             vertices_inner = apply_margin(np.array(vertices), margin)
+            # Offset on z-axis.
+            for vert in vertices_inner:
+                vert[2] += offset_z
 
             # Quick hack for 1 try : 40cm block --> Inner and outer margin !=
             # if name_surface == max_name :
