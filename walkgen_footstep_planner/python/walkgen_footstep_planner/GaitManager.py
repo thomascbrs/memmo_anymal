@@ -89,6 +89,7 @@ class GaitManager:
         self.cs1["RH_FOOT"] = self._data.oMf[self._model.getFrameId("RH_FOOT")]
         self.cs1["RF_FOOT"] = self._data.oMf[self._model.getFrameId("RF_FOOT")]
 
+
         self.gait_generator = QuadrupedalGaitGenerator()
         if self._typeGait == "trot":
             self._initial_cs = copy.deepcopy(
@@ -110,15 +111,17 @@ class GaitManager:
                                          startPhase=False,
                                          endPhase=False))
         elif self._typeGait == "walk":
+            from IPython import embed
+            embed()
             self._initial_cs = copy.deepcopy(
                 self.gait_generator.walk(contacts=[self.cs0, self.cs1],
-                                         N_ds=100,
-                                         N_ss=self._N_ss,
-                                         N_uss=self._N_uss,
-                                         N_uds=self._N_uds,
-                                         stepHeight=self._stepHeight,
-                                         startPhase=True,
-                                         endPhase=False))
+                                            N_ds=100,
+                                            N_ss=self._N_ss,
+                                            N_uss=self._N_uss,
+                                            N_uds=self._N_uds,
+                                            stepHeight=self._stepHeight,
+                                            startPhase=True,
+                                            endPhase=False))
             self._default_cs = copy.deepcopy(
                 self.gait_generator.walk(contacts=[self.cs0, self.cs1],
                                          N_ds=self._N_ds,

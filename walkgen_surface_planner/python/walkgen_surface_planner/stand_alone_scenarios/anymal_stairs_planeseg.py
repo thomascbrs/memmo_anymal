@@ -111,9 +111,17 @@ for k in range(4):
     current_contacts[:, k] += q[:3]
 current_contacts[2, :] = h_init
 
+timings = [3]
+gait = []
+for k in range(15):
+    gait.append([0,1,0,1])
+    gait.append([1,0,1,0])
+    timings.append(0.3)
+    timings.append(0.3)
+
 # Run MIP problem.
 t0 = clock()
-selected_surfaces = surface_planner.run(q[:7], gait_pattern, bvref, current_contacts)
+selected_surfaces = surface_planner.run(q[:7], np.array(gait), timings, bvref, current_contacts)
 t1 = clock()
 print("Run MIP [ms]", 1000. * (t1 - t0))
 
