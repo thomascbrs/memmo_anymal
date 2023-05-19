@@ -325,7 +325,63 @@ class hxGeomAlgo_Debug:
 class hxGeomAlgo_EarCut:
     _hx_class_name = "hxGeomAlgo.EarCut"
     __slots__ = ()
-    _hx_statics = ["triangulate", "earcut", "linkedList", "filterPoints", "earcutLinked", "isEar", "isEarHashed", "cureLocalIntersections", "splitEarcut", "eliminateHoles", "compareX", "eliminateHole", "findHoleBridge", "indexCurve", "sortLinked", "zOrder", "getLeftmost", "pointInTriangle", "isValidDiagonal", "area", "equals", "intersects", "intersectsPolygon", "locallyInside", "middleInside", "splitPolygon", "insertNode", "removeNode", "deviation", "signedArea", "flatten", "polygonize", "addTriangle"]
+    _hx_statics = ["removeHoles", "triangulate", "earcut", "linkedList", "filterPoints", "earcutLinked", "isEar", "isEarHashed", "cureLocalIntersections", "splitEarcut", "eliminateHoles", "compareX", "eliminateHole", "findHoleBridge", "indexCurve", "sortLinked", "zOrder", "getLeftmost", "pointInTriangle", "isValidDiagonal", "area", "equals", "intersects", "intersectsPolygon", "locallyInside", "middleInside", "splitPolygon", "insertNode", "removeNode", "deviation", "signedArea", "flatten", "polygonize", "addTriangle"]
+
+    @staticmethod
+    def removeHoles(poly, holes):
+        data = hxGeomAlgo_PolyTools.toFloatArray(poly)
+        holeIndices = None
+        allVertices = poly
+        if ((holes is not None) and ((len(holes) > 0))):
+            allVertices = (poly + [])
+            hxGeomAlgo_PolyTools.flatten(holes,allVertices)
+            holeIndices = []
+            holeIdx = len(poly)
+            _g = 0
+            while (_g < len(holes)):
+                hole = (holes[_g] if _g >= 0 and _g < len(holes) else None)
+                _g = (_g + 1)
+                _g1 = 0
+                _g11 = hxGeomAlgo_PolyTools.toFloatArray(hole)
+                while (_g1 < len(_g11)):
+                    f = (_g11[_g1] if _g1 >= 0 and _g1 < len(_g11) else None)
+                    _g1 = (_g1 + 1)
+                    data.append(f)
+                holeIndices.append(holeIdx)
+                holeIdx = (holeIdx + len(hole))
+        dim = 2
+        hasHoles = ((holeIndices is not None) and ((len(holeIndices) > 0)))
+        outerLen = (((holeIndices[0] if 0 < len(holeIndices) else None) * dim) if hasHoles else len(data))
+        outerNode = hxGeomAlgo_EarCut.linkedList(data,0,outerLen,dim,True)
+        triangles = []
+        if (outerNode is None):
+            return triangles
+        outerNode = hxGeomAlgo_EarCut.filterPoints(outerNode)
+        size = Math.NaN
+        y = size
+        x = y
+        maxY = x
+        maxX = maxY
+        minY = maxX
+        minX = minY
+        outerNode = hxGeomAlgo_EarCut.eliminateHoles(data,holeIndices,outerNode,dim)
+        
+        ear = outerNode
+        stop = ear
+        prev = None
+        next = None
+        i = 0
+        points = []
+        while (ear.prev != ear.next):
+            points.append([ear.x, ear.y])
+            prev = ear.prev
+            next = ear.next
+
+            ear = next
+            if (ear == stop):
+                break
+
+        return points
 
     @staticmethod
     def triangulate(poly,holes = None):

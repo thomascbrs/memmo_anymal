@@ -41,6 +41,9 @@ SET(${SURFACE_PROCESSING_NAME}_TOOLS_SOURCES
   geometry_utils.py
   SurfaceData.py
   transforms.py
+  Snoeyink_Keil.py
+  Bayazit.py
+  EarCut.py
   )
 
 SET(${SURFACE_PROCESSING_NAME}_EXAMPLES_SOURCES
