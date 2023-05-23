@@ -186,6 +186,30 @@ class FootStepManager:
         self._initial_cs.updateSwitches()
         self._default_cs.updateSwitches()
 
+        # Register walking gait schedule
+        self._walk_cs = copy.deepcopy(
+                gait_generator.walk(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
+                                    N_ds=self._params.walk_N_ds,
+                                    N_ss=self._params.walk_N_ss,
+                                    N_uss=self._params.walk_N_uss,
+                                    N_uds=self._params.walk_N_uds,
+                                    stepHeight=self._stepHeight,
+                                    startPhase=False,
+                                    endPhase=False))
+        # Register trotting gait schedule
+        self._trot_cs = copy.deepcopy(
+                gait_generator.trot(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
+                                    N_ds=self._params.trot_N_ds,
+                                    N_ss=self._params.trot_N_ss,
+                                    N_uss=self._params.trot_N_uss,
+                                    N_uds=self._params.trot_N_uds,
+                                    stepHeight=self._stepHeight,
+                                    startPhase=False,
+                                    endPhase=False))
+
+        self._walk_cs.updateSwitches()
+        self._trot_cs.updateSwitches()
+
     def get_default_cs(self):
         return self._default_cs
 
@@ -298,6 +322,20 @@ class FootStepManager:
         """
         return self._addContact
 
+    def get_next_cs(self):
+        """ Return the next CS to add in the timeline, depending on the
+        what has been added in the gait_manager.
+        """
+        if self.get_cmd_gait() == 0:
+            # Default gait
+            return self._default_cs
+        if self.get_cmd_gait() == 1:
+            # Walking gait
+            return self._walk_cs
+        if self.get_cmd_gait() == 2:
+            # Trotting gait
+            return self._trot_cs
+
     def is_new_flying_phase(self):
         """ Return True if a new flying phase is starting. False otherwise.
         Usefull for the SurfacePlanner, to start a new optimisation.
@@ -334,6 +372,19 @@ class FootStepManager:
         """
         return self._gait_manager.get_gait_timings().tolist()
 
+    def get_cmd_gait(self):
+        """ Get the next commanded gait that will be added in the timeline.
+        Returns :
+            - (int) : 0 : default , 1 : walking , 2 : trotting
+        """
+        return self._gait_manager.get_next_gait()
+
+    def set_next_gait(self, cmd):
+        """ Set the next gait to add in the Gait management timeline
+        Args :
+            - (int) : 0 : default , 1 : walking , 2 : trotting
+        """
+        self._gait_manager.set_next_gait(cmd)
 
 if __name__ == "__main__":
     """ Run a simple example of the FootStepManager wrapper.

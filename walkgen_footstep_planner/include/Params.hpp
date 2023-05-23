@@ -51,6 +51,18 @@ public:
   int N_sample;
   int N_sample_ineq;
   int degree;
+
+  // Keeping default system for now.
+  // Walk parameters
+  int walk_N_ds;
+  int walk_N_ss;
+  int walk_N_uds;
+  int walk_N_uss;
+  // Trot parameters
+  int trot_N_ds;
+  int trot_N_ss;
+  int trot_N_uds;
+  int trot_N_uss;
 };
 
 // From
