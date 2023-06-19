@@ -365,7 +365,7 @@ class hxGeomAlgo_EarCut:
         minY = maxX
         minX = minY
         outerNode = hxGeomAlgo_EarCut.eliminateHoles(data,holeIndices,outerNode,dim)
-        
+
         ear = outerNode
         stop = ear
         prev = None
@@ -748,7 +748,9 @@ class hxGeomAlgo_EarCut:
         m = None
         while True:
             if ((hy <= p.y) and ((hy >= p.next.y))):
-                x = (p.x + (((((hy - p.y)) * ((p.next.x - p.x))) / ((p.next.y - p.y)))))
+                x = p.x
+                if (p.next.y - p.y) != 0.:
+                    x = (p.x + (((((hy - p.y)) * ((p.next.x - p.x))) / ((p.next.y - p.y)))))
                 if ((x <= hx) and ((x > qx))):
                     qx = x
                     if (x == hx):
