@@ -45,10 +45,17 @@ set(${PY_NAME}_INSTALL_DIR ${PYTHON_SITELIB}/${PY_NAME})
 set(${SURFACE_PROCESSING_NAME}_HEADERS
   include/Types.hpp
   include/AffordanceLoader.hpp
+  include/common.hpp
+  include/Point.hpp
+  include/Bayazit.hpp
 )
 
 set(${SURFACE_PROCESSING_NAME}_SOURCES_CPP
   src/AffordanceLoader.cpp
+  src/Point.cpp
+  src/Bayazit.cpp
+  src/common.cpp
+  src/debug.cpp
 )
 
 include_directories("${CMAKE_SOURCE_DIR}/${SURFACE_PROCESSING_NAME}/include")
@@ -76,6 +83,11 @@ TARGET_LINK_LIBRARIES(${SURFACE_PROCESSING_NAME}_cpp PUBLIC hpp-fcl::hpp-fcl)
 ADD_PROJECT_DEPENDENCY(hpp-affordance REQUIRED)
 TARGET_LINK_LIBRARIES(${SURFACE_PROCESSING_NAME}_cpp PUBLIC hpp-affordance::hpp-affordance)
 
+ADD_PROJECT_DEPENDENCY(jsoncpp REQUIRED)
+TARGET_LINK_LIBRARIES(${SURFACE_PROCESSING_NAME}_cpp PRIVATE jsoncpp_lib)
+
+add_executable(main_debug src/debug.cpp src/Point.cpp src/Bayazit.cpp src/common.cpp  )
+TARGET_LINK_LIBRARIES(main_debug PRIVATE jsoncpp_lib)
 
 # Add suffix version
 if(SUFFIX_SO_VERSION)

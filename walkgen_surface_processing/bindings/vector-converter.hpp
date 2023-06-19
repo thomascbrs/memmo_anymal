@@ -1,17 +1,27 @@
 ///////////////////////////////////////////////////////////////////////////////
+// This code is copied from https://github.com/loco-3d/crocoddyl
+// Namespace have been changed.
+// The code is release under the following license :
+//
 // BSD 3-Clause License
 //
 // Copyright (C) 2019-2022, LAAS-CNRS, University of Edinburgh, INRIA
 // Copyright note valid unless otherwise stated in individual files.
 // All rights reserved.
+//
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef BINDINGS_VECTOR_CONVERTER_HPP_
-#define BINDINGS_VECTOR_CONVERTER_HPP_
+#ifndef BINDINGS_PYTHON_WALKGEN_VECTOR_CONVERTER_HPP_
+#define BINDINGS_PYTHON_WALKGEN_VECTOR_CONVERTER_HPP_
 
-#include <boost/python.hpp>
+#include <boost/python/stl_iterator.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <boost/python/to_python_converter.hpp>
 #include <vector>
+
+
+namespace walkgen {
+namespace python {
 
 namespace bp = boost::python;
 
@@ -98,6 +108,89 @@ template <typename Container> struct list_to_vector {
     bp::list list(iterator()(self));
     return list;
   }
+
+  // Need bool operator == for each of the vector (ContactPhase ..etc)
+  // TODO: Add a flag and a visitor for index function
+  // static int index(Container &self, PyObject *name)
+  // {
+  //   typedef typename bp::iterator<Container> iterator;
+  //   iterator it = std::find(self.begin(), self.end(), name);
+  //   if (it != self.end())
+  //   {
+  //     return static_cast<int>(std::distance(self.begin(), it));
+  //   }
+  //   else
+  //   {
+  //     throw std::runtime_error("ValueError : the value is not present.");
+  //   }
+  // }
+};
+
+template <typename Container>
+struct overload_base_get_item_for_std_vector
+    : public boost::python::def_visitor<
+          overload_base_get_item_for_std_vector<Container>> {
+  typedef typename Container::value_type value_type;
+  typedef typename Container::value_type data_type;
+  typedef size_t index_type;
+
+  template <class Class> void visit(Class &cl) const {
+    cl.def("__getitem__", &overload_base_get_item_for_std_vector::base_get_item,
+           bp::return_value_policy<bp::return_by_value>())
+      .def("__iter__", boost::python::iterator<Container>());
+    // .def("__str__", &overload_base_get_item_for_std_vector::base_str)
+    // .def("__repr__", &overload_base_get_item_for_std_vector::base_str);
+  }
+
+private:
+  void base_str(boost::python::back_reference<Container &> container) {
+    std::cout << "HELLO" << std::endl;
+  }
+  static boost::python::object
+  base_get_item(boost::python::back_reference<Container &> container,
+                PyObject *i_) {
+    namespace bp = ::boost::python;
+
+    index_type idx = convert_index(container.get(), i_);
+    typename Container::iterator i = container.get().begin();
+    std::advance(i, idx);
+    if (i == container.get().end()) {
+      PyErr_SetString(PyExc_KeyError, "Invalid index");
+      bp::throw_error_already_set();
+    }
+
+    // typename bp::to_python_indirect<data_type &,
+    // bp::detail::make_reference_holder> convert; return
+    // bp::object(bp::handle<>(convert(*i)));
+    return bp::object(*i);
+  }
+
+  static index_type convert_index(Container &container, PyObject *i_) {
+    namespace bp = boost::python;
+    bp::extract<size_t> i(i_);
+    if (i.check()) {
+      size_t index = i();
+      if (index < 0)
+        index += container.size();
+      if (index >= size_t(container.size()) || index < 0) {
+        PyErr_SetString(PyExc_IndexError, "Index out of range");
+        bp::throw_error_already_set();
+      }
+      return index;
+    }
+
+    PyErr_SetString(PyExc_TypeError, "Invalid index type");
+    bp::throw_error_already_set();
+    return index_type();
+  }
+};
+
+template <class C>
+struct PrintableVisitor : public bp::def_visitor<PrintableVisitor<C>> {
+  template <class PyClass> void visit(PyClass &cl) const {
+    cl.def(bp::self_ns::str(bp::self_ns::self))
+        .def(bp::self_ns::repr(bp::self_ns::self));
+  }
 };
 
 /**
@@ -120,14 +213,27 @@ struct StdVectorPythonVisitor
                      const std::string &doc_string = "") {
     namespace bp = bp;
 
+    // Overload __getitem__ in order to return properly the std::shared_ptr.
+    // Taken from pinocchio3 Not working, indexing phases[0] works, phases[0][1]
+    // does not recognize the type even if registered
+    overload_base_get_item_for_std_vector<Container> visitor =
+        overload_base_get_item_for_std_vector<Container>();
+
     bp::class_<Container>(class_name.c_str(), doc_string.c_str())
         .def(StdVectorPythonVisitor())
         .def("tolist", &FromPythonListConverter::tolist, bp::arg("self"),
              "Returns the std::vector as a Python list.")
-        .def_pickle(PickleVector<Container>());
+        // .def("index", &FromPythonListConverter::index, bp::arg("element"),
+        // "Returns the index of the element in the list")
+        .def_pickle(PickleVector<Container>())
+        .def(visitor);
+    // .def(PrintableVisitor<Container>());
     // Register conversion
     FromPythonListConverter::register_converter();
   }
 };
 
-#endif // BINDINGS_UTILS_VECTOR_CONVERTER_HPP_
+} // namespace python
+} // namespace walkgen
+
+#endif // BINDINGS_PYTHON_WALKGEN_VECTOR_CONVERTER_HPP_
