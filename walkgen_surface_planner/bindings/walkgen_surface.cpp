@@ -6,7 +6,6 @@
 #include <eigenpy/eigenpy.hpp>
 #include <hpp/fcl/fwd.hh>
 
-
 namespace bp = boost::python;
 
 ///////////////////////////////////
@@ -17,8 +16,9 @@ struct TerrainSlopePythonVisitor : public bp::def_visitor<TerrainSlopePythonVisi
   template <class PyClassTerrainSlope>
   void visit(PyClassTerrainSlope& cl) const {
     cl.def(bp::init<int, int, double>(bp::arg(""), "Constructor with parameters."))
-      .def(bp::init<>(bp::arg("fitSizeX,fitSizeY, fitLength"), "Constructor with parameters."))
-      .def("get_slope", &TerrainSlope::getSlope, bp::args("pose", "rotation_yaw", "surfaces"), "Get slope of the terrain.\n");
+        .def(bp::init<>(bp::arg("fitSizeX,fitSizeY, fitLength"), "Constructor with parameters."))
+        .def("get_slope", &TerrainSlope::getSlope, bp::args("pose", "rotation_yaw", "surfaces"),
+             "Get slope of the terrain.\n");
   }
 
   static void expose() {
@@ -31,7 +31,6 @@ void exposeTerrainSlope() { TerrainSlopePythonVisitor<TerrainSlope>::expose(); }
 /// Exposing classes
 /////////////////////////////////
 BOOST_PYTHON_MODULE(libwalkgen_surface_planner_pywrap) {
-
   eigenpy::enableEigenPy();
   // eigenpy::enableEigenPySpecific<Vector3>();
   // Register converters between std::vector and Python list

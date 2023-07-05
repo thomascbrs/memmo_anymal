@@ -3,28 +3,25 @@
 // #include <cstdlib>
 #include <stdlib.h>
 
-GaitManager::GaitManager(const pinocchio::Model &model, const VectorN &q)
-    : initial_schedule_(), default_schedule_() {
+GaitManager::GaitManager(const pinocchio::Model &model, const VectorN &q) : initial_schedule_(), default_schedule_() {
   params_ = Params();
   initialize(model, q);
 }
 
-GaitManager::GaitManager(const pinocchio::Model &model, const VectorN &q,
-                         const Params &params)
+GaitManager::GaitManager(const pinocchio::Model &model, const VectorN &q, const Params &params)
     : params_(params), initial_schedule_(), default_schedule_() {
   initialize(model, q);
 }
 
 void GaitManager::initialize(const pinocchio::Model &model, const VectorN &q) {
-
   // contactNames_ = {lf, lh, rf, rh};
   // contactNames_sl1m_ = {lf, rf, lh, rh};
 
   contactNames_ = params_.feet_names;
   contactNames_sl1m_ = params_.feet_names_sl1m;
 
-  for (auto elem : contactNames_){
-    std :: cout << "params_.feet_names" << elem << std::endl;
+  for (auto elem : contactNames_) {
+    std ::cout << "params_.feet_names" << elem << std::endl;
   }
   // Contcat names always in this order.
   // order matters! LF LH RF RH
@@ -63,20 +60,15 @@ void GaitManager::initialize(const pinocchio::Model &model, const VectorN &q) {
   cs1[rh] = data.oMf[model.getFrameId(rh)];
   cs1[rf] = data.oMf[model.getFrameId(rf)];
 
-  QuadrupedalGaitGenerator gait_generator_ = QuadrupedalGaitGenerator(dt_,4,lf,lh,rf,rh);
+  QuadrupedalGaitGenerator gait_generator_ = QuadrupedalGaitGenerator(dt_, 4, lf, lh, rf, rh);
   if (type_ == "trot") {
-    initial_schedule_ = gait_generator_.trot({cs0, cs1}, 50, N_ss_, N_uss_,
-                                             N_uds_, stepHeight_, true, false);
-    default_schedule_ = gait_generator_.trot({cs0, cs1}, N_ds_, N_ss_, N_uss_,
-                                             N_uds_, stepHeight_, false, false);
+    initial_schedule_ = gait_generator_.trot({cs0, cs1}, 50, N_ss_, N_uss_, N_uds_, stepHeight_, true, false);
+    default_schedule_ = gait_generator_.trot({cs0, cs1}, N_ds_, N_ss_, N_uss_, N_uds_, stepHeight_, false, false);
   } else if (type_ == "walk") {
-    initial_schedule_ = gait_generator_.walk({cs0, cs1}, 100, N_ss_, N_uss_,
-                                             N_uds_, stepHeight_, true, false);
-    default_schedule_ = gait_generator_.walk({cs0, cs1}, N_ds_, N_ss_, N_uss_,
-                                             N_uds_, stepHeight_, false, false);
+    initial_schedule_ = gait_generator_.walk({cs0, cs1}, 100, N_ss_, N_uss_, N_uds_, stepHeight_, true, false);
+    default_schedule_ = gait_generator_.walk({cs0, cs1}, N_ds_, N_ss_, N_uss_, N_uds_, stepHeight_, false, false);
   } else {
-    throw std::invalid_argument(
-        "Unknown gait type in the config file. Try Trot or Walk.");
+    throw std::invalid_argument("Unknown gait type in the config file. Try Trot or Walk.");
   }
 
   if (params_.horizon == 0) {
@@ -86,12 +78,12 @@ void GaitManager::initialize(const pinocchio::Model &model, const VectorN &q) {
     horizon_ = params_.horizon;
   }
 
-  timeline_ = 0; // Current timeline
+  timeline_ = 0;  // Current timeline
   new_step_ = false;
   is_first_gait_ = true;
-  current_gait_ = MatrixN_int::Zero(4, 4); // Initialization
-  NGAIT = 20; // Number of switches to return, should be large enought for sl1m
-  timings.push_back(0.); // Random number for initialisation.
+  current_gait_ = MatrixN_int::Zero(4, 4);  // Initialization
+  NGAIT = 20;                               // Number of switches to return, should be large enought for sl1m
+  timings.push_back(0.);                    // Random number for initialisation.
 
   // Send new step flag only 1 over n_new_steps :
   ratio_nsteps_ = 1;
@@ -99,29 +91,29 @@ void GaitManager::initialize(const pinocchio::Model &model, const VectorN &q) {
   new_step_counter_ = 0;
 
   // Next MPC gait
-  cmd_gait_ = 0; // [0 --> Default, 1 --> Walk, 2 --> Trot]
+  cmd_gait_ = 0;  // [0 --> Default, 1 --> Walk, 2 --> Trot]
   // Register the 2 type of shcedule
   trot_schedule_ = gait_generator_.trot({cs0, cs1}, params_.trot_N_ds, params_.trot_N_ss, params_.trot_N_uss,
-                                             params_.trot_N_uds, stepHeight_, false, false);
+                                        params_.trot_N_uds, stepHeight_, false, false);
   walk_schedule_ = gait_generator_.walk({cs0, cs1}, params_.walk_N_ds, params_.walk_N_ss, params_.walk_N_uss,
-                                             params_.walk_N_uds, stepHeight_, false, false);
+                                        params_.walk_N_uds, stepHeight_, false, false);
   // Initialize trot schedule
   trot_schedule_->updateSwitches();
   std::vector<std::shared_ptr<ContactSchedule>> queue_tmp;
   queue_tmp.push_back(trot_schedule_);
   trot_switches_.clear();
-  update_switches(queue_tmp,trot_switches_,0, false);
+  update_switches(queue_tmp, trot_switches_, 0, false);
   // Initialize walk schedule
   walk_schedule_->updateSwitches();
   queue_tmp.clear();
   queue_tmp.push_back(walk_schedule_);
   walk_switches_.clear();
-  update_switches(queue_tmp,walk_switches_,0, false);
+  update_switches(queue_tmp, walk_switches_, 0, false);
   // Initialize default schedule
   queue_tmp.clear();
   queue_tmp.push_back(default_schedule_);
   default_switches_.clear();
-  update_switches(queue_tmp,default_switches_,0, false);
+  update_switches(queue_tmp, default_switches_, 0, false);
 
   // Add initial CS (with longer stand phase to warm-up the MPC)
   initial_schedule_->updateSwitches();
@@ -131,8 +123,7 @@ void GaitManager::initialize(const pinocchio::Model &model, const VectorN &q) {
   std::cout << "gait manager horizon : " << horizon_ << std::endl;
   double T_global = initial_schedule_->T_;
   while (T_global < horizon_) {
-    std::shared_ptr<ContactSchedule> schedule =
-        std::make_shared<ContactSchedule>(*default_schedule_);
+    std::shared_ptr<ContactSchedule> schedule = std::make_shared<ContactSchedule>(*default_schedule_);
     schedule->updateSwitches();
     queue_cs_.insert(queue_cs_.begin(), schedule);
     T_global += schedule->T_;
@@ -207,16 +198,17 @@ bool GaitManager::update() {
 }
 
 void GaitManager::set_next_gait(const int cmd) {
-  if (cmd != cmd_gait_){
+  if (cmd != cmd_gait_) {
     cmd_gait_ = cmd;
-    if (cmd == 1){
-      std::cout << "Gait modification : " << "Walking" << std::endl;
-    }
-    else if (cmd == 2) {
-      std::cout << "Gait modification : " << "Trotting" << std::endl;
-    }
-    else{
-      std::cout << "Gait modification : " << "Default" << std::endl;
+    if (cmd == 1) {
+      std::cout << "Gait modification : "
+                << "Walking" << std::endl;
+    } else if (cmd == 2) {
+      std::cout << "Gait modification : "
+                << "Trotting" << std::endl;
+    } else {
+      std::cout << "Gait modification : "
+                << "Default" << std::endl;
     }
     // Queue of contact modified, --> update switches
     current_switches_.clear();
@@ -224,49 +216,40 @@ void GaitManager::set_next_gait(const int cmd) {
   }
 }
 
-std::shared_ptr<ContactSchedule> GaitManager::get_next_cs(){
+std::shared_ptr<ContactSchedule> GaitManager::get_next_cs() {
   if (cmd_gait_ == 1) {
     return std::make_shared<ContactSchedule>(*(walk_schedule_));
-  }
-  else if (cmd_gait_ == 2) {
+  } else if (cmd_gait_ == 2) {
     return std::make_shared<ContactSchedule>(*(trot_schedule_));
-  }
-  else {
+  } else {
     return std::make_shared<ContactSchedule>(*(default_schedule_));
   }
 }
-std::map<int, std::vector<int>> GaitManager::get_next_switch(){
+std::map<int, std::vector<int>> GaitManager::get_next_switch() {
   if (cmd_gait_ == 1) {
     return walk_switches_;
-  }
-  else if (cmd_gait_ == 2) {
+  } else if (cmd_gait_ == 2) {
     return trot_switches_;
-  }
-  else {
+  } else {
     return default_switches_;
   }
 }
 
-
-std::vector<int> GaitManager::evaluate_config(const ContactSchedule &schedule,
-                                              int timeline) {
+std::vector<int> GaitManager::evaluate_config(const ContactSchedule &schedule, int timeline) {
   std::vector<int> gait_tmp(4, 0);
   for (size_t c = 0; c < schedule.contactNames_.size(); ++c) {
     std::string name = schedule.contactNames_[c];
-    size_t j = static_cast<size_t>(
-        std::find(contactNames_sl1m_.begin(), contactNames_sl1m_.end(), name) -
-        contactNames_sl1m_.begin());
+    size_t j = static_cast<size_t>(std::find(contactNames_sl1m_.begin(), contactNames_sl1m_.end(), name) -
+                                   contactNames_sl1m_.begin());
     auto phases = schedule.phases_[c];
     auto active_phase = phases[0];
     auto inactive_phase = phases[1];
     if (phases.size() == 3) {
-      if (active_phase->T_ - timeline - 1 >
-          0) { // case 1, inside first Active phase
+      if (active_phase->T_ - timeline - 1 > 0) {  // case 1, inside first Active phase
         gait_tmp[j] = 1;
-      } else if (active_phase->T_ + inactive_phase->T_ - timeline - 1 >
-                 0) { // case 2, during inactive phase
+      } else if (active_phase->T_ + inactive_phase->T_ - timeline - 1 > 0) {  // case 2, during inactive phase
         gait_tmp[j] = 0;
-      } else { // case 3, inside last Active phase
+      } else {  // case 3, inside last Active phase
         gait_tmp[j] = 1;
       }
     }
@@ -275,15 +258,14 @@ std::vector<int> GaitManager::evaluate_config(const ContactSchedule &schedule,
 }
 
 void GaitManager::update_switches(const std::vector<std::shared_ptr<ContactSchedule>> cs_queue,
-                                  std::map<int, std::vector<int>> &switches,
-                                  const int timeline_in, bool use_next_cs) {
+                                  std::map<int, std::vector<int>> &switches, const int timeline_in, bool use_next_cs) {
   // int index_cs = 0;
   int T_total = 0;
   for (auto itr = cs_queue.rbegin(); itr != cs_queue.rend(); ++itr) {
     const ContactSchedule &cs = **itr;
     for (size_t c = 0; c < cs.phases_.size(); c++) {
       auto &phases = cs.phases_[c];
-      int phase_index = T_total; // Assuming all T the same .. TODO
+      int phase_index = T_total;  // Assuming all T the same .. TODO
       for (size_t p = 0; p < phases.size(); p += 2) {
         int T_active = phases[p]->T_;
         int T_inactive = 0;
@@ -301,20 +283,17 @@ void GaitManager::update_switches(const std::vector<std::shared_ptr<ContactSched
                 switches[switch_active] = evaluate_config(**nextItr, 0);
               } else {
                 // TODO Avoid calling get_next_cs, create a copy that is computationally expensive
-                if (use_next_cs){
+                if (use_next_cs) {
                   switches[switch_active] = evaluate_config(*get_next_cs(), 0);
-                }
-                else{
+                } else {
                   switches[switch_active] = evaluate_config(cs, 0);
                 }
               }
             } else {
-              switches[switch_active] =
-                  evaluate_config(cs, T_active + T_inactive - 1);
+              switches[switch_active] = evaluate_config(cs, T_active + T_inactive - 1);
             }
           }
-          if (switch_inactive != -1 &&
-              switches.find(switch_inactive) == switches.end()) {
+          if (switch_inactive != -1 && switches.find(switch_inactive) == switches.end()) {
             // switch_inactive = -1 --> Taken into account in the previous
             // schedule.
             switches[switch_inactive] = evaluate_config(cs, T_active - 1);
@@ -338,19 +317,15 @@ MatrixN_int GaitManager::compute_gait(int timeline) {
   // This function is called only when a new step is created. timeline == one of
   // the switche key.
   if (timeline < it->first) {
-    std::cout
-        << "Calling gait at the wrong timing, not when a new step is created"
-        << std::endl;
+    std::cout << "Calling gait at the wrong timing, not when a new step is created" << std::endl;
   }
-  for (auto itr = current_switches_.begin(); itr != current_switches_.end();
-       ++itr) {
+  for (auto itr = current_switches_.begin(); itr != current_switches_.end(); ++itr) {
     if (timeline <= itr->first) {
       gait.push_back(itr->second);
       if (timings.size() == 0) {
         timings.push_back(0.);
       } else {
-        timings.push_back(
-            dt_ * static_cast<double>(itr->first - (std::prev(itr))->first));
+        timings.push_back(dt_ * static_cast<double>(itr->first - (std::prev(itr))->first));
       }
     }
   }
@@ -366,16 +341,13 @@ MatrixN_int GaitManager::compute_gait(int timeline) {
   while (gait.size() < static_cast<size_t>(NGAIT)) {
     size_t mapIndex = index % mapZise;
     auto it_nxt = nxt_switch.begin();
-    std::advance(it_nxt,mapIndex); // Move 1 since it has been taken into account.
+    std::advance(it_nxt, mapIndex);  // Move 1 since it has been taken into account.
 
     gait.push_back(it_nxt->second);
-    if (mapIndex != 0){
-      timings.push_back(
-              dt_ * static_cast<double>(it_nxt->first - (std::prev(it_nxt))->first));
-    }
-    else{
-       timings.push_back(
-              dt_ * static_cast<double>(it_nxt->first + 1));
+    if (mapIndex != 0) {
+      timings.push_back(dt_ * static_cast<double>(it_nxt->first - (std::prev(it_nxt))->first));
+    } else {
+      timings.push_back(dt_ * static_cast<double>(it_nxt->first + 1));
     }
     index += 1;
   }
@@ -383,12 +355,10 @@ MatrixN_int GaitManager::compute_gait(int timeline) {
   const size_t nCols = gait[0].size();
   const size_t nRows = gait.size();
   // Reset size of the current gait
-  current_gait_ = MatrixN_int::Zero(static_cast<Eigen::Index>(nRows),
-                                    static_cast<Eigen::Index>(nCols));
+  current_gait_ = MatrixN_int::Zero(static_cast<Eigen::Index>(nRows), static_cast<Eigen::Index>(nCols));
   for (size_t i = 0; i < gait.size(); ++i) {
     for (size_t j = 0; j < gait[0].size(); j++) {
-      current_gait_(static_cast<Eigen::Index>(i),
-                    static_cast<Eigen::Index>(j)) = gait[i][j];
+      current_gait_(static_cast<Eigen::Index>(i), static_cast<Eigen::Index>(j)) = gait[i][j];
     }
   }
   return current_gait_;
@@ -418,8 +388,7 @@ void GaitManager::print_queue() {
   int terminal_width = 100;
   int colWidth = (terminal_width - terminal_width / 5) / 4;
   // Compute the total width of the table
-  size_t totalWidth =
-      static_cast<size_t>(colWidth + 1) * contactNames_sl1m_.size();
+  size_t totalWidth = static_cast<size_t>(colWidth + 1) * contactNames_sl1m_.size();
   // Print the top border
   // std::cout << std::string(totalWidth, '_') << "\n" << std::endl;
   // Print the headers centered in each column
@@ -427,8 +396,7 @@ void GaitManager::print_queue() {
     size_t padding = static_cast<size_t>(colWidth) - header.length();
     size_t leftPadding = padding / 2;
     size_t rightPadding = padding - leftPadding;
-    std::cout << std::string(leftPadding, ' ') << header
-              << std::string(rightPadding, ' ');
+    std::cout << std::string(leftPadding, ' ') << header << std::string(rightPadding, ' ');
     std::cout << "|";
   }
   std::cout << std::endl;
@@ -436,20 +404,17 @@ void GaitManager::print_queue() {
   std::cout << std::string(totalWidth, '_') << std::endl;
 
   // Iterating over the contact schedules.
-  int totalLines = 10; // total number of line for a schedule
+  int totalLines = 10;  // total number of line for a schedule
 
   for (auto itr = queue_cs_.rbegin(); itr != queue_cs_.rend(); ++itr) {
     const ContactSchedule &cs = **itr;
     for (size_t p = 0; p < cs.phases_[0].size(); p++) {
       for (const auto &foot_name : contactNames_sl1m_) {
-        auto it = std::find(cs.contactNames_.begin(), cs.contactNames_.end(),
-                            foot_name);
+        auto it = std::find(cs.contactNames_.begin(), cs.contactNames_.end(), foot_name);
         if (it == cs.contactNames_.end()) {
-          throw std::runtime_error(
-              "Naming not consistent between GaitManager and ContactSchedule.");
+          throw std::runtime_error("Naming not consistent between GaitManager and ContactSchedule.");
         }
-        size_t index =
-            static_cast<size_t>(std::distance(cs.contactNames_.begin(), it));
+        size_t index = static_cast<size_t>(std::distance(cs.contactNames_.begin(), it));
         auto &phases = cs.phases_[index];
         std::string text = "";
         p % 2 == 0 ? text += "Active : " : text += "Inactive :";
@@ -457,8 +422,7 @@ void GaitManager::print_queue() {
         size_t padding = static_cast<size_t>(colWidth) - text.length();
         size_t leftPadding = padding / 2;
         size_t rightPadding = padding - leftPadding;
-        std::cout << std::string(leftPadding, ' ') << text
-                  << std::string(rightPadding, ' ');
+        std::cout << std::string(leftPadding, ' ') << text << std::string(rightPadding, ' ');
         std::cout << "|";
       }
       std::cout << std::endl;
@@ -470,8 +434,7 @@ void GaitManager::print_queue() {
   }
 }
 
-std::vector<std::vector<std::vector<CoeffBezier>>>
-GaitManager::get_coefficients() {
+std::vector<std::vector<std::vector<CoeffBezier>>> GaitManager::get_coefficients() {
   std::vector<std::vector<std::vector<CoeffBezier>>> coeffs;
   for (auto itr = queue_cs_.rbegin(); itr != queue_cs_.rend(); ++itr) {
     const ContactSchedule &cs = **itr;
@@ -482,8 +445,7 @@ GaitManager::get_coefficients() {
       for (size_t p = 0; p < phases.size(); p += 2) {
         if (p + 1 < phases.size()) {
           foot_list.push_back(
-              CoeffBezier(phases[p + 1]->trajectory_->getT0(),
-                          phases[p + 1]->trajectory_->get_coefficients()));
+              CoeffBezier(phases[p + 1]->trajectory_->getT0(), phases[p + 1]->trajectory_->get_coefficients()));
         }
       }
       cs_list.push_back(foot_list);

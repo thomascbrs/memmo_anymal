@@ -4,8 +4,7 @@ Surface::Surface() {
   // Empty
 }
 
-Surface::Surface(const MatrixN &A_in, const VectorN &b_in,
-                 const MatrixN &vertices_in)
+Surface::Surface(const MatrixN &A_in, const VectorN &b_in, const MatrixN &vertices_in)
     : vertices_{vertices_in}, A_{A_in}, b_{b_in} {
   // Vertices should be sorted colomn-wise
   if (vertices_.cols() != 3) {
@@ -16,8 +15,7 @@ Surface::Surface(const MatrixN &A_in, const VectorN &b_in,
   }
 }
 
-Surface::Surface(const Surface &other)
-    : A_{other.A_}, b_{other.b_}, vertices_{other.vertices_} {}
+Surface::Surface(const Surface &other) : A_{other.A_}, b_{other.b_}, vertices_{other.vertices_} {}
 
 MatrixN Surface::getA() const { return A_; }
 
@@ -29,14 +27,11 @@ void Surface::setb(VectorN const &b_in) { b_ = b_in; }
 
 MatrixN Surface::getVertices() const { return vertices_; }
 
-void Surface::setVertices(const MatrixN &vertices_in) {
-  vertices_ = vertices_in;
-}
+void Surface::setVertices(const MatrixN &vertices_in) { vertices_ = vertices_in; }
 
 double Surface::getHeight(Vector2 const &point) const {
   int id = static_cast<int>(A_.rows()) - 1;
-  return -(b_(id) - point(0) * A_(id, 0) / A_(id, 2) -
-           point(1) * A_(id, 1) / A_(id, 2));
+  return -(b_(id) - point(0) * A_(id, 0) / A_(id, 2) - point(1) * A_(id, 1) / A_(id, 2));
 }
 
 bool Surface::hasPoint(Vector2 const &point) const {

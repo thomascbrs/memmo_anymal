@@ -16,9 +16,9 @@ double min(const double &a, const double &b);
 int wrap(const int &a, const int &b);
 double srand(const double &min, const double &max);
 
-template<class T>
-T& at(std::vector<T> v, int i) {
-    return v.at(static_cast<size_t>(wrap(i, static_cast<int>(v.size()))));
+template <class T>
+T &at(std::vector<T> v, int i) {
+  return v.at(static_cast<size_t>(wrap(i, static_cast<int>(v.size()))));
 };
 
 #endif

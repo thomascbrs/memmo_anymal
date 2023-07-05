@@ -8,7 +8,7 @@
 #include <Types.hpp>
 
 class Params {
-public:
+ public:
   // Constructor without filename.
   Params();
 
@@ -69,14 +69,13 @@ public:
 // https://gitlab.laas.fr/gepetto/quadruped-reactive-walking/-/blob/article-ral-iros-improved/include/qrw/Params.hpp
 namespace yaml_check {
 
-#define assert_yaml_parsing(yaml_node, parent_node_name, child_node_name)      \
-  if (!yaml_node[child_node_name]) {                                           \
-    std::ostringstream oss;                                                    \
-    oss << "Error: Wrong parsing of the YAML file from source file: ["         \
-        << __FILE__ << "], in function: [" << __FUNCTION__ << "], line: ["     \
-        << __LINE__ << "]. Node [" << child_node_name                          \
-        << "] does not exist under the node [" << parent_node_name << "].";    \
-    throw std::runtime_error(oss.str());                                       \
+#define assert_yaml_parsing(yaml_node, parent_node_name, child_node_name)                                 \
+  if (!yaml_node[child_node_name]) {                                                                      \
+    std::ostringstream oss;                                                                               \
+    oss << "Error: Wrong parsing of the YAML file from source file: [" << __FILE__ << "], in function: [" \
+        << __FUNCTION__ << "], line: [" << __LINE__ << "]. Node [" << child_node_name                     \
+        << "] does not exist under the node [" << parent_node_name << "].";                               \
+    throw std::runtime_error(oss.str());                                                                  \
   }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,17 +85,15 @@ namespace yaml_check {
 /// \param[in] filename File path to check
 ///
 ////////////////////////////////////////////////////////////////////////////////////////////////
-#define assert_file_exists(filename)                                           \
-  std::ifstream f(filename.c_str());                                           \
-  if (!f.good()) {                                                             \
-    std::ostringstream oss;                                                    \
-    oss << "Error: Problem opening the file [" << filename                     \
-        << "], from source file: [" << __FILE__ << "], in function: ["         \
-        << __FUNCTION__ << "], line: [" << __LINE__                            \
-        << "]. The file may not exist.";                                       \
-    throw std::runtime_error(oss.str());                                       \
+#define assert_file_exists(filename)                                                                        \
+  std::ifstream f(filename.c_str());                                                                        \
+  if (!f.good()) {                                                                                          \
+    std::ostringstream oss;                                                                                 \
+    oss << "Error: Problem opening the file [" << filename << "], from source file: [" << __FILE__          \
+        << "], in function: [" << __FUNCTION__ << "], line: [" << __LINE__ << "]. The file may not exist."; \
+    throw std::runtime_error(oss.str());                                                                    \
   }
 
-} // namespace yaml_check
+}  // namespace yaml_check
 
-#endif // PARAMS_HPP
+#endif  // PARAMS_HPP

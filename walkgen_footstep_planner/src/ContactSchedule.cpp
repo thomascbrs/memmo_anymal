@@ -1,18 +1,25 @@
 #include "ContactSchedule.hpp"
 #include <stdexcept>
 
-ContactSchedule::ContactSchedule(double dt, int T, int S_total,
-                                 std::vector<std::string> contactNames)
-    : dt_(dt), T_(T), S_total_(S_total), C_(0),
-      contactNames_(std::move(contactNames)), phases_(contactNames_.size()),
+ContactSchedule::ContactSchedule(double dt, int T, int S_total, std::vector<std::string> contactNames)
+    : dt_(dt),
+      T_(T),
+      S_total_(S_total),
+      C_(0),
+      contactNames_(std::move(contactNames)),
+      phases_(contactNames_.size()),
       switches_() {
   std::sort(contactNames_.begin(), contactNames_.end());
   C_ = int(contactNames_.size());
 }
 
 ContactSchedule::ContactSchedule(const ContactSchedule &other)
-    : dt_(other.dt_), T_(other.T_), S_total_(other.S_total_), C_(other.C_),
-      contactNames_(other.contactNames_), switches_(other.switches_) {
+    : dt_(other.dt_),
+      T_(other.T_),
+      S_total_(other.S_total_),
+      C_(other.C_),
+      contactNames_(other.contactNames_),
+      switches_(other.switches_) {
   // Copy the phases for each contact
   if (!other.phases_.empty()) {
     for (size_t i = 0; i < other.phases_.size(); i++) {
@@ -21,11 +28,9 @@ ContactSchedule::ContactSchedule(const ContactSchedule &other)
         // std::shared_ptr<ContactPhase> phase_cp =
         // std::make_shared<ContactPhase>(*other.phases_[i][p]);
         // phases_i.push_back(phase_cp);
-        phases_i.push_back(
-            std::make_shared<ContactPhase>(*other.phases_[i][p]));
+        phases_i.push_back(std::make_shared<ContactPhase>(*other.phases_[i][p]));
         if (p + 1 < other.phases_[i].size()) {
-          phases_i.push_back(
-              std::make_shared<ContactPhase>(*other.phases_[i][p + 1]));
+          phases_i.push_back(std::make_shared<ContactPhase>(*other.phases_[i][p + 1]));
         }
       }
       phases_.push_back(phases_i);
@@ -58,9 +63,8 @@ void ContactSchedule::updateSwitches() {
   }
 }
 
-void ContactSchedule::addSchedule(
-    const std::string &name,
-    const std::vector<std::shared_ptr<ContactPhase>> &schedule) {
+void ContactSchedule::addSchedule(const std::string &name,
+                                  const std::vector<std::shared_ptr<ContactPhase>> &schedule) {
   // Check if schedule is valid
   // if (schedule.size() % 2 != 0) {
   //     throw std::invalid_argument("Schedule must contain an even number of
@@ -93,8 +97,7 @@ void ContactSchedule::addSchedule(
     }
   }
   if (N_switch > S_total_) {
-    throw std::invalid_argument(
-        "Total number of phases is higher than allowed");
+    throw std::invalid_argument("Total number of phases is higher than allowed");
   }
 
   // Check if the total duration is correct
@@ -103,8 +106,7 @@ void ContactSchedule::addSchedule(
     T += phase->T_;
   }
   if (T != T_) {
-    throw std::invalid_argument(
-        "Total duration of schedule does not match ContactSchedule duration");
+    throw std::invalid_argument("Total duration of schedule does not match ContactSchedule duration");
   }
 
   // Add the schedule
@@ -115,14 +117,12 @@ void ContactSchedule::addSchedule(
 void ContactSchedule::checkSchedule() {
   for (size_t p = 0; phases_.size(); p = +1) {
     if (phases_[p].size() == 0) {
-      throw std::runtime_error("The contact-phase for " + contactNames_[p] +
-                               " hasn't been defined");
+      throw std::runtime_error("The contact-phase for " + contactNames_[p] + " hasn't been defined");
     }
   }
 }
 
-std::shared_ptr<ContactSchedule> ContactSchedule::
-operator+(const ContactSchedule &contact_schedule) {
+std::shared_ptr<ContactSchedule> ContactSchedule::operator+(const ContactSchedule &contact_schedule) {
   if (contact_schedule.phases_.size() != phases_.size()) {
     throw std::invalid_argument("Total number of phases is not compatible");
   }

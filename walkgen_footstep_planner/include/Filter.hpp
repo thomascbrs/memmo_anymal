@@ -7,14 +7,11 @@
 #include <vector>
 
 class FilterMean {
-public:
+ public:
   // Default constructor
   FilterMean(){};
 
-  FilterMean(double period, double dt)
-      : _Nx(static_cast<size_t>(int(period / dt))) {
-    _x_queue.reserve(_Nx);
-  }
+  FilterMean(double period, double dt) : _Nx(static_cast<size_t>(int(period / dt))) { _x_queue.reserve(_Nx); }
 
   Eigen::VectorXd filter(const Eigen::VectorXd &q) {
     // Check size of input
@@ -27,8 +24,7 @@ public:
     }
 
     // Handle modulo for orientation
-    if (!_x_queue.empty() &&
-        std::abs(q(5) - _x_queue.front()(5)) > 1.5 * M_PI) {
+    if (!_x_queue.empty() && std::abs(q(5) - _x_queue.front()(5)) > 1.5 * M_PI) {
       handle_modulo(q(5) - _x_queue.front()(5) > 0);
     }
 
@@ -41,7 +37,7 @@ public:
     return sum / _x_queue.size();
   }
 
-private:
+ private:
   void handle_modulo(bool dir) {
     const double delta_yaw = dir ? 2.0 * M_PI : -2.0 * M_PI;
     for (auto &x : _x_queue) {
@@ -53,4 +49,4 @@ private:
   std::vector<Eigen::VectorXd> _x_queue;
 };
 
-#endif // FILTERMEAN_H_INCLUDED
+#endif  // FILTERMEAN_H_INCLUDED

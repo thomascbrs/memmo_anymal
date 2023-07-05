@@ -23,7 +23,7 @@ typedef std::vector<std::vector<Vector3>> StdVecVec_Vector3;
 
 using namespace hpp;
 class AffordanceLoader {
-public:
+ public:
   // Constructor
   AffordanceLoader();
 
@@ -40,8 +40,8 @@ public:
   /// \param[in] affordanceName char. type of affordance
   ///
   ///////////////////////////////////////////////////////////////////////////
-  AffordanceLoader(double const &margin_in, double const &nbTriMargin_in,
-                   double const &minArea_in, char *const &affordanceName_in);
+  AffordanceLoader(double const &margin_in, double const &nbTriMargin_in, double const &minArea_in,
+                   char *const &affordanceName_in);
 
   ///////////////////////////////////////////////////////////////////////////
   ///
@@ -61,7 +61,7 @@ public:
   ///////////////////////////////////////////////////////////////////////////
   StdVecVec_Vector3 getAffordances() const { return affordances_; };
 
-private:
+ private:
   StdVecVec_Vector3 affordances_;
   // Parameters to select the relevant surfaces
   double margin;
@@ -70,4 +70,4 @@ private:
   char *affordanceName;
 };
 
-#endif // AffordanceLoader_H_INCLUDED
+#endif  // AffordanceLoader_H_INCLUDED

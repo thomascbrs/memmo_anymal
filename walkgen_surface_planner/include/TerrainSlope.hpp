@@ -51,7 +51,7 @@ class TerrainSlope {
   /// \return Roll, pitch, yaw vector3.
   ///
   ///////////////////////////////////////////////////////////////////////////
-  VectorN getSlope(VectorN const& pose, MatrixN const& rotation_yaw,  std::vector<MatrixN> const& vecCollisionPts);
+  VectorN getSlope(VectorN const& pose, MatrixN const& rotation_yaw, std::vector<MatrixN> const& vecCollisionPts);
 
   ///////////////////////////////////////////////////////////////////////////
   ///
@@ -92,9 +92,9 @@ class TerrainSlope {
   hpp::fcl::DistanceRequest request_distance_;
   hpp::fcl::DistanceResult res_distance_;
 
-  int fitSizeX_; // Number of points on x axis.
-  int fitSizeY_; // Number of points on y axis.
-  double fitLength_; // Half size of the square centered of the robot position.
+  int fitSizeX_;      // Number of points on x axis.
+  int fitSizeY_;      // Number of points on y axis.
+  double fitLength_;  // Half size of the square centered of the robot position.
   VectorN fit_ = VectorN::Zero(3);
 
   std::vector<hpp::fcl::ConvexBase*> convexObjects_;

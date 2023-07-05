@@ -62,7 +62,6 @@ double TerrainSlope::getHeight(double const& x, double const& y, Vector4 const& 
 
 VectorN TerrainSlope::getSlope(VectorN const& pose, MatrixN const& rotation_yaw,
                                std::vector<MatrixN> const& vecCollisionPts) {
-
   // Construct the convex objects from the surfaces equations.
   for (int j = 0; j < (int)vecCollisionPts.size(); j++) {
     std::vector<hpp::fcl::Vec3f> points;
@@ -78,10 +77,8 @@ VectorN TerrainSlope::getSlope(VectorN const& pose, MatrixN const& rotation_yaw,
     surfaceEqs_.push_back(getSurfaceEq(vecCollisionPts[j]));
   }
 
-  VectorN xVector =
-      VectorN::LinSpaced(fitSizeX_, - fitLength_,  fitLength_);
-  VectorN yVector =
-      VectorN::LinSpaced(fitSizeY_,- fitLength_, + fitLength_);
+  VectorN xVector = VectorN::LinSpaced(fitSizeX_, -fitLength_, fitLength_);
+  VectorN yVector = VectorN::LinSpaced(fitSizeY_, -fitLength_, +fitLength_);
 
   int index = 0;
   // For each points, check which convex object is collide and evaluate the height.
@@ -104,9 +101,8 @@ VectorN TerrainSlope::getSlope(VectorN const& pose, MatrixN const& rotation_yaw,
             z_max = std::max(z_max, getHeight(position(0), position(1), surfaceEqs_[k]));
           }
           foundCollision = true;
-        }
-        else{
-          if (res_distance_.min_distance < d_min){
+        } else {
+          if (res_distance_.min_distance < d_min) {
             d_min = std::min(d_min, res_distance_.min_distance);
             z_max_notFound = getHeight(position(0), position(1), surfaceEqs_[k]);
           }
@@ -117,7 +113,7 @@ VectorN TerrainSlope::getSlope(VectorN const& pose, MatrixN const& rotation_yaw,
         A_.row(index) << position(0), position(1), 1.;
         b_(index) = z_max;
       } else {
-        if (d_min != 10.){
+        if (d_min != 10.) {
           A_.row(index) << position(0), position(1), 1.;
           b_(index) = z_max_notFound;
         }

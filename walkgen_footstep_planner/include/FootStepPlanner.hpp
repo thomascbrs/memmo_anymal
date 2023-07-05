@@ -18,30 +18,26 @@
 #include "eiquadprog/eiquadprog-fast.hpp"
 
 class FootStepPlanner {
-public:
+ public:
   // Constructor with Params
-  FootStepPlanner(const pinocchio::Model &model, const Eigen::VectorXd &q,
-                  const Params &params, const double period = 0.5);
-  // Constructor without Params
-  FootStepPlanner(const pinocchio::Model &model, const Eigen::VectorXd &q,
+  FootStepPlanner(const pinocchio::Model &model, const Eigen::VectorXd &q, const Params &params,
                   const double period = 0.5);
+  // Constructor without Params
+  FootStepPlanner(const pinocchio::Model &model, const Eigen::VectorXd &q, const double period = 0.5);
   void initialize(const Eigen::VectorXd &q);
 
-  MatrixN compute_footstep(
-      std::vector<std::shared_ptr<ContactSchedule>> &queue_cs, const VectorN &q,
-      const VectorN &vq, const VectorN &bvref, const int timeline,
-      const std::map<std::string, std::vector<Surface>> &selected_surfaces,
-      const std::map<std::string, Surface> &previous_surfaces);
+  MatrixN compute_footstep(std::vector<std::shared_ptr<ContactSchedule>> &queue_cs, const VectorN &q,
+                           const VectorN &vq, const VectorN &bvref, const int timeline,
+                           const std::map<std::string, std::vector<Surface>> &selected_surfaces,
+                           const std::map<std::string, Surface> &previous_surfaces);
 
   VectorN get_qf() { return qf_; };
   VectorN get_qvf() { return qvf_; };
-  std::vector<std::string> get_contact_name_sl1m() {
-    return contactNames_sl1m_;
-  };
+  std::vector<std::string> get_contact_name_sl1m() { return contactNames_sl1m_; };
   std::vector<std::string> get_contact_name() { return contactNames_; };
   MatrixN get_current_position() { return current_position_; };
 
-private:
+ private:
   // void initFeetPositions(const Eigen::VectorXd& q);
   // void updateFeetPositions(const Eigen::VectorXd& q, const Eigen::VectorXd&
   // dq); void updatePreviousSurfaces(const std::vector<Eigen::VectorXd>&
@@ -59,16 +55,12 @@ private:
   //                                 std::map<std::string, walkgen::Surface>&
   //                                 surfaces) const;
 
-  void update_current_state(const Eigen::VectorXd &q,
-                            const Eigen::VectorXd &vq);
-  Vector3 compute_heuristic(const Eigen::VectorXd &bv,
-                            const Eigen::VectorXd &bvref, const Matrix3 &Rxy,
-                            const double T_stance, const std::string &name,
-                            const bool feedback_term = true);
-  MatrixN update_position(
-      std::vector<std::shared_ptr<ContactSchedule>> &queue_cs, const Vector6 &q,
-      const Vector6 &vq, const VectorN &bvref, const int timeline,
-      const std::map<std::string, std::vector<Surface>> &selected_surfaces);
+  void update_current_state(const Eigen::VectorXd &q, const Eigen::VectorXd &vq);
+  Vector3 compute_heuristic(const Eigen::VectorXd &bv, const Eigen::VectorXd &bvref, const Matrix3 &Rxy,
+                            const double T_stance, const std::string &name, const bool feedback_term = true);
+  MatrixN update_position(std::vector<std::shared_ptr<ContactSchedule>> &queue_cs, const Vector6 &q, const Vector6 &vq,
+                          const VectorN &bvref, const int timeline,
+                          const std::map<std::string, std::vector<Surface>> &selected_surfaces);
   template <typename Type>
   size_t find_stdVec(const std::vector<Type> &vec, const Type &elem);
 
@@ -110,7 +102,7 @@ private:
   // To avoid create the variable at each new loop.
   pinocchio::SE3 oMf_tmp;
   pinocchio::Motion v_tmp;
-  Vector3 footstep_tmp; // heuristic function
+  Vector3 footstep_tmp;  // heuristic function
   Vector3 cross_tmp;
   Vector6 q_filter_tmp;
 
@@ -140,4 +132,4 @@ private:
   Surface previous_sf;
 };
 
-#endif // FOOTSTEPPLANNER_H
+#endif  // FOOTSTEPPLANNER_H

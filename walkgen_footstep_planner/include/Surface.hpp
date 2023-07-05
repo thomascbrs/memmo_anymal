@@ -12,7 +12,7 @@
 #include "Types.hpp"
 
 class Surface {
-public:
+ public:
   // Constructor
   Surface();
   Surface(const Surface &other);
@@ -70,9 +70,9 @@ public:
 
   MatrixN vertices_;
 
-private:
+ private:
   MatrixN A_;
   VectorN b_;
 };
 
-#endif // SURFACE_H_INCLUDED
+#endif  // SURFACE_H_INCLUDED

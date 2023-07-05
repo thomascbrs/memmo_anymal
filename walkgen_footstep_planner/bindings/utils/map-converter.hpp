@@ -44,26 +44,23 @@ struct PickleMap : public PickleVector<Container> {
 /// Conversion from dict to map solution proposed in
 /// https://stackoverflow.com/questions/6116345/boostpython-possible-to-automatically-convert-from-dict-stdmap
 /// This template encapsulates the conversion machinery.
-template <typename Container> struct dict_to_map {
+template <typename Container>
+struct dict_to_map {
   static void register_converter() {
-    bp::converter::registry::push_back(&dict_to_map::convertible,
-                                       &dict_to_map::construct,
-                                       bp::type_id<Container>());
+    bp::converter::registry::push_back(&dict_to_map::convertible, &dict_to_map::construct, bp::type_id<Container>());
   }
 
   /// Check if conversion is possible
   static void *convertible(PyObject *object) {
     // Check if it is a list
-    if (!PyObject_GetIter(object))
-      return 0;
+    if (!PyObject_GetIter(object)) return 0;
     return object;
   }
 
   /// Perform the conversion
-  static void construct(PyObject *object,
-                        bp::converter::rvalue_from_python_stage1_data *data) {
+  static void construct(PyObject *object, bp::converter::rvalue_from_python_stage1_data *data) {
     // convert the PyObject pointed to by `object` to a bp::dict
-    bp::handle<> handle(bp::borrowed(object)); // "smart ptr"
+    bp::handle<> handle(bp::borrowed(object));  // "smart ptr"
     bp::dict dict(handle);
 
     // get a pointer to memory into which we construct the map
@@ -112,8 +109,7 @@ template <typename Container> struct dict_to_map {
     bp::extract<size_t> i(i_);
     if (i.check()) {
       size_t index = i();
-      if (index < 0)
-        index += container.size();
+      if (index < 0) index += container.size();
       if (index >= size_t(container.size()) || index < 0) {
         PyErr_SetString(PyExc_IndexError, "Index out of range");
         bp::throw_error_already_set();
@@ -193,17 +189,13 @@ template <typename Container> struct dict_to_map {
  * returned to Python.
  */
 template <class Key, class T, class Compare = std::less<Key>,
-          class Allocator = std::allocator<std::pair<const Key, T>>,
-          bool NoProxy = false>
-struct StdMapPythonVisitor
-    : public bp::map_indexing_suite<
-          typename std::map<Key, T, Compare, Allocator>, NoProxy>,
-      public dict_to_map<std::map<Key, T, Compare, Allocator>> {
+          class Allocator = std::allocator<std::pair<const Key, T>>, bool NoProxy = false>
+struct StdMapPythonVisitor : public bp::map_indexing_suite<typename std::map<Key, T, Compare, Allocator>, NoProxy>,
+                             public dict_to_map<std::map<Key, T, Compare, Allocator>> {
   typedef std::map<Key, T, Compare, Allocator> Container;
   typedef dict_to_map<Container> FromPythonDictConverter;
 
-  static void expose(const std::string &class_name,
-                     const std::string &doc_string = "") {
+  static void expose(const std::string &class_name, const std::string &doc_string = "") {
     namespace bp = bp;
 
     // Exposing directly as a dictionary type, avoid .todict() method.
@@ -223,7 +215,7 @@ struct StdMapPythonVisitor
   }
 };
 
-} // namespace python
-} // namespace walkgen
+}  // namespace python
+}  // namespace walkgen
 
-#endif // BINDINGS_PYTHON_WALKGEN_UTILS_MAP_CONVERTER_HPP_
+#endif  // BINDINGS_PYTHON_WALKGEN_UTILS_MAP_CONVERTER_HPP_

@@ -17,13 +17,9 @@ struct CoeffBezier {
   double t0;
   Eigen::MatrixXd coeffs;
 
-  bool operator==(const CoeffBezier &other) const {
-    return t0 == other.t0 && coeffs == other.coeffs;
-  }
+  bool operator==(const CoeffBezier &other) const { return t0 == other.t0 && coeffs == other.coeffs; }
 
-  bool operator!=(const CoeffBezier &other) const {
-    return t0 != other.t0 or coeffs != other.coeffs;
-  }
+  bool operator!=(const CoeffBezier &other) const { return t0 != other.t0 or coeffs != other.coeffs; }
 
   // Constructor
   CoeffBezier(double t0_, Eigen::MatrixXd coeffs_) : t0(t0_), coeffs(coeffs_) {}
@@ -34,10 +30,9 @@ struct CoeffBezier {
 };
 
 class GaitManager {
-public:
+ public:
   GaitManager(const pinocchio::Model &model, const VectorN &q);
-  GaitManager(const pinocchio::Model &model, const VectorN &q,
-              const Params &params);
+  GaitManager(const pinocchio::Model &model, const VectorN &q, const Params &params);
   void initialize(const pinocchio::Model &model, const VectorN &q);
   void print_queue();
   void print_current_switches() { print_switches(current_switches_); };
@@ -52,14 +47,12 @@ public:
   std::vector<std::shared_ptr<ContactSchedule>> get_cs() { return queue_cs_; };
   std::vector<double> get_timings() { return timings; };
   void set_next_gait(const int cmd);
-  int get_next_gait() {return cmd_gait_;};
+  int get_next_gait() { return cmd_gait_; };
 
-private:
-  std::vector<int> evaluate_config(const ContactSchedule &schedule,
-                                   int timeline);
+ private:
+  std::vector<int> evaluate_config(const ContactSchedule &schedule, int timeline);
   void update_switches(const std::vector<std::shared_ptr<ContactSchedule>> cs_queue,
-                       std::map<int, std::vector<int>> &switches,
-                       const int timeline_in, bool use_next_cs = true);
+                       std::map<int, std::vector<int>> &switches, const int timeline_in, bool use_next_cs = true);
   void print_switches(std::map<int, std::vector<int>> &switches);
   MatrixN_int compute_gait(int timeline);
   std::shared_ptr<ContactSchedule> get_next_cs();
@@ -72,8 +65,8 @@ private:
   std::shared_ptr<ContactSchedule> walk_schedule_;
   std::shared_ptr<ContactSchedule> trot_schedule_;
 
-  std::vector<std::string> contactNames_;      // Contact names list.
-  std::vector<std::string> contactNames_sl1m_; // Contact names list SL1M.
+  std::vector<std::string> contactNames_;       // Contact names list.
+  std::vector<std::string> contactNames_sl1m_;  // Contact names list SL1M.
 
   std::string type_;
   double dt_;
@@ -99,7 +92,7 @@ private:
   int NGAIT;
   std::vector<double> timings;
   // std::map<int, std::vector<int>> switches_tmp_;
-  int cmd_gait_; // Next cmd gait
+  int cmd_gait_;  // Next cmd gait
 };
 
-#endif // GAITMANAGER_HPP
+#endif  // GAITMANAGER_HPP

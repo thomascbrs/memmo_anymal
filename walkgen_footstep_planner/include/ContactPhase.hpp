@@ -5,12 +5,12 @@
 #include <memory>
 
 enum class ContactType {
-  POINT, // 3D
-  FULL   // 6D
+  POINT,  // 3D
+  FULL    // 6D
 };
 
 class ContactPhase {
-public:
+ public:
   // Constructor with number of nodes
   ContactPhase(int T);
 
@@ -21,8 +21,7 @@ public:
   ContactPhase(int T, std::shared_ptr<FootTrajectoryWrapper> trajectory);
 
   // Constructor with number of nodes, contact type, and trajectory
-  ContactPhase(int T, ContactType contactType,
-               std::shared_ptr<FootTrajectoryWrapper> trajectory);
+  ContactPhase(int T, ContactType contactType, std::shared_ptr<FootTrajectoryWrapper> trajectory);
 
   // Copy constructor
   ContactPhase(const ContactPhase &other);
@@ -44,14 +43,12 @@ public:
 
   // Operator ==, necessary to register a list
   bool operator==(const ContactPhase &other) const {
-    return T_ == other.T_ && contactType_ == other.contactType_ &&
-           trajectory_ == other.trajectory_;
+    return T_ == other.T_ && contactType_ == other.contactType_ && trajectory_ == other.trajectory_;
   }
 
-  int T_;                   // Number of nodes
-  ContactType contactType_; // Type of contact
-  std::shared_ptr<FootTrajectoryWrapper>
-      trajectory_; // Task-space trajectory during contact phase
+  int T_;                                              // Number of nodes
+  ContactType contactType_;                            // Type of contact
+  std::shared_ptr<FootTrajectoryWrapper> trajectory_;  // Task-space trajectory during contact phase
 };
 
-#endif // CONTACTPHASE_H
+#endif  // CONTACTPHASE_H

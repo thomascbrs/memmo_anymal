@@ -24,4 +24,4 @@ using Matrix43 = Eigen::Matrix<double, 4, 3>;
 using Matrix3N = Eigen::Matrix<double, 3, Eigen::Dynamic>;
 using MatrixN = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
 
-#endif // TYPES_H_INCLUDED
+#endif  // TYPES_H_INCLUDED

@@ -22,8 +22,8 @@ void Params::initialize_default() {
   N_sample = 10;
   N_sample_ineq = 8;
   degree = 7;
-  feet_names =  {"LF_FOOT","LH_FOOT","RF_FOOT","RH_FOOT"};
-  feet_names_sl1m =  {"LF_FOOT","LH_FOOT","RF_FOOT","RH_FOOT"};
+  feet_names = {"LF_FOOT", "LH_FOOT", "RF_FOOT", "RH_FOOT"};
+  feet_names_sl1m = {"LF_FOOT", "LH_FOOT", "RF_FOOT", "RH_FOOT"};
   shoulder_offsets.push_back({0.367, 0.2});
   shoulder_offsets.push_back({0.367, -0.2});
   shoulder_offsets.push_back({-0.367, 0.2});
@@ -112,16 +112,18 @@ void Params::parse_yaml_file(const std::string &filename) {
   feet_names_sl1m = config["gait"]["feet_names_sl1m"].as<std::vector<std::string>>();
   shoulder_offsets = config["gait"]["shoulder_offsets"].as<std::vector<std::vector<double>>>();
   if (feet_names.size() != shoulder_offsets.size()) {
-    throw std::runtime_error("The contact name list and the shoulder offsets should "
-                       "have the same size.");
+    throw std::runtime_error(
+        "The contact name list and the shoulder offsets should "
+        "have the same size.");
   }
   if (feet_names.size() != feet_names_sl1m.size()) {
     throw std::runtime_error("Both nominal contact list and sl1m should have the same size.");
   }
   for (auto elem : shoulder_offsets) {
     if (elem.size() != 2) {
-      throw std::runtime_error("The size of each offset in shoulder offset params "
-                         "should be size 2 (x and y axis).");
+      throw std::runtime_error(
+          "The size of each offset in shoulder offset params "
+          "should be size 2 (x and y axis).");
     }
   }
   if (type == "trot") {

@@ -30,11 +30,10 @@ namespace bp = boost::python;
  * @param[in] Container  Vector type to be pickled
  * \sa Pickle
  */
-template <typename Container> struct PickleVector : bp::pickle_suite {
+template <typename Container>
+struct PickleVector : bp::pickle_suite {
   static bp::tuple getinitargs(const Container &) { return bp::make_tuple(); }
-  static bp::tuple getstate(bp::object op) {
-    return bp::make_tuple(bp::list(bp::extract<const Container &>(op)()));
-  }
+  static bp::tuple getstate(bp::object op) { return bp::make_tuple(bp::list(bp::extract<const Container &>(op)())); }
   static void setstate(bp::object op, bp::tuple tup) {
     Container &o = bp::extract<Container &>(op)();
     bp::stl_input_iterator<typename Container::value_type> begin(tup[0]), end;
@@ -44,20 +43,19 @@ template <typename Container> struct PickleVector : bp::pickle_suite {
 
 /** @brief Type that allows for registration of conversions from python iterable
  * types. */
-template <typename Container> struct list_to_vector {
+template <typename Container>
+struct list_to_vector {
   /** @note Registers converter from a python iterable type to the provided
    * type. */
   static void register_converter() {
-    bp::converter::registry::push_back(&list_to_vector::convertible,
-                                       &list_to_vector::construct,
+    bp::converter::registry::push_back(&list_to_vector::convertible, &list_to_vector::construct,
                                        bp::type_id<Container>());
   }
 
   /** @brief Check if PyObject is iterable. */
   static void *convertible(PyObject *object) {
     // Check if it is a list
-    if (!PyList_Check(object))
-      return 0;
+    if (!PyList_Check(object)) return 0;
 
     // Retrieve the underlying list
     bp::object bp_obj(bp::handle<>(bp::borrowed(object)));
@@ -67,8 +65,7 @@ template <typename Container> struct list_to_vector {
     // Check if all the elements contained in the current vector is of type T
     for (bp::ssize_t k = 0; k < list_size; ++k) {
       bp::extract<typename Container::value_type> elt(bp_list[k]);
-      if (!elt.check())
-        return 0;
+      if (!elt.check()) return 0;
     }
     return object;
   }
@@ -80,8 +77,7 @@ template <typename Container> struct list_to_vector {
    *    * Container can be constructed and populated with two iterators.
    * i.e. Container(begin, end)
    */
-  static void construct(PyObject *object,
-                        bp::converter::rvalue_from_python_stage1_data *data) {
+  static void construct(PyObject *object, bp::converter::rvalue_from_python_stage1_data *data) {
     // Object is a borrowed reference, so create a handle indicting it is
     // borrowed for proper reference counting.
     bp::handle<> handle(bp::borrowed(object));
@@ -97,8 +93,8 @@ template <typename Container> struct list_to_vector {
     // its handle to the converter's convertible variable.  The C++
     // container is populated by passing the begin and end iterators of
     // the python object to the container's constructor.
-    new (storage) Container(iterator(bp::object(handle)), // begin
-                            iterator());                  // end
+    new (storage) Container(iterator(bp::object(handle)),  // begin
+                            iterator());                   // end
     data->convertible = storage;
   }
 
@@ -127,26 +123,22 @@ template <typename Container> struct list_to_vector {
 
 template <typename Container>
 struct overload_base_get_item_for_std_vector
-    : public boost::python::def_visitor<
-          overload_base_get_item_for_std_vector<Container>> {
+    : public boost::python::def_visitor<overload_base_get_item_for_std_vector<Container>> {
   typedef typename Container::value_type value_type;
   typedef typename Container::value_type data_type;
   typedef size_t index_type;
 
-  template <class Class> void visit(Class &cl) const {
+  template <class Class>
+  void visit(Class &cl) const {
     cl.def("__getitem__", &overload_base_get_item_for_std_vector::base_get_item,
            bp::return_value_policy<bp::return_by_value>());
     // .def("__str__", &overload_base_get_item_for_std_vector::base_str)
     // .def("__repr__", &overload_base_get_item_for_std_vector::base_str);
   }
 
-private:
-  void base_str(boost::python::back_reference<Container &> container) {
-    std::cout << "HELLO" << std::endl;
-  }
-  static boost::python::object
-  base_get_item(boost::python::back_reference<Container &> container,
-                PyObject *i_) {
+ private:
+  void base_str(boost::python::back_reference<Container &> container) { std::cout << "HELLO" << std::endl; }
+  static boost::python::object base_get_item(boost::python::back_reference<Container &> container, PyObject *i_) {
     namespace bp = ::boost::python;
 
     index_type idx = convert_index(container.get(), i_);
@@ -168,8 +160,7 @@ private:
     bp::extract<size_t> i(i_);
     if (i.check()) {
       size_t index = i();
-      if (index < 0)
-        index += container.size();
+      if (index < 0) index += container.size();
       if (index >= size_t(container.size()) || index < 0) {
         PyErr_SetString(PyExc_IndexError, "Index out of range");
         bp::throw_error_already_set();
@@ -185,9 +176,9 @@ private:
 
 template <class C>
 struct PrintableVisitor : public bp::def_visitor<PrintableVisitor<C>> {
-  template <class PyClass> void visit(PyClass &cl) const {
-    cl.def(bp::self_ns::str(bp::self_ns::self))
-        .def(bp::self_ns::repr(bp::self_ns::self));
+  template <class PyClass>
+  void visit(PyClass &cl) const {
+    cl.def(bp::self_ns::str(bp::self_ns::self)).def(bp::self_ns::repr(bp::self_ns::self));
   }
 };
 
@@ -200,27 +191,22 @@ struct PrintableVisitor : public bp::def_visitor<PrintableVisitor<C>> {
  * returned to Python.
  */
 template <class T, class Allocator = std::allocator<T>, bool NoProxy = false>
-struct StdVectorPythonVisitor
-    : public bp::vector_indexing_suite<typename std::vector<T, Allocator>,
-                                       NoProxy>,
-      public list_to_vector<std::vector<T, Allocator>> {
+struct StdVectorPythonVisitor : public bp::vector_indexing_suite<typename std::vector<T, Allocator>, NoProxy>,
+                                public list_to_vector<std::vector<T, Allocator>> {
   typedef std::vector<T, Allocator> Container;
   typedef list_to_vector<Container> FromPythonListConverter;
 
-  static void expose(const std::string &class_name,
-                     const std::string &doc_string = "") {
+  static void expose(const std::string &class_name, const std::string &doc_string = "") {
     namespace bp = bp;
 
     // Overload __getitem__ in order to return properly the std::shared_ptr.
     // Taken from pinocchio3 Not working, indexing phases[0] works, phases[0][1]
     // does not recognize the type even if registered
-    overload_base_get_item_for_std_vector<Container> visitor =
-        overload_base_get_item_for_std_vector<Container>();
+    overload_base_get_item_for_std_vector<Container> visitor = overload_base_get_item_for_std_vector<Container>();
 
     bp::class_<Container>(class_name.c_str(), doc_string.c_str())
         .def(StdVectorPythonVisitor())
-        .def("tolist", &FromPythonListConverter::tolist, bp::arg("self"),
-             "Returns the std::vector as a Python list.")
+        .def("tolist", &FromPythonListConverter::tolist, bp::arg("self"), "Returns the std::vector as a Python list.")
         // .def("index", &FromPythonListConverter::index, bp::arg("element"),
         // "Returns the index of the element in the list")
         .def_pickle(PickleVector<Container>())
@@ -231,7 +217,7 @@ struct StdVectorPythonVisitor
   }
 };
 
-} // namespace python
-} // namespace walkgen
+}  // namespace python
+}  // namespace walkgen
 
-#endif // BINDINGS_PYTHON_WALKGEN_UTILS_VECTOR_CONVERTER_HPP_
+#endif  // BINDINGS_PYTHON_WALKGEN_UTILS_VECTOR_CONVERTER_HPP_
