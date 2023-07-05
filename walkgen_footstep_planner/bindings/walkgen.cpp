@@ -214,6 +214,9 @@ void exposeSurface() { SurfacePythonVisitor<Surface>::expose(); }
 
 // Expose the ContactPhase class to Python
 void exposeParams() {
+
+  walkgen::python::StdVectorPythonVisitor<std::vector<double>,std::allocator<std::vector<double>>>::expose("StdVecVec_double");
+
   bp::class_<Params, boost::noncopyable>(
       "FootStepPlannerParams",
       bp::init<bp::optional<std::string>>(
@@ -229,8 +232,28 @@ void exposeParams() {
                      "Number of unloading double support phases")
       .def_readwrite("N_uss", &Params::N_uss,
                      "Number of unloading single support phases")
+
+      .def_readwrite("walk_N_ds", &Params::walk_N_ds, "Walking Number of double support phases")
+      .def_readwrite("walk_N_ss", &Params::walk_N_ss, "Walking  Number of single support phases")
+      .def_readwrite("walk_N_uds", &Params::walk_N_uds,
+                     "Walking  Number of unloading double support phases")
+      .def_readwrite("walk_N_uss", &Params::walk_N_uss,
+                     "Walking Number of unloading single support phases")
+      .def_readwrite("trot_N_ds", &Params::trot_N_ds, "Trotting Number of double support phases")
+      .def_readwrite("trot_N_ss", &Params::trot_N_ss, "Trotting Number of single support phases")
+      .def_readwrite("trot_N_uds", &Params::trot_N_uds,
+                     "Trotting Number of unloading double support phases")
+      .def_readwrite("trot_N_uss", &Params::trot_N_uss,
+                     "Trotting Number of unloading single support phases")
+
       .def_readwrite("N_phase_return", &Params::N_phase_return,
                      "Number of phases for returning to the starting position")
+      .def_readwrite("feet_names", &Params::feet_names,
+                     "List of the contact names.")
+      .def_readwrite("feet_names_sl1m", &Params::feet_names_sl1m,
+                     "List of the contact names in sl1m order.")
+      .def_readwrite("shoulder_offsets", &Params::shoulder_offsets,
+                     "List of the contact names in sl1m order.")
       .def_readwrite("margin_up", &Params::margin_up,
                      "Margin for the Bezier curves")
       .def_readwrite("t_margin_up", &Params::t_margin_up,
@@ -402,6 +425,8 @@ void exposeGaitManager() {
       .def("get_gait_timings", &GaitManager::get_timings)
       .def("get_current_gait", &GaitManager::get_gait)
       .def("is_new_step", &GaitManager::is_new_step)
+      .def("set_next_gait", &GaitManager::set_next_gait)
+      .def("get_next_gait", &GaitManager::get_next_gait)
       .def("get_coefficients", &GaitManager::get_coefficients,
            bp::return_value_policy<bp::return_by_value>())
       .def_readwrite("cs0", &GaitManager::cs0)

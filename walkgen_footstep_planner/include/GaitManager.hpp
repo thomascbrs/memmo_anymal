@@ -51,19 +51,26 @@ public:
   std::vector<std::shared_ptr<ContactSchedule>> queue_cs_;
   std::vector<std::shared_ptr<ContactSchedule>> get_cs() { return queue_cs_; };
   std::vector<double> get_timings() { return timings; };
+  void set_next_gait(const int cmd);
+  int get_next_gait() {return cmd_gait_;};
 
 private:
   std::vector<int> evaluate_config(const ContactSchedule &schedule,
                                    int timeline);
-  void update_switches(std::map<int, std::vector<int>> &switches,
-                       const int timeline_in);
+  void update_switches(const std::vector<std::shared_ptr<ContactSchedule>> cs_queue,
+                       std::map<int, std::vector<int>> &switches,
+                       const int timeline_in, bool use_next_cs = true);
   void print_switches(std::map<int, std::vector<int>> &switches);
   MatrixN_int compute_gait(int timeline);
+  std::shared_ptr<ContactSchedule> get_next_cs();
+  std::map<int, std::vector<int>> get_next_switch();
 
   Params params_;
 
   std::shared_ptr<ContactSchedule> initial_schedule_;
   std::shared_ptr<ContactSchedule> default_schedule_;
+  std::shared_ptr<ContactSchedule> walk_schedule_;
+  std::shared_ptr<ContactSchedule> trot_schedule_;
 
   std::vector<std::string> contactNames_;      // Contact names list.
   std::vector<std::string> contactNames_sl1m_; // Contact names list SL1M.
@@ -86,9 +93,13 @@ private:
   int ratio_nsteps_;
   int new_step_counter_;
   std::map<int, std::vector<int>> current_switches_;
+  std::map<int, std::vector<int>> walk_switches_;
+  std::map<int, std::vector<int>> trot_switches_;
+  std::map<int, std::vector<int>> default_switches_;
   int NGAIT;
   std::vector<double> timings;
   // std::map<int, std::vector<int>> switches_tmp_;
+  int cmd_gait_; // Next cmd gait
 };
 
 #endif // GAITMANAGER_HPP

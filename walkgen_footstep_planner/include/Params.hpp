@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <yaml-cpp/yaml.h>
+#include <Types.hpp>
 
 class Params {
 public:
@@ -37,6 +38,9 @@ public:
   int N_uds;
   int N_uss;
   int N_phase_return;
+  std::vector<std::string> feet_names;
+  std::vector<std::string> feet_names_sl1m;
+  std::vector<std::vector<double>> shoulder_offsets;
   // Bezier parameters
   double margin_up;
   double t_margin_up;
@@ -47,6 +51,18 @@ public:
   int N_sample;
   int N_sample_ineq;
   int degree;
+
+  // Keeping default system for now.
+  // Walk parameters
+  int walk_N_ds;
+  int walk_N_ss;
+  int walk_N_uds;
+  int walk_N_uss;
+  // Trot parameters
+  int trot_N_ds;
+  int trot_N_ss;
+  int trot_N_uds;
+  int trot_N_uss;
 };
 
 // From

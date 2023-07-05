@@ -22,6 +22,21 @@ void Params::initialize_default() {
   N_sample = 10;
   N_sample_ineq = 8;
   degree = 7;
+  feet_names =  {"LF_FOOT","LH_FOOT","RF_FOOT","RH_FOOT"};
+  feet_names_sl1m =  {"LF_FOOT","LH_FOOT","RF_FOOT","RH_FOOT"};
+  shoulder_offsets.push_back({0.367, 0.2});
+  shoulder_offsets.push_back({0.367, -0.2});
+  shoulder_offsets.push_back({-0.367, 0.2});
+  shoulder_offsets.push_back({-0.367, -0.2});
+
+  walk_N_ds = 90;
+  walk_N_ss = 70;
+  walk_N_uds = 0;
+  walk_N_uss = 0;
+  trot_N_ds = 40;
+  trot_N_ss = 30;
+  trot_N_uds = 0;
+  trot_N_uss = 0;
 }
 
 Params::~Params() {}
@@ -45,6 +60,9 @@ Params::Params(const Params &other) {
   this->N_uds = other.N_uds;
   this->N_uss = other.N_uss;
   this->N_phase_return = other.N_phase_return;
+  this->feet_names = other.feet_names;
+  this->feet_names_sl1m = other.feet_names_sl1m;
+  this->shoulder_offsets = other.shoulder_offsets;
   this->margin_up = other.margin_up;
   this->t_margin_up = other.t_margin_up;
   this->z_margin_up = other.z_margin_up;
@@ -54,6 +72,16 @@ Params::Params(const Params &other) {
   this->N_sample = other.N_sample;
   this->N_sample_ineq = other.N_sample_ineq;
   this->degree = other.degree;
+
+  // Gait parametres for changing
+  this->walk_N_ds = other.walk_N_ds;
+  this->walk_N_ss = other.walk_N_ss;
+  this->walk_N_uds = other.walk_N_uds;
+  this->walk_N_uss = other.walk_N_uss;
+  this->trot_N_ds = other.trot_N_ds;
+  this->trot_N_ss = other.trot_N_ss;
+  this->trot_N_uds = other.trot_N_uds;
+  this->trot_N_uss = other.trot_N_uss;
 }
 
 void Params::parse_yaml_file(const std::string &filename) {
@@ -72,12 +100,30 @@ void Params::parse_yaml_file(const std::string &filename) {
   assert_yaml_parsing(config["gait"], filename, "horizon");
   assert_yaml_parsing(config["gait"], filename, "nsteps");
   assert_yaml_parsing(config["gait"], filename, "stepHeight");
+  assert_yaml_parsing(config["gait"], filename, "feet_names");
+  assert_yaml_parsing(config["gait"], filename, "feet_names_sl1m");
+  assert_yaml_parsing(config["gait"], filename, "shoulder_offsets");
   type = config["gait"]["type"].as<std::string>();
   dt = config["gait"]["dt"].as<double>();
   horizon = config["gait"]["horizon"].as<int>();
   nsteps = config["gait"]["nsteps"].as<int>();
   stepHeight = config["gait"]["stepHeight"].as<double>();
-
+  feet_names = config["gait"]["feet_names"].as<std::vector<std::string>>();
+  feet_names_sl1m = config["gait"]["feet_names_sl1m"].as<std::vector<std::string>>();
+  shoulder_offsets = config["gait"]["shoulder_offsets"].as<std::vector<std::vector<double>>>();
+  if (feet_names.size() != shoulder_offsets.size()) {
+    throw std::runtime_error("The contact name list and the shoulder offsets should "
+                       "have the same size.");
+  }
+  if (feet_names.size() != feet_names_sl1m.size()) {
+    throw std::runtime_error("Both nominal contact list and sl1m should have the same size.");
+  }
+  for (auto elem : shoulder_offsets) {
+    if (elem.size() != 2) {
+      throw std::runtime_error("The size of each offset in shoulder offset params "
+                         "should be size 2 (x and y axis).");
+    }
+  }
   if (type == "trot") {
     // Check the yaml file
     assert_yaml_parsing(config["gait"]["trot"], filename, "N_ds");

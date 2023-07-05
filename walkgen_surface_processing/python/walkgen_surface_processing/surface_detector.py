@@ -42,6 +42,7 @@ class SurfaceDetector:
                  translation=np.zeros(3),
                  margin=0.,
                  prefix="environment_",
+                 offset_z=0.,
                  margin_aff=0.03,
                  nbTriMargin=0.03,
                  minArea=0.005,
@@ -54,6 +55,7 @@ class SurfaceDetector:
             - translation (array x3): Translation.
             - margin (float): Margin in [m] inside the surfaces.
             - prefix(str): Prefix of obstacle names.
+            - offset_z (float): Offset on the z-axis.
             - margin_aff(float) : Margin hpp-affordance params
             - nbTriMargin(float) : nbTriMargin hpp-affordance params
             - minArea(float) : minArea hpp-affordance params
@@ -65,7 +67,7 @@ class SurfaceDetector:
         affordances = dict(
             zip(names, [(order(align_points(affordance)), get_normal(affordance).tolist())
                         for affordance in self._loader.get_affordances()]))
-        self._affordances_reduced = getAllSurfacesDict_inner(affordances, margin)
+        self._affordances_reduced = getAllSurfacesDict_inner(affordances, margin, offset_z)
 
     def extract_surfaces(self):
         """ Extract surfaces from the URDF file.

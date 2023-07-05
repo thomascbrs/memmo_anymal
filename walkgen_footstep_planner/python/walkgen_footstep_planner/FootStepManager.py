@@ -86,17 +86,13 @@ class FootStepManager:
         self._nsteps = self._params.nsteps
         self._stepHeight = self._params.stepHeight
 
-        lf = "LF_FOOT"
-        lh = "LH_FOOT"
-        rf = "RF_FOOT"
-        rh = "RH_FOOT"
-        self._contactNames = [lf, lh, rf, rh]
+        self._contactNames = self._params.feet_names
 
         # Initial selected surface, rectangle of 4dxdy m2 around the initial position.
         dx = 1.5  # Distance on x-axis around the initial position.
         dy = 1.5  # Distance on y-axis around the initial position.
         # Assume 4 feet are on the ground
-        lfeet = ["LF_FOOT", "LH_FOOT", "RF_FOOT", "RH_FOOT"]
+        lfeet = self._params.feet_names
         height = np.mean([self._gait_manager.cs0[lfeet[k]].translation[2] for k in range(4)])
         epsilon = 10e-6
         A = [[-1., 0., 0.], [0., -1., 0.], [0., 1., 0.], [1., 0., 0.], [0., 0., 1.], [-0., -0., -1.]]
@@ -143,7 +139,12 @@ class FootStepManager:
         """ Create a default contact schedule compatible with Caracal CS.
         contacts, N_ds, N_ss, N_uss=0, N_uds=0, stepHeight=0.15, startPhase=True, endPhase=True
         """
-        gait_generator = QuadrupedalGaitGenerator()
+        gait_generator = QuadrupedalGaitGenerator(dt=self._dt,
+                                                    S=4,
+                                                    lf=self._contactNames[0],
+                                                    lh=self._contactNames[1],
+                                                    rf=self._contactNames[2],
+                                                    rh=self._contactNames[3])
         if self._typeGait == "trot":
             self._initial_cs = copy.deepcopy(
                 gait_generator.trot(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
@@ -184,6 +185,30 @@ class FootStepManager:
                                     endPhase=False))
         self._initial_cs.updateSwitches()
         self._default_cs.updateSwitches()
+
+        # Register walking gait schedule
+        self._walk_cs = copy.deepcopy(
+                gait_generator.walk(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
+                                    N_ds=self._params.walk_N_ds,
+                                    N_ss=self._params.walk_N_ss,
+                                    N_uss=self._params.walk_N_uss,
+                                    N_uds=self._params.walk_N_uds,
+                                    stepHeight=self._stepHeight,
+                                    startPhase=False,
+                                    endPhase=False))
+        # Register trotting gait schedule
+        self._trot_cs = copy.deepcopy(
+                gait_generator.trot(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
+                                    N_ds=self._params.trot_N_ds,
+                                    N_ss=self._params.trot_N_ss,
+                                    N_uss=self._params.trot_N_uss,
+                                    N_uds=self._params.trot_N_uds,
+                                    stepHeight=self._stepHeight,
+                                    startPhase=False,
+                                    endPhase=False))
+
+        self._walk_cs.updateSwitches()
+        self._trot_cs.updateSwitches()
 
     def get_default_cs(self):
         return self._default_cs
@@ -273,7 +298,6 @@ class FootStepManager:
             for sf in surfaces[key]:
                 self._new_surfaces[key].append(Surface(sf.A, sf.b, sf.vertices.T))
         t1 = clock()
-        print("TIME TO CONVERT SURFACES [ms] : ", 1000 * (t1 - t0))
 
     def get_target_footstep(self):
         """ Returns the target foostep for SL1M. (SL1M feet order)
@@ -297,6 +321,20 @@ class FootStepManager:
         """ Returns boolean if a new contact schedule has been inserted in the queue.
         """
         return self._addContact
+
+    def get_next_cs(self):
+        """ Return the next CS to add in the timeline, depending on the
+        what has been added in the gait_manager.
+        """
+        if self.get_cmd_gait() == 0:
+            # Default gait
+            return self._default_cs
+        if self.get_cmd_gait() == 1:
+            # Walking gait
+            return self._walk_cs
+        if self.get_cmd_gait() == 2:
+            # Trotting gait
+            return self._trot_cs
 
     def is_new_flying_phase(self):
         """ Return True if a new flying phase is starting. False otherwise.
@@ -334,6 +372,19 @@ class FootStepManager:
         """
         return self._gait_manager.get_gait_timings().tolist()
 
+    def get_cmd_gait(self):
+        """ Get the next commanded gait that will be added in the timeline.
+        Returns :
+            - (int) : 0 : default , 1 : walking , 2 : trotting
+        """
+        return self._gait_manager.get_next_gait()
+
+    def set_next_gait(self, cmd):
+        """ Set the next gait to add in the Gait management timeline
+        Args :
+            - (int) : 0 : default , 1 : walking , 2 : trotting
+        """
+        self._gait_manager.set_next_gait(cmd)
 
 if __name__ == "__main__":
     """ Run a simple example of the FootStepManager wrapper.

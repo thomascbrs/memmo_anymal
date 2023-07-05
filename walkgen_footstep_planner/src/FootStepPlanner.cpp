@@ -37,19 +37,41 @@ FootStepPlanner::FootStepPlanner(const pinocchio::Model &model,
 }
 
 void FootStepPlanner::initialize(const Eigen::VectorXd &q) {
-  // TODo, get the names from params file.
-  const std::string lf = "LF_FOOT";
-  const std::string lh = "LH_FOOT";
-  const std::string rf = "RF_FOOT";
-  const std::string rh = "RH_FOOT";
+  // const std::string lf = params_.feet_names[0];
+  // const std::string lh = params_.feet_names[2];
+  // const std::string rf = params_.feet_names[1];
+  // const std::string rh = params_.feet_names[3];
 
-  contactNames_ = {lf, lh, rf, rh};
-  contactNames_sl1m_ = {lf, rf, lh, rh};
+  contactNames_ = params_.feet_names;
+  contactNames_sl1m_ = params_.feet_names_sl1m;
 
-  offsets_feet_[lf] = Vector3(0.367, 0.2, 0.);
-  offsets_feet_[lh] = Vector3(-0.367, 0.2, 0.);
-  offsets_feet_[rf] = Vector3(0.367, -0.2, 0.);
-  offsets_feet_[rh] = Vector3(-0.367, -0.2, 0.);
+  // TODO find a better way for this
+  // offsets_feet_[contactNames_[0]] = Vector3(0.367, 0.2, 0.);
+  // offsets_feet_[contactNames_[1]] = Vector3(0.367, -0.2, 0.);
+  // offsets_feet_[contactNames_[2]] = Vector3(-0.367, 0.2, 0.);
+  // offsets_feet_[contactNames_[3]] = Vector3(-0.367, -0.2, 0.);
+
+  if (contactNames_.size() != params_.shoulder_offsets.size()) {
+    throw std::runtime_error("The contact name list and the shoulder offsets should "
+                       "have the same size.");
+  }
+  if (contactNames_sl1m_.size() != contactNames_.size()) {
+    throw std::runtime_error("The size of each offset in shoulder offset params "
+                         "should be size 2 (x and y axis).");
+  }
+  for (auto elem : params_.shoulder_offsets) {
+    if (elem.size() != 2) {
+      throw std::runtime_error("The size of each offset in shoulder offset params "
+                         "should be size 2 (x and y axis).");
+    }
+  }
+  for (size_t j=0; j < contactNames_.size(); j++ ){
+    Vector3 offset = Vector3::Zero();
+    offset[0] = params_.shoulder_offsets[j][0];
+    offset[1] = params_.shoulder_offsets[j][1];
+    offsets_feet_[contactNames_[j]] = offset;
+  }
+  std::sort(contactNames_.begin(), contactNames_.end());
 
   current_position_ = MatrixN::Zero(3, 4);
   current_velocities_ = Matrix34::Zero();

@@ -3,6 +3,9 @@ walkgen_params:
     N_phase_return: 3 # Number of step to return (N_phase_return surfaces for each foot)
     com: False # Optimisation of the CoM
     horizon: 8 # Number of fstep opitimised.
+    # order matters! LF LH RF RH
+    contact_names: ["FL_foot","RL_foot","FR_foot","RR_foot"]
+    shoulder_offsets: [[0.367, 0.2],[-0.367, 0.2],[0.367, -0.2],[-0.367, -0.2]] 
 
   heightmap:
     fitsize_x: 10

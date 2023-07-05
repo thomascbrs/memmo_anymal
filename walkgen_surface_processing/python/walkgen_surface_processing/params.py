@@ -69,6 +69,8 @@ class SurfaceProcessingParams:
         # Area under which the remaining surfaces is delated.
         self.min_area = 0.03
 
+        self.offset_z = -0.03 # Offset on the z-axis.
+
         if filename is not None:
             self.parseFile(filename)
 
@@ -91,3 +93,4 @@ class SurfaceProcessingParams:
         self.min_area = config["walkgen_params"]["params"]["min_area"]
         self.margin_inner = config["walkgen_params"]["params"]["margin_inner"]
         self.margin_outer = config["walkgen_params"]["params"]["margin_outer"]
+        self.offset_z = config["walkgen_params"]["params"]["offset_z"]

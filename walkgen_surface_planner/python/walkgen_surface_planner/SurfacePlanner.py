@@ -77,10 +77,10 @@ class SurfacePlanner():
 
         # SL1M Problem initialization
         self.pb = Problem(limb_names=limbs,
-                          other_names=others,
-                          constraint_paths=paths,
-                          suffix_com=suffix_com,
-                          suffix_feet=suffix_feet)
+                            other_names=others,
+                            constraint_paths=paths,
+                            suffix_com=suffix_com,
+                            suffix_feet=suffix_feet)
 
         # Slope of the terrain given a set of convex surfaces.
         self._box = hppfcl.Box(np.array([4., 2., 4]))  # Reduce number of surfaces for the terrain evaluation.
@@ -88,8 +88,20 @@ class SurfacePlanner():
         self._terrain = TerrainSlope(self._params.fitsize_x, self._params.fitsize_y, self._params.fitlength)
         self._recompute_slope = self._params.recompute_slope
 
-        self._contact_names = ['LF_FOOT', 'RF_FOOT', 'LH_FOOT', 'RH_FOOT'] # Feet order in sl1m.
-        self._shoulders = np.array([[0.37, 0.37, -0.37, -0.37], [0.2, -0.2, 0.2, -0.2], [0., 0., 0., 0.]]) # Base frame
+        # Usual order LF LH RF RH
+        # SL1M order : LF RF LH RH
+        self._contact_names = []
+        self._contact_names.append(self._params.contact_names[0])
+        self._contact_names.append(self._params.contact_names[2])
+        self._contact_names.append(self._params.contact_names[1])
+        self._contact_names.append(self._params.contact_names[3])
+        offsets = self._params.shoulder_offsets # In usual order.
+        self._shoulders = np.zeros((3,4))
+        self._shoulders[:2,0] = offsets[0]
+        self._shoulders[:2,1] = offsets[2]
+        self._shoulders[:2,2] = offsets[1]
+        self._shoulders[:2,3] = offsets[3]
+        # self._shoulders = np.array([[0.37, 0.37, -0.37, -0.37], [0.2, -0.2, 0.2, -0.2], [0., 0., 0., 0.]]) # Base frame
         self._reference_height = 0.4792
 
         # Load rom .stl objects for collision tools to select only the relevant surfaces.
@@ -102,17 +114,18 @@ class SurfacePlanner():
             obj.apply_scale(1.2)
             obj.apply_translation( self._shoulders[:,i])
             obj_stl.append(obj)
+
         # Dictionnary containing the convex set of roms for collisions.
         self.roms_collision = dict(zip(self._contact_names, [convert_to_convexFcl(obj.vertices) for obj in obj_stl]))
 
         # Planner parameters.
-        self.HORIZON = self._params.horizon # Number of fsteps optimised. 
+        self.HORIZON = self._params.horizon # Number of fsteps optimised.
         self._com = self._params.com # CoM taken into account in the formulation.
         self._ratio_recompute_slope = 3  # Compute the slope of terrain 1 configuration over self._ratio_recompute_slope
         self._N_phase_return = self._params.N_phase_return  # Number of surfaces returned for each foot.
         self._step_duration = 0.  # Average duration of a step for visualization purpose.
         self._RECORDING = RECORDING # Record computing timings
-        
+
         # Store data.
         self.all_surfaces = None
         self.all_surfaces_collision = None
@@ -172,7 +185,7 @@ class SurfacePlanner():
             - bvref (array x6): The desired velocity in base frame.
             - gait (array nx4) : The next movings feet.
             - timings (list) : For each row in the gait matrix, time spent in this configuration.
-            
+
         Returns:
             -  (list) : configurations
             - (array) : (4 x len(configs) x 2) End-effector heuristic.
@@ -208,6 +221,9 @@ class SurfacePlanner():
         # [1,1,0,1]        0.90
         # [1,0,1,1]        0.70
 
+        # print("Gait config : ", gait)
+        # print("timing : ", timings)
+
         # List of configurations in planned horizon, using the reference velocity.
         configs = []
 
@@ -230,6 +246,7 @@ class SurfacePlanner():
 
             # Compute the number of optimised variables:
             horizonTmp += np.sum(gait[index_gait,:] == 0)
+            # print("horizonTmp : ", horizonTmp)
 
             # WARNING HERE
             # The Raibert heuristic takes into account the position of the shoulder (or center of the base)
@@ -405,11 +422,23 @@ class SurfacePlanner():
         Args:
             - surfaces (dict): Dictionnary containing the surfaces.
         """
-        self.all_surfaces = all_surfaces
+        # self.all_surfaces = all_surfaces
 
         # Dictionnary type containing the convex FCl object for collision checking
-        self.all_surfaces_collision = dict(
-            zip(all_surfaces.keys(), [convert_to_convexFcl(value) for value in all_surfaces.values()]))
+        # self.all_surfaces_collision = dict(
+            # zip(all_surfaces.keys(), [convert_to_convexFcl(value) for value in all_surfaces.values()]))
+
+        # Convert to Fcl might return error (qhull)
+        self.all_surfaces_collision = dict()
+        self.all_surfaces = dict()
+        for key in all_surfaces.keys():
+            try :
+                collision = convert_to_convexFcl(all_surfaces[key])
+                self.all_surfaces_collision[key] = collision
+                self.all_surfaces[key] = all_surfaces[key]
+            except:
+                print("Could not create Convex model of the surface. Skip this surfaces.")
+
 
     def _retrieve_surfaces(self, surfaces, indices):
         """ Update the structure containing the surfaces selected for each foot. Trying to be independant from hyper-parameters.
@@ -541,7 +570,7 @@ class SurfacePlanner():
             feet_selected = [0,1] # Going down forward
             costs["effector_positions_3D_select"] = [0.25, [feet_selected, shoulder_position]]
         else:
-            costs["effector_positions_3D_select"] = [0.5, [feet_selected, shoulder_position]]
+            costs["effector_positions_3D_select"] = [0.2, [feet_selected, shoulder_position]]
         #############################################################
 
         #############################################################

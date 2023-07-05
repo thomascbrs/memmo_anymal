@@ -54,6 +54,13 @@ class FootStepPlannerParams:
         self.horizon = None
         self.nsteps = 1  # Number of iteration.
         self.stepHeight = 0.15  # Step height [m]
+        
+        # Feet names in order [lf, lh, rf, rh]
+        # self.feet_names = ["LF_FOOT","LH_FOOT","RF_FOOT","RH_FOOT"] # ANYmal feet names
+        self.feet_names = ["FL_foot", "RL_foot", "FR_foot", "RR_foot"] # b1 names
+        self.feet_names_sl1m =  ["FL_foot", "RL_foot", "FR_foot", "RR_foot"] # b1 names
+        self.shoulder_offsets = [[0.367, 0.2],[0.367, -0.2],[-0.367, 0.2],[-0.367, -0.2]] 
+        # self.feet_order = [0,1,2,3]  # [Left Front ; Left Hind ; Right Front ; Right Hind]
 
         # Bezier parameters
         self.margin_down = 0.10  # Margin [m] wrt to the segment crossed in the surface.
@@ -87,6 +94,9 @@ class FootStepPlannerParams:
         self.horizon = config["walkgen_params"]["gait"]["horizon"]
         self.nsteps = config["walkgen_params"]["gait"]["nsteps"]
         self.stepHeight = config["walkgen_params"]["gait"]["stepHeight"]
+        feet_names = config["walkgen_params"]["gait"]["feet_names"]
+        feet_names_sl1m = config["walkgen_params"]["gait"]["feet_names_sl1m"]
+        shoulder_offsets = config["walkgen_params"]["gait"]["shoulder_offsets"]
         self.margin = config["walkgen_params"]["bezier"]["margin"]
         self.t_margin = config["walkgen_params"]["bezier"]["t_margin"]
         self.z_margin = config["walkgen_params"]["bezier"]["z_margin"]
