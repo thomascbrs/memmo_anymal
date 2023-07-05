@@ -51,7 +51,6 @@ class SurfaceData():
     - Polygon: Polygon on X,Y axis. Polygon class from shapely.geometry.
     - vertices_reshaped2D (list): List containing the new surfaces in 2D, after some process.
     """
-
     def __init__(self, vertices, margin_inner, margin_outer):
         """Initialize the surface data with the vertices positions in 3D.
 

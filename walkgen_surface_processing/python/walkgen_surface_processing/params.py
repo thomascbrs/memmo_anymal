@@ -32,7 +32,6 @@ import os
 
 
 class SurfaceProcessingParams:
-
     def __init__(self, filename=None):
         """ Parameters for the reactive footstep planning.
 
@@ -69,7 +68,7 @@ class SurfaceProcessingParams:
         # Area under which the remaining surfaces is delated.
         self.min_area = 0.03
 
-        self.offset_z = -0.03 # Offset on the z-axis.
+        self.offset_z = -0.03  # Offset on the z-axis.
 
         if filename is not None:
             self.parseFile(filename)

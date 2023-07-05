@@ -29,7 +29,6 @@
 
 
 class Surface():
-
     def __init__(self, A, b, vertices):
         """Initialize the surface.
 

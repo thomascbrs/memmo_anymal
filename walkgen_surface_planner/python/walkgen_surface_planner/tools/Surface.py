@@ -29,8 +29,7 @@
 
 
 class Surface():
-
-    def __init__(self, A= None, b=None, vertices=None):
+    def __init__(self, A=None, b=None, vertices=None):
         """Initialize the surface.
 
         Args :
@@ -43,12 +42,10 @@ class Surface():
         """
         if A is not None:
             if A.shape[1] != 3:
-                raise ArithmeticError(
-                    "Number column of the inequality array should be 3.")
+                raise ArithmeticError("Number column of the inequality array should be 3.")
         if vertices is not None:
             if vertices.shape[0] != 3:
-                raise ArithmeticError(
-                    "Number of rows of the vertice array should be 3.")
+                raise ArithmeticError("Number of rows of the vertice array should be 3.")
 
         self.A = A
         self.b = b

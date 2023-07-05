@@ -33,7 +33,6 @@ import numpy as np
 
 
 class FootStepTrajectory():
-
     def __init__(self, dt, N, stepHeight, M_current, M_next):
         # Stored swing-trajectory properties
         self._dt = copy.deepcopy(dt)

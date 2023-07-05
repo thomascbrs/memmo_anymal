@@ -32,7 +32,6 @@ import os
 
 
 class SurfacePlannerParams:
-
     def __init__(self, filename=None):
         """ Parameters for the reactive footstep planning.
 
@@ -42,17 +41,17 @@ class SurfacePlannerParams:
         # Number of step to return (N_phase_return surfaces for each foot)
         self.N_phase_return = 3
         self.com = False  # Optimisation of the CoM
-        self.horizon = 8 # Number of fsteps optimised. 
+        self.horizon = 8  # Number of fsteps optimised.
 
         # Get slope of the terrain to rotate SL1M inequalities.
         self.fitsize_x = 10
         self.fitsize_y = 5
-        self.fitlength = 0.3 # half-square size centered around position of the robot.
-        self.recompute_slope = False # Recompute the slope of the terrain for each contact phase configuration.
-        
+        self.fitlength = 0.3  # half-square size centered around position of the robot.
+        self.recompute_slope = False  # Recompute the slope of the terrain for each contact phase configuration.
+
         # order matters! LF LH RF RH
-        self.contact_names =  ["FL_foot","RL_foot","FR_foot","RR_foot"]
-        self.shoulder_offsets = [[0.367, 0.2],[0.367, -0.2],[-0.367, 0.2],[-0.367, -0.2]] 
+        self.contact_names = ["FL_foot", "RL_foot", "FR_foot", "RR_foot"]
+        self.shoulder_offsets = [[0.367, 0.2], [0.367, -0.2], [-0.367, 0.2], [-0.367, -0.2]]
 
         if filename is not None:
             self.parse_file(filename)

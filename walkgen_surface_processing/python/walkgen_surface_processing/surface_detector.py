@@ -35,7 +35,6 @@ from .libwalkgen_surface_processing_pywrap import AffordanceLoader
 class SurfaceDetector:
     """ Class to extract convex surfaces from an URDF file.
     """
-
     def __init__(self,
                  filename,
                  orientation_matrix=np.identity(3),

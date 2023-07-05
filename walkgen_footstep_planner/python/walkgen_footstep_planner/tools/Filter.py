@@ -33,7 +33,6 @@ from scipy.signal import butter
 
 
 class FilterMean():
-
     def __init__(self, period, dt):
         self._Nx = int(period / dt)
         self._x_queue = []  # List of precedent values
@@ -73,7 +72,6 @@ class FilterMean():
 class Filter():
     """ Simple implementation of a lowpass filter.
     """
-
     def __init__(self, cutoff, fs, order=1):
         """
         Args:

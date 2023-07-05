@@ -31,7 +31,6 @@ import yaml
 
 
 class FootStepPlannerParams:
-
     def __init__(self, filename=None):
         """ Parameters for the reactive footstep planning.
 
@@ -54,12 +53,12 @@ class FootStepPlannerParams:
         self.horizon = None
         self.nsteps = 1  # Number of iteration.
         self.stepHeight = 0.15  # Step height [m]
-        
+
         # Feet names in order [lf, lh, rf, rh]
         # self.feet_names = ["LF_FOOT","LH_FOOT","RF_FOOT","RH_FOOT"] # ANYmal feet names
-        self.feet_names = ["FL_foot", "RL_foot", "FR_foot", "RR_foot"] # b1 names
-        self.feet_names_sl1m =  ["FL_foot", "RL_foot", "FR_foot", "RR_foot"] # b1 names
-        self.shoulder_offsets = [[0.367, 0.2],[0.367, -0.2],[-0.367, 0.2],[-0.367, -0.2]] 
+        self.feet_names = ["FL_foot", "RL_foot", "FR_foot", "RR_foot"]  # b1 names
+        self.feet_names_sl1m = ["FL_foot", "RL_foot", "FR_foot", "RR_foot"]  # b1 names
+        self.shoulder_offsets = [[0.367, 0.2], [0.367, -0.2], [-0.367, 0.2], [-0.367, -0.2]]
         # self.feet_order = [0,1,2,3]  # [Left Front ; Left Hind ; Right Front ; Right Hind]
 
         # Bezier parameters

@@ -40,7 +40,6 @@ import copy
 class SurfaceLoader:
     """ Class to extract convex surfaces from a folder containing .stl files.
     """
-
     def __init__(
             self,
             folderpath,

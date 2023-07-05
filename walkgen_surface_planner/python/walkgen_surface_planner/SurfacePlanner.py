@@ -60,7 +60,6 @@ rom_names = ['LFleg_vN_Rom.stl', 'RFleg_vN_Rom.stl', 'LHleg_vN_Rom.stl', 'RHleg_
 
 
 class SurfacePlanner():
-
     def __init__(self, params=None, RECORDING=False):
         """ Initialize the surface planner.
 
@@ -77,10 +76,10 @@ class SurfacePlanner():
 
         # SL1M Problem initialization
         self.pb = Problem(limb_names=limbs,
-                            other_names=others,
-                            constraint_paths=paths,
-                            suffix_com=suffix_com,
-                            suffix_feet=suffix_feet)
+                          other_names=others,
+                          constraint_paths=paths,
+                          suffix_com=suffix_com,
+                          suffix_feet=suffix_feet)
 
         # Slope of the terrain given a set of convex surfaces.
         self._box = hppfcl.Box(np.array([4., 2., 4]))  # Reduce number of surfaces for the terrain evaluation.
@@ -95,12 +94,12 @@ class SurfacePlanner():
         self._contact_names.append(self._params.contact_names[2])
         self._contact_names.append(self._params.contact_names[1])
         self._contact_names.append(self._params.contact_names[3])
-        offsets = self._params.shoulder_offsets # In usual order.
-        self._shoulders = np.zeros((3,4))
-        self._shoulders[:2,0] = offsets[0]
-        self._shoulders[:2,1] = offsets[2]
-        self._shoulders[:2,2] = offsets[1]
-        self._shoulders[:2,3] = offsets[3]
+        offsets = self._params.shoulder_offsets  # In usual order.
+        self._shoulders = np.zeros((3, 4))
+        self._shoulders[:2, 0] = offsets[0]
+        self._shoulders[:2, 1] = offsets[2]
+        self._shoulders[:2, 2] = offsets[1]
+        self._shoulders[:2, 3] = offsets[3]
         # self._shoulders = np.array([[0.37, 0.37, -0.37, -0.37], [0.2, -0.2, 0.2, -0.2], [0., 0., 0., 0.]]) # Base frame
         self._reference_height = 0.4792
 
@@ -108,23 +107,23 @@ class SurfacePlanner():
         path = os.environ["INSTALL_HPP_DIR"] + "/anymal-rbprm/meshes/"
         # obj_stl = [trimesh.load_mesh(path + rom) for rom in rom_names]
         obj_stl = []
-        for i,rom in enumerate(rom_names):
+        for i, rom in enumerate(rom_names):
             obj = trimesh.load_mesh(path + rom)
-            obj.apply_translation(-self._shoulders[:,i])
+            obj.apply_translation(-self._shoulders[:, i])
             obj.apply_scale(1.2)
-            obj.apply_translation( self._shoulders[:,i])
+            obj.apply_translation(self._shoulders[:, i])
             obj_stl.append(obj)
 
         # Dictionnary containing the convex set of roms for collisions.
         self.roms_collision = dict(zip(self._contact_names, [convert_to_convexFcl(obj.vertices) for obj in obj_stl]))
 
         # Planner parameters.
-        self.HORIZON = self._params.horizon # Number of fsteps optimised.
-        self._com = self._params.com # CoM taken into account in the formulation.
+        self.HORIZON = self._params.horizon  # Number of fsteps optimised.
+        self._com = self._params.com  # CoM taken into account in the formulation.
         self._ratio_recompute_slope = 3  # Compute the slope of terrain 1 configuration over self._ratio_recompute_slope
         self._N_phase_return = self._params.N_phase_return  # Number of surfaces returned for each foot.
         self._step_duration = 0.  # Average duration of a step for visualization purpose.
-        self._RECORDING = RECORDING # Record computing timings
+        self._RECORDING = RECORDING  # Record computing timings
 
         # Store data.
         self.all_surfaces = None
@@ -132,15 +131,11 @@ class SurfacePlanner():
         self._selected_surfaces = dict()
         self.surfaces_processed = None
         self.configs = None
-        self.pb_data = None # Debug and plot purpose
+        self.pb_data = None  # Debug and plot purpose
 
         # Profiling performances
         if self._RECORDING:
-            self.profiler = {"potential_number":[],
-                            "timing_potential":0,
-                            "timing_MIP":0,
-                            "timing_configuration":0
-                            }
+            self.profiler = {"potential_number": [], "timing_potential": 0, "timing_MIP": 0, "timing_configuration": 0}
         else:
             self.profiler = {}
 
@@ -196,13 +191,13 @@ class SurfacePlanner():
             raise ArithmeticError("Reference velocity should be size 6.")
 
         # Compute effector positions at the same time
-        effector_positions = [[],[],[],[]] # 4 feet, Nb phase, 2D position
+        effector_positions = [[], [], [], []]  # 4 feet, Nb phase, 2D position
 
         yaw_init = pin.rpy.matrixToRpy(pin.Quaternion(q[3:7]).toRotationMatrix())[2]
 
         # Select the relevant convex surfaces to approximate the slope of the terrain.
         self._tf.setTranslation(q[:3])
-        rotation = pin.rpy.rpyToMatrix(np.array([0.,0.,yaw_init]))
+        rotation = pin.rpy.rpyToMatrix(np.array([0., 0., yaw_init]))
         collision_points = StdVec_MatrixXd()
         for key, surface_collision in self.all_surfaces_collision.items():
             if distance(surface_collision, self._box, hppfcl.Transform3f(), self._tf) < 0:
@@ -227,25 +222,24 @@ class SurfacePlanner():
         # List of configurations in planned horizon, using the reference velocity.
         configs = []
 
-        horizonTmp = 0 # Total number of optimised variables.
+        horizonTmp = 0  # Total number of optimised variables.
         i = 0
-        index_gait = 1 # Delay. Start at row 1.
-        dt_config = timings[1] # Cumulative time over timings.
-
+        index_gait = 1  # Delay. Start at row 1.
+        dt_config = timings[1]  # Cumulative time over timings.
 
         # Compute the slope of terrain 1 configuration over self._ratio_recompute_slope
         while horizonTmp < self.HORIZON:
             config = np.zeros(7)
 
-            dt_config += timings[index_gait+1]
-            while np.sum(gait[index_gait,:] == 1) == 4 : # row = [1,1,1,1]
+            dt_config += timings[index_gait + 1]
+            while np.sum(gait[index_gait, :] == 1) == 4:  # row = [1,1,1,1]
                 index_gait += 1
                 # If taking into account the stance phase.
                 # we can obtain error during initialisation since the stance phase is long.
-                dt_config += timings[index_gait+1]
+                dt_config += timings[index_gait + 1]
 
             # Compute the number of optimised variables:
-            horizonTmp += np.sum(gait[index_gait,:] == 0)
+            horizonTmp += np.sum(gait[index_gait, :] == 0)
             # print("horizonTmp : ", horizonTmp)
 
             # WARNING HERE
@@ -253,9 +247,9 @@ class SurfacePlanner():
             # when the foot hits the ground. Hence, dt_config = time to arrived here + flying phase.
             if abs(bvref[5]) >= 0.01:
                 dx_ = (bvref[0] * np.sin(bvref[5] * dt_config) + bvref[1] *
-                             (np.cos(bvref[5] * dt_config) - 1.0)) / bvref[5]
+                       (np.cos(bvref[5] * dt_config) - 1.0)) / bvref[5]
                 dy_ = (bvref[1] * np.sin(bvref[5] * dt_config) - bvref[0] *
-                             (np.cos(bvref[5] * dt_config) - 1.0)) / bvref[5]
+                       (np.cos(bvref[5] * dt_config) - 1.0)) / bvref[5]
             else:
                 dx_ = bvref[0] * dt_config
                 dy_ = bvref[1] * dt_config
@@ -266,7 +260,7 @@ class SurfacePlanner():
 
             # Recompute the orientation according to the heightmap each configuration over self._ratio_recompute_slope
             if self._recompute_slope and i % self._ratio_recompute_slope == 0:
-                rotation =  np.dot(pin.rpy.rpyToMatrix(np.array([0.,0.,bvref[5] * dt_config])) , rotation)
+                rotation = np.dot(pin.rpy.rpyToMatrix(np.array([0., 0., bvref[5] * dt_config])), rotation)
                 fit_ = self._terrain.get_slope(config[:2], rotation, collision_points)
                 rpyMap_ = np.zeros(3)
                 rpyMap_[0] = np.arctan2(fit_[1], 1.)
@@ -281,11 +275,11 @@ class SurfacePlanner():
 
             Rp = pin.rpy.rpyToMatrix(np.array([roll, pitch, 0.]))
             Ryaw = pin.rpy.rpyToMatrix(np.array([0., 0., yaw]))
-            config[3:] = pin.Quaternion(np.dot(Rp , Ryaw)).coeffs()
+            config[3:] = pin.Quaternion(np.dot(Rp, Ryaw)).coeffs()
 
             for foot_id in range(4):
-                if gait[index_gait,foot_id] == 0:
-                    t_stance = self.get_stance(gait, timings,foot_id,index_gait)
+                if gait[index_gait, foot_id] == 0:
+                    t_stance = self.get_stance(gait, timings, foot_id, index_gait)
                     rpy = pin.rpy.matrixToRpy(pin.Quaternion(config[3:7]).toRotationMatrix())
                     yaw = rpy[2]  # Get yaw for the predicted configuration
                     foot_pos = np.zeros(2)
@@ -311,14 +305,14 @@ class SurfacePlanner():
 
         return configs, np.array(effector_positions)
 
-    def get_stance(self,gait,timings,foot, index):
-        if gait[index,foot] != 0:
+    def get_stance(self, gait, timings, foot, index):
+        if gait[index, foot] != 0:
             raise AttributeError("Evaluation of stance phase start with 0")
-        id = copy.copy(index) # to not modify index
+        id = copy.copy(index)  # to not modify index
         t_stance = 0
         # Find next index in the gait where the foot is on the ground
-        while gait[id % gait.shape[0],foot] != 1:
-            id +=1
+        while gait[id % gait.shape[0], foot] != 1:
+            id += 1
         # Find the next index in the gait where the foot is flying
         # Foot id = 1. Index = 0. in means the timings counts for the t_stance
         #   GAIT         TIMELINE
@@ -329,9 +323,9 @@ class SurfacePlanner():
         # [1,1,1,1]        0.90   in
         # [1,0,1,1]        0.70   in
         # [0,1,1,1]        0.70   -
-        while gait[id % gait.shape[0],foot] != 0:
+        while gait[id % gait.shape[0], foot] != 0:
             # if np.any(1 - gait[id % gait.shape[0], :]): # not taking into account [1,1,1,1]
-            t_stance += timings[id+1]
+            t_stance += timings[id + 1]
             id += 1
         return t_stance
 
@@ -384,7 +378,7 @@ class SurfacePlanner():
 
             # New method to compute the moving feet.
             previous_stance = np.nonzero(gait[id % len(gait)] == 1)[0]
-            next_moving = np.nonzero(gait[(id+1) % len(gait)] == 0)[0]
+            next_moving = np.nonzero(gait[(id + 1) % len(gait)] == 0)[0]
             moving_feet = previous_stance[np.in1d(previous_stance, next_moving, assume_unique=True)]
 
             foot_surfaces = []
@@ -426,19 +420,18 @@ class SurfacePlanner():
 
         # Dictionnary type containing the convex FCl object for collision checking
         # self.all_surfaces_collision = dict(
-            # zip(all_surfaces.keys(), [convert_to_convexFcl(value) for value in all_surfaces.values()]))
+        # zip(all_surfaces.keys(), [convert_to_convexFcl(value) for value in all_surfaces.values()]))
 
         # Convert to Fcl might return error (qhull)
         self.all_surfaces_collision = dict()
         self.all_surfaces = dict()
         for key in all_surfaces.keys():
-            try :
+            try:
                 collision = convert_to_convexFcl(all_surfaces[key])
                 self.all_surfaces_collision[key] = collision
                 self.all_surfaces[key] = all_surfaces[key]
             except:
                 print("Could not create Convex model of the surface. Skip this surfaces.")
-
 
     def _retrieve_surfaces(self, surfaces, indices):
         """ Update the structure containing the surfaces selected for each foot. Trying to be independant from hyper-parameters.
@@ -452,11 +445,13 @@ class SurfacePlanner():
         """
         self._selected_surfaces.clear()
         for name in self._contact_names:
-            self._selected_surfaces[name] = [] # empty list
-        for phase_id,phase in enumerate(self.pb.phaseData):
+            self._selected_surfaces[name] = []  # empty list
+        for phase_id, phase in enumerate(self.pb.phaseData):
             for id, foot in enumerate(phase.moving):
                 id_sf = indices[phase_id][id]
-                self._selected_surfaces.get(self._contact_names[foot]).append(Surface(phase.S[id][id_sf][0][:,:],phase.S[id][id_sf][1][:],surfaces[phase_id][id][id_sf][:,:]))
+                self._selected_surfaces.get(self._contact_names[foot]).append(
+                    Surface(phase.S[id][id_sf][0][:, :], phase.S[id][id_sf][1][:],
+                            surfaces[phase_id][id][id_sf][:, :]))
 
         # Add until N_phase_return for each foot if the MPC horizon is longer.
         # Should not happen. horizon_sl1m >> horizon_mpc.
@@ -465,7 +460,7 @@ class SurfacePlanner():
             while len(self._selected_surfaces.get(name)) < self._N_phase_return:
                 self._selected_surfaces.get(name).append(self._selected_surfaces.get(name)[-1])
 
-    def run(self, q, gait_in,timings_in, bvref, target_foostep):
+    def run(self, q, gait_in, timings_in, bvref, target_foostep):
         """ Select the nex surfaces to use.
 
         Args:
@@ -550,9 +545,7 @@ class SurfacePlanner():
 
         ############################################################
         # Walking cost with new potential surfaces
-        costs = {
-            "effector_positions_xy": [1.0, effector_positions]
-        }
+        costs = {"effector_positions_xy": [1.0, effector_positions]}
         # activate shoulder cost for going up (should work for going down)
         # if bvref[0] > 0:
         #     feet_selected = [2,3]
@@ -565,9 +558,9 @@ class SurfacePlanner():
         pitch = pin.rpy.matrixToRpy(pin.Quaternion(q[3:7]).toRotationMatrix())[1]
 
         # Should work for going up & down
-        feet_selected = [2,3]
+        feet_selected = [2, 3]
         if pitch > 0.05:
-            feet_selected = [0,1] # Going down forward
+            feet_selected = [0, 1]  # Going down forward
             costs["effector_positions_3D_select"] = [0.25, [feet_selected, shoulder_position]]
         else:
             costs["effector_positions_3D_select"] = [0.2, [feet_selected, shoulder_position]]
@@ -607,7 +600,6 @@ class SurfacePlanner():
             com_positions = self._compute_com_positions(configs)
             costs["coms_xy"] = [0.5, com_positions]
             costs["coms_z"] = [0.05, com_positions]
-
 
         # Solve MIP
         t0 = clock()

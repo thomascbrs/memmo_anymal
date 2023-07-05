@@ -59,7 +59,6 @@ class SurfaceProcessing:
                 having small surfaces between the upper surfaces.
     --AREA_CONVEX (3): Both 1 and 2 methods.
     """
-
     def __init__(self, initial_height=0., params=None):
         """ Initialize intern parameters for surface processing.
 

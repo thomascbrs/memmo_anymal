@@ -5,7 +5,6 @@ import numpy as np
 
 
 class Logger():
-
     def __init__(self, folder_path=None):
         """Log timing and performances information inside a dictionnary.
 

@@ -31,7 +31,7 @@ import numpy as np
 try:
     from time import perf_counter as clock
 except ImportError:
-    from time import time as clock 
+    from time import time as clock
 import os
 import pickle
 
@@ -74,8 +74,7 @@ surface_planner.set_surfaces(all_surfaces)
 
 # Initial config
 initial_config = np.array([0.4, 0., 0., 0., 0., 0., 1.])
-q = np.array([0., 0., 0., 0., 0., 0., 1., -0.1, 0.7, -1., -
-             0.1, -0.7, 1., 0.1, 0.7, -1., 0.1, -.7, 1.])
+q = np.array([0., 0., 0., 0., 0., 0., 1., -0.1, 0.7, -1., -0.1, -0.7, 1., 0.1, 0.7, -1., 0.1, -.7, 1.])
 q[:3] = initial_config[:3]
 
 # Reference velocity
@@ -85,15 +84,12 @@ bvref[5] = 0.
 
 # Order : [LF, RF, LH, RH]
 GAITS = {}
-GAITS["walk"] = np.array([[0., 1., 1., 1.], [1., 0., 1., 1.], [
-                         1., 1., 0., 1.], [1., 1., 1., 0.]])
+GAITS["walk"] = np.array([[0., 1., 1., 1.], [1., 0., 1., 1.], [1., 1., 0., 1.], [1., 1., 1., 0.]])
 GAITS["trot"] = np.array([[1., 0., 1., 0.], [0., 1., 0., 1.]])
 gait_pattern = GAITS[params.typeGait]
 
-
 # order ['LF_FOOT', 'RF_FOOT', 'LH_FOOT', 'RH_FOOT']
-current_contacts = np.array(
-    [[0.37, 0.37, -0.37, -0.37], [0.2, -0.2, 0.2, -0.2], [0., 0., 0., 0.]])
+current_contacts = np.array([[0.37, 0.37, -0.37, -0.37], [0.2, -0.2, 0.2, -0.2], [0., 0., 0., 0.]])
 for k in range(4):
     current_contacts[:, k] += q[:3]
 
@@ -101,8 +97,7 @@ for k in range(4):
 
 # Run MIP problem.
 t0 = clock()
-selected_surfaces = surface_planner.run(
-    q[:7], gait_pattern, bvref, current_contacts)
+selected_surfaces = surface_planner.run(q[:7], gait_pattern, bvref, current_contacts)
 t1 = clock()
 print("Run MIP [ms]", 1000. * (t1 - t0))
 
@@ -111,5 +106,4 @@ fig = plt.figure(figsize=(10, 6))
 ax = plt.axes(projection='3d')
 for value in surface_planner.all_surfaces.values():
     plot.plot_surface(np.array(value).T, ax)
-plot.plot_planner_result(surface_planner.pb_data.all_feet_pos,
-                         coms=surface_planner.pb_data.coms, ax=ax, show=True)
+plot.plot_planner_result(surface_planner.pb_data.all_feet_pos, coms=surface_planner.pb_data.coms, ax=ax, show=True)

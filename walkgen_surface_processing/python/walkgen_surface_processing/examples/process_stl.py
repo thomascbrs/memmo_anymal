@@ -20,10 +20,10 @@ R = pin.rpy.rpyToMatrix(rpy)  # Rotation matrix
 surface_detector = SurfaceDetector(params.path + params.stl, R, translation, 0., "environment_")
 all_surfaces = surface_detector.extract_surfaces()
 
-
 # Offset on z-axis
 offset_z = -0.2
-surface_detector = SurfaceDetector(params.path + params.stl, R, translation, params.margin_inner, "environment_", offset_z)
+surface_detector = SurfaceDetector(params.path + params.stl, R, translation, params.margin_inner, "environment_",
+                                   offset_z)
 all_surfaces_reduced = surface_detector.extract_surfaces()
 
 # Plot surfaces.

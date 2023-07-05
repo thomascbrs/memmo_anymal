@@ -43,10 +43,8 @@ with open(filename, 'rb') as file2:
     all_surfaces = pickle.load(file2)
 
 # State of the robot
-current_contacts = np.array(
-    [[0.37, 0.37, -0.37, -0.37], [0.2, -0.2, 0.2, -0.2], [0., 0., 0., 0.]])
-q = np.array([0., 0., 0.4792, 0., 0., 0., 1., -0.1, 0.7, -
-             1., -0.1, -0.7, 1., 0.1, 0.7, -1., 0.1, -0.7, 1.])
+current_contacts = np.array([[0.37, 0.37, -0.37, -0.37], [0.2, -0.2, 0.2, -0.2], [0., 0., 0., 0.]])
+q = np.array([0., 0., 0.4792, 0., 0., 0., 1., -0.1, 0.7, -1., -0.1, -0.7, 1., 0.1, 0.7, -1., 0.1, -0.7, 1.])
 # Reference velocity
 bvref = np.zeros(6)
 bvref[0] = 0.05
@@ -54,8 +52,7 @@ bvref[5] = 0.
 
 # Order : [LF, RF, LH, RH]
 GAITS = {}
-GAITS["walk"] = np.array([[0., 1., 1., 1.], [1., 0., 1., 1.], [
-                         1., 1., 0., 1.], [1., 1., 1., 0.]])
+GAITS["walk"] = np.array([[0., 1., 1., 1.], [1., 0., 1., 1.], [1., 1., 0., 1.], [1., 1., 1., 0.]])
 GAITS["trot"] = np.array([[1., 0., 1., 0.], [0., 1., 0., 1.]])
 
 params.N_phase = 6
@@ -67,7 +64,6 @@ surface_planner = SurfacePlanner(params=params)
 
 
 class SurfacePlannerTest(unittest.TestCase):
-
     def test_planner_walk(self):
         # parameters for the test
         params.typeGait = "walk"
@@ -79,8 +75,7 @@ class SurfacePlannerTest(unittest.TestCase):
         surface_planner.set_surfaces(all_surfaces)
 
         # Run MIP problem.
-        selected_surfaces = surface_planner.run(
-            q[:7], gait_pattern, bvref, current_contacts)
+        selected_surfaces = surface_planner.run(q[:7], gait_pattern, bvref, current_contacts)
         results = surface_planner.pb_data
         self.assertTrue(results.success)
 
@@ -95,8 +90,7 @@ class SurfacePlannerTest(unittest.TestCase):
         surface_planner.set_surfaces(all_surfaces)
 
         # Run MIP problem.
-        selected_surfaces = surface_planner.run(
-            q[:7], gait_pattern, bvref, current_contacts)
+        selected_surfaces = surface_planner.run(q[:7], gait_pattern, bvref, current_contacts)
         results = surface_planner.pb_data
         self.assertTrue(results.success)
 
@@ -111,8 +105,7 @@ class SurfacePlannerTest(unittest.TestCase):
         surface_planner.set_surfaces(all_surfaces)
 
         # Run MIP problem.
-        selected_surfaces = surface_planner.run(
-            q[:7], gait_pattern, bvref, current_contacts)
+        selected_surfaces = surface_planner.run(q[:7], gait_pattern, bvref, current_contacts)
         results = surface_planner.pb_data
         self.assertTrue(results.success)
 
@@ -127,8 +120,7 @@ class SurfacePlannerTest(unittest.TestCase):
         surface_planner.set_surfaces(all_surfaces)
 
         # Run MIP problem.
-        selected_surfaces = surface_planner.run(
-            q[:7], gait_pattern, bvref, current_contacts)
+        selected_surfaces = surface_planner.run(q[:7], gait_pattern, bvref, current_contacts)
         results = surface_planner.pb_data
         self.assertTrue(results.success)
 

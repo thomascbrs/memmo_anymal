@@ -40,7 +40,6 @@ class GaitManager:
     depending on the current timeline and the horizon length.
     Get informations on the gait to trigger SL1M at the right time.
     """
-
     def __init__(self, model, q, params=None):
         """Initialize the gait management.
 
@@ -89,7 +88,6 @@ class GaitManager:
         self.cs1["RH_FOOT"] = self._data.oMf[self._model.getFrameId("RH_FOOT")]
         self.cs1["RF_FOOT"] = self._data.oMf[self._model.getFrameId("RF_FOOT")]
 
-
         self.gait_generator = QuadrupedalGaitGenerator()
         if self._typeGait == "trot":
             self._initial_cs = copy.deepcopy(
@@ -113,13 +111,13 @@ class GaitManager:
         elif self._typeGait == "walk":
             self._initial_cs = copy.deepcopy(
                 self.gait_generator.walk(contacts=[self.cs0, self.cs1],
-                                            N_ds=100,
-                                            N_ss=self._N_ss,
-                                            N_uss=self._N_uss,
-                                            N_uds=self._N_uds,
-                                            stepHeight=self._stepHeight,
-                                            startPhase=True,
-                                            endPhase=False))
+                                         N_ds=100,
+                                         N_ss=self._N_ss,
+                                         N_uss=self._N_uss,
+                                         N_uds=self._N_uds,
+                                         stepHeight=self._stepHeight,
+                                         startPhase=True,
+                                         endPhase=False))
             self._default_cs = copy.deepcopy(
                 self.gait_generator.walk(contacts=[self.cs0, self.cs1],
                                          N_ds=self._N_ds,
@@ -450,7 +448,6 @@ class QuadrupedalGaitGenerator:
     """ Create quadrupedal gait with polynomial swing foot trajectory.
     It uses a custom Trajectory object, independant from Caracal.
     """
-
     def __init__(self, dt=1e-2, S=4, lf="LF_FOOT", lh="LH_FOOT", rf="RF_FOOT", rh="RH_FOOT"):
         self._dt = dt
         self._S = S

@@ -417,9 +417,7 @@ class hxGeomAlgo__HxPoint_HxPoint_Impl_:
 
     @staticmethod
     def set_x(this1, value):
-
         def _hx_local_1():
-
             def _hx_local_0():
                 this1.x = value
                 return this1.x
@@ -434,9 +432,7 @@ class hxGeomAlgo__HxPoint_HxPoint_Impl_:
 
     @staticmethod
     def set_y(this1, value):
-
         def _hx_local_1():
-
             def _hx_local_0():
                 this1.y = value
                 return this1.y
@@ -998,7 +994,6 @@ class hxGeomAlgo_PolyTools:
 
     @staticmethod
     def parsePoints(_hx_str):
-
         def _hx_local_0(val):
             if (val is not None):
                 return (val != "")
@@ -1310,9 +1305,7 @@ class hxGeomAlgo__Tess2_TessHalfEdge:
         return self.Sym.Lface
 
     def set_Rface(self, v):
-
         def _hx_local_1():
-
             def _hx_local_0():
                 self.Sym.Lface = v
                 return self.Sym.Lface
@@ -1325,9 +1318,7 @@ class hxGeomAlgo__Tess2_TessHalfEdge:
         return self.Sym.Org
 
     def set_Dst(self, v):
-
         def _hx_local_1():
-
             def _hx_local_0():
                 self.Sym.Org = v
                 return self.Sym.Org
@@ -1340,9 +1331,7 @@ class hxGeomAlgo__Tess2_TessHalfEdge:
         return self.Sym.Lnext
 
     def set_Oprev(self, v):
-
         def _hx_local_1():
-
             def _hx_local_0():
                 self.Sym.Lnext = v
                 return self.Sym.Lnext
@@ -1355,9 +1344,7 @@ class hxGeomAlgo__Tess2_TessHalfEdge:
         return self.Onext.Sym
 
     def set_Lprev(self, v):
-
         def _hx_local_1():
-
             def _hx_local_0():
                 self.Onext.Sym = v
                 return self.Onext.Sym
@@ -1370,9 +1357,7 @@ class hxGeomAlgo__Tess2_TessHalfEdge:
         return self.Lnext.Sym
 
     def set_Dprev(self, v):
-
         def _hx_local_1():
-
             def _hx_local_0():
                 self.Lnext.Sym = v
                 return self.Lnext.Sym
@@ -1385,9 +1370,7 @@ class hxGeomAlgo__Tess2_TessHalfEdge:
         return self.Sym.Onext
 
     def set_Rprev(self, v):
-
         def _hx_local_1():
-
             def _hx_local_0():
                 self.Sym.Onext = v
                 return self.Sym.Onext
@@ -1400,9 +1383,7 @@ class hxGeomAlgo__Tess2_TessHalfEdge:
         return self.Sym.Onext.Sym
 
     def set_Dnext(self, v):
-
         def _hx_local_1():
-
             def _hx_local_0():
                 self.Sym.Onext.Sym = v
                 return self.Sym.Onext.Sym
@@ -1415,9 +1396,7 @@ class hxGeomAlgo__Tess2_TessHalfEdge:
         return self.Sym.Lnext.Sym
 
     def set_Rnext(self, v):
-
         def _hx_local_1():
-
             def _hx_local_0():
                 self.Sym.Lnext.Sym = v
                 return self.Sym.Lnext.Sym
@@ -2539,9 +2518,7 @@ class hxGeomAlgo__Tess2_Sweep:
 
     @staticmethod
     def getIntersectData(tess, isect, orgUp, dstUp, orgLo, dstLo):
-
         def _hx_local_1():
-
             def _hx_local_0():
                 python_internal_ArrayImpl._set(isect.coords, 2, 0)
                 return (isect.coords[2] if 2 < len(isect.coords) else None)
@@ -2730,7 +2707,6 @@ class hxGeomAlgo__Tess2_Sweep:
         hxGeomAlgo__Tess2_Sweep.getIntersectData(tess, eUp.Org, orgUp, dstUp, orgLo, dstLo)
 
         def _hx_local_3():
-
             def _hx_local_2():
                 regLo.dirty = True
                 return regLo.dirty
@@ -3195,7 +3171,6 @@ class hxGeomAlgo_Tesselator:
         if (maxLen2 <= 0):
 
             def _hx_local_1():
-
                 def _hx_local_0():
                     python_internal_ArrayImpl._set(norm, 2, 0)
                     return (norm[2] if 2 < len(norm) else None)

@@ -10,16 +10,20 @@ import re as python_lib_Re
 
 class _hx_AnonObject:
     _hx_disable_getattr = False
+
     def __init__(self, fields):
         self.__dict__ = fields
+
     def __repr__(self):
         return repr(self.__dict__)
+
     def __getattr__(self, name):
         if (self._hx_disable_getattr):
             raise AttributeError('field does not exist')
         else:
             return None
-    def _hx_hasattr(self,field):
+
+    def _hx_hasattr(self, field):
         self._hx_disable_getattr = True
         try:
             getattr(self, field)
@@ -30,14 +34,13 @@ class _hx_AnonObject:
             return False
 
 
-
 class Enum:
     _hx_class_name = "Enum"
     __slots__ = ("tag", "index", "params")
     _hx_fields = ["tag", "index", "params"]
     _hx_methods = ["__str__"]
 
-    def __init__(self,tag,index,params):
+    def __init__(self, tag, index, params):
         self.tag = tag
         self.index = index
         self.params = params
@@ -49,14 +52,13 @@ class Enum:
             return self.tag + '(' + (', '.join(str(v) for v in self.params)) + ')'
 
 
-
 class EReg:
     _hx_class_name = "EReg"
     __slots__ = ("pattern", "matchObj", "_hx_global")
     _hx_fields = ["pattern", "matchObj", "global"]
     _hx_methods = ["split"]
 
-    def __init__(self,r,opt):
+    def __init__(self, r, opt):
         self.matchObj = None
         self._hx_global = False
         options = 0
@@ -76,28 +78,27 @@ class EReg:
                 options = (options | python_lib_Re.U)
             if (c == 103):
                 self._hx_global = True
-        self.pattern = python_lib_Re.compile(r,options)
+        self.pattern = python_lib_Re.compile(r, options)
 
-    def split(self,s):
+    def split(self, s):
         if self._hx_global:
             ret = []
             lastEnd = 0
-            x = python_HaxeIterator(python_lib_Re.finditer(self.pattern,s))
+            x = python_HaxeIterator(python_lib_Re.finditer(self.pattern, s))
             while x.hasNext():
                 x1 = x.next()
-                x2 = HxString.substring(s,lastEnd,x1.start())
+                x2 = HxString.substring(s, lastEnd, x1.start())
                 ret.append(x2)
                 lastEnd = x1.end()
-            x3 = HxString.substr(s,lastEnd,None)
+            x3 = HxString.substr(s, lastEnd, None)
             ret.append(x3)
             return ret
         else:
-            self.matchObj = python_lib_Re.search(self.pattern,s)
+            self.matchObj = python_lib_Re.search(self.pattern, s)
             if (self.matchObj is None):
                 return [s]
             else:
-                return [HxString.substring(s,0,self.matchObj.start()), HxString.substr(s,self.matchObj.end(),None)]
-
+                return [HxString.substring(s, 0, self.matchObj.start()), HxString.substr(s, self.matchObj.end(), None)]
 
 
 class Reflect:
@@ -106,8 +107,8 @@ class Reflect:
     _hx_statics = ["field"]
 
     @staticmethod
-    def field(o,field):
-        return python_Boot.field(o,field)
+    def field(o, field):
+        return python_Boot.field(o, field)
 
 
 class Std:
@@ -124,12 +125,14 @@ class Std:
             i = _g
             _g = (_g + 1)
             c = ("" if (((i < 0) or ((i >= len(x))))) else x[i])
-            _g2 = HxString.charCodeAt(c,0)
+            _g2 = HxString.charCodeAt(c, 0)
             if (_g2 is None):
                 break
             else:
                 _g3 = _g2
-                if (((((((((((_g3 == 57) or ((_g3 == 56))) or ((_g3 == 55))) or ((_g3 == 54))) or ((_g3 == 53))) or ((_g3 == 52))) or ((_g3 == 51))) or ((_g3 == 50))) or ((_g3 == 49))) or ((_g3 == 48))) or ((_g3 == 46))):
+                if (((((((((((_g3 == 57) or ((_g3 == 56))) or ((_g3 == 55))) or ((_g3 == 54))) or ((_g3 == 53))) or
+                         ((_g3 == 52))) or ((_g3 == 51))) or ((_g3 == 50))) or ((_g3 == 49))) or ((_g3 == 48)))
+                        or ((_g3 == 46))):
                     r = (("null" if r is None else r) + ("null" if c is None else c))
                 else:
                     break
@@ -155,7 +158,7 @@ class python_HaxeIterator:
     _hx_fields = ["it", "x", "has", "checked"]
     _hx_methods = ["next", "hasNext"]
 
-    def __init__(self,it):
+    def __init__(self, it):
         self.checked = False
         self.has = False
         self.x = None
@@ -184,18 +187,17 @@ class python_HaxeIterator:
         return self.has
 
 
-
 class haxe_ds_ArraySort:
     _hx_class_name = "haxe.ds.ArraySort"
     __slots__ = ()
     _hx_statics = ["sort", "rec", "doMerge", "rotate", "gcd", "upper", "lower", "swap"]
 
     @staticmethod
-    def sort(a,cmp):
-        haxe_ds_ArraySort.rec(a,cmp,0,len(a))
+    def sort(a, cmp):
+        haxe_ds_ArraySort.rec(a, cmp, 0, len(a))
 
     @staticmethod
-    def rec(a,cmp,_hx_from,to):
+    def rec(a, cmp, _hx_from, to):
         middle = ((_hx_from + to) >> 1)
         if ((to - _hx_from) < 12):
             if (to <= _hx_from):
@@ -207,18 +209,19 @@ class haxe_ds_ArraySort:
                 _g = (_g + 1)
                 j = i
                 while (j > _hx_from):
-                    if (cmp((a[j] if j >= 0 and j < len(a) else None),python_internal_ArrayImpl._get(a, (j - 1))) < 0):
-                        haxe_ds_ArraySort.swap(a,(j - 1),j)
+                    if (cmp((a[j] if j >= 0 and j < len(a) else None), python_internal_ArrayImpl._get(a,
+                                                                                                      (j - 1))) < 0):
+                        haxe_ds_ArraySort.swap(a, (j - 1), j)
                     else:
                         break
                     j = (j - 1)
             return
-        haxe_ds_ArraySort.rec(a,cmp,_hx_from,middle)
-        haxe_ds_ArraySort.rec(a,cmp,middle,to)
-        haxe_ds_ArraySort.doMerge(a,cmp,_hx_from,middle,to,(middle - _hx_from),(to - middle))
+        haxe_ds_ArraySort.rec(a, cmp, _hx_from, middle)
+        haxe_ds_ArraySort.rec(a, cmp, middle, to)
+        haxe_ds_ArraySort.doMerge(a, cmp, _hx_from, middle, to, (middle - _hx_from), (to - middle))
 
     @staticmethod
-    def doMerge(a,cmp,_hx_from,pivot,to,len1,len2):
+    def doMerge(a, cmp, _hx_from, pivot, to, len1, len2):
         first_cut = None
         second_cut = None
         len11 = None
@@ -226,29 +229,30 @@ class haxe_ds_ArraySort:
         if ((len1 == 0) or ((len2 == 0))):
             return
         if ((len1 + len2) == 2):
-            if (cmp((a[pivot] if pivot >= 0 and pivot < len(a) else None),(a[_hx_from] if _hx_from >= 0 and _hx_from < len(a) else None)) < 0):
-                haxe_ds_ArraySort.swap(a,pivot,_hx_from)
+            if (cmp((a[pivot] if pivot >= 0 and pivot < len(a) else None),
+                    (a[_hx_from] if _hx_from >= 0 and _hx_from < len(a) else None)) < 0):
+                haxe_ds_ArraySort.swap(a, pivot, _hx_from)
             return
         if (len1 > len2):
             len11 = (len1 >> 1)
             first_cut = (_hx_from + len11)
-            second_cut = haxe_ds_ArraySort.lower(a,cmp,pivot,to,first_cut)
+            second_cut = haxe_ds_ArraySort.lower(a, cmp, pivot, to, first_cut)
             len22 = (second_cut - pivot)
         else:
             len22 = (len2 >> 1)
             second_cut = (pivot + len22)
-            first_cut = haxe_ds_ArraySort.upper(a,cmp,_hx_from,pivot,second_cut)
+            first_cut = haxe_ds_ArraySort.upper(a, cmp, _hx_from, pivot, second_cut)
             len11 = (first_cut - _hx_from)
-        haxe_ds_ArraySort.rotate(a,cmp,first_cut,pivot,second_cut)
+        haxe_ds_ArraySort.rotate(a, cmp, first_cut, pivot, second_cut)
         new_mid = (first_cut + len22)
-        haxe_ds_ArraySort.doMerge(a,cmp,_hx_from,first_cut,new_mid,len11,len22)
-        haxe_ds_ArraySort.doMerge(a,cmp,new_mid,second_cut,to,(len1 - len11),(len2 - len22))
+        haxe_ds_ArraySort.doMerge(a, cmp, _hx_from, first_cut, new_mid, len11, len22)
+        haxe_ds_ArraySort.doMerge(a, cmp, new_mid, second_cut, to, (len1 - len11), (len2 - len22))
 
     @staticmethod
-    def rotate(a,cmp,_hx_from,mid,to):
+    def rotate(a, cmp, _hx_from, mid, to):
         if ((_hx_from == mid) or ((mid == to))):
             return
-        n = haxe_ds_ArraySort.gcd((to - _hx_from),(mid - _hx_from))
+        n = haxe_ds_ArraySort.gcd((to - _hx_from), (mid - _hx_from))
         while True:
             tmp = n
             n = (n - 1)
@@ -268,7 +272,7 @@ class haxe_ds_ArraySort:
             python_internal_ArrayImpl._set(a, p1, val)
 
     @staticmethod
-    def gcd(m,n):
+    def gcd(m, n):
         while (n != 0):
             t = HxOverrides.mod(m, n)
             m = n
@@ -276,14 +280,15 @@ class haxe_ds_ArraySort:
         return m
 
     @staticmethod
-    def upper(a,cmp,_hx_from,to,val):
+    def upper(a, cmp, _hx_from, to, val):
         _hx_len = (to - _hx_from)
         half = None
         mid = None
         while (_hx_len > 0):
             half = (_hx_len >> 1)
             mid = (_hx_from + half)
-            if (cmp((a[val] if val >= 0 and val < len(a) else None),(a[mid] if mid >= 0 and mid < len(a) else None)) < 0):
+            if (cmp((a[val] if val >= 0 and val < len(a) else None),
+                    (a[mid] if mid >= 0 and mid < len(a) else None)) < 0):
                 _hx_len = half
             else:
                 _hx_from = (mid + 1)
@@ -291,14 +296,15 @@ class haxe_ds_ArraySort:
         return _hx_from
 
     @staticmethod
-    def lower(a,cmp,_hx_from,to,val):
+    def lower(a, cmp, _hx_from, to, val):
         _hx_len = (to - _hx_from)
         half = None
         mid = None
         while (_hx_len > 0):
             half = (_hx_len >> 1)
             mid = (_hx_from + half)
-            if (cmp((a[mid] if mid >= 0 and mid < len(a) else None),(a[val] if val >= 0 and val < len(a) else None)) < 0):
+            if (cmp((a[mid] if mid >= 0 and mid < len(a) else None),
+                    (a[val] if val >= 0 and val < len(a) else None)) < 0):
                 _hx_from = (mid + 1)
                 _hx_len = ((_hx_len - half) - 1)
             else:
@@ -306,7 +312,7 @@ class haxe_ds_ArraySort:
         return _hx_from
 
     @staticmethod
-    def swap(a,i,j):
+    def swap(a, i, j):
         tmp = (a[i] if i >= 0 and i < len(a) else None)
         python_internal_ArrayImpl._set(a, i, (a[j] if j >= 0 and j < len(a) else None))
         python_internal_ArrayImpl._set(a, j, tmp)
@@ -318,14 +324,20 @@ class hxGeomAlgo_Debug:
     _hx_statics = ["assert"]
 
     @staticmethod
-    def _hx_assert(cond,message = None,pos = None):
+    def _hx_assert(cond, message=None, pos=None):
         return
 
 
 class hxGeomAlgo_EarCut:
     _hx_class_name = "hxGeomAlgo.EarCut"
     __slots__ = ()
-    _hx_statics = ["removeHoles", "triangulate", "earcut", "linkedList", "filterPoints", "earcutLinked", "isEar", "isEarHashed", "cureLocalIntersections", "splitEarcut", "eliminateHoles", "compareX", "eliminateHole", "findHoleBridge", "indexCurve", "sortLinked", "zOrder", "getLeftmost", "pointInTriangle", "isValidDiagonal", "area", "equals", "intersects", "intersectsPolygon", "locallyInside", "middleInside", "splitPolygon", "insertNode", "removeNode", "deviation", "signedArea", "flatten", "polygonize", "addTriangle"]
+    _hx_statics = [
+        "removeHoles", "triangulate", "earcut", "linkedList", "filterPoints", "earcutLinked", "isEar", "isEarHashed",
+        "cureLocalIntersections", "splitEarcut", "eliminateHoles", "compareX", "eliminateHole", "findHoleBridge",
+        "indexCurve", "sortLinked", "zOrder", "getLeftmost", "pointInTriangle", "isValidDiagonal", "area", "equals",
+        "intersects", "intersectsPolygon", "locallyInside", "middleInside", "splitPolygon", "insertNode", "removeNode",
+        "deviation", "signedArea", "flatten", "polygonize", "addTriangle"
+    ]
 
     @staticmethod
     def removeHoles(poly, holes):
@@ -334,7 +346,7 @@ class hxGeomAlgo_EarCut:
         allVertices = poly
         if ((holes is not None) and ((len(holes) > 0))):
             allVertices = (poly + [])
-            hxGeomAlgo_PolyTools.flatten(holes,allVertices)
+            hxGeomAlgo_PolyTools.flatten(holes, allVertices)
             holeIndices = []
             holeIdx = len(poly)
             _g = 0
@@ -352,7 +364,7 @@ class hxGeomAlgo_EarCut:
         dim = 2
         hasHoles = ((holeIndices is not None) and ((len(holeIndices) > 0)))
         outerLen = (((holeIndices[0] if 0 < len(holeIndices) else None) * dim) if hasHoles else len(data))
-        outerNode = hxGeomAlgo_EarCut.linkedList(data,0,outerLen,dim,True)
+        outerNode = hxGeomAlgo_EarCut.linkedList(data, 0, outerLen, dim, True)
         triangles = []
         if (outerNode is None):
             return triangles
@@ -364,7 +376,7 @@ class hxGeomAlgo_EarCut:
         maxX = maxY
         minY = maxX
         minX = minY
-        outerNode = hxGeomAlgo_EarCut.eliminateHoles(data,holeIndices,outerNode,dim)
+        outerNode = hxGeomAlgo_EarCut.eliminateHoles(data, holeIndices, outerNode, dim)
 
         ear = outerNode
         stop = ear
@@ -384,13 +396,13 @@ class hxGeomAlgo_EarCut:
         return points
 
     @staticmethod
-    def triangulate(poly,holes = None):
+    def triangulate(poly, holes=None):
         data = hxGeomAlgo_PolyTools.toFloatArray(poly)
         holeIndices = None
         allVertices = poly
         if ((holes is not None) and ((len(holes) > 0))):
             allVertices = (poly + [])
-            hxGeomAlgo_PolyTools.flatten(holes,allVertices)
+            hxGeomAlgo_PolyTools.flatten(holes, allVertices)
             holeIndices = []
             holeIdx = len(poly)
             _g = 0
@@ -405,22 +417,27 @@ class hxGeomAlgo_EarCut:
                     data.append(f)
                 holeIndices.append(holeIdx)
                 holeIdx = (holeIdx + len(hole))
-        triIndices = hxGeomAlgo_EarCut.earcut(data,holeIndices)
+        triIndices = hxGeomAlgo_EarCut.earcut(data, holeIndices)
         res = []
         i = 0
         while (i < len(triIndices)):
-            tri = [python_internal_ArrayImpl._get(allVertices, (triIndices[i] if i >= 0 and i < len(triIndices) else None)), python_internal_ArrayImpl._get(allVertices, python_internal_ArrayImpl._get(triIndices, (i + 1))), python_internal_ArrayImpl._get(allVertices, python_internal_ArrayImpl._get(triIndices, (i + 2)))]
+            tri = [
+                python_internal_ArrayImpl._get(allVertices,
+                                               (triIndices[i] if i >= 0 and i < len(triIndices) else None)),
+                python_internal_ArrayImpl._get(allVertices, python_internal_ArrayImpl._get(triIndices, (i + 1))),
+                python_internal_ArrayImpl._get(allVertices, python_internal_ArrayImpl._get(triIndices, (i + 2)))
+            ]
             res.append(tri)
             i = (i + 3)
         return res
 
     @staticmethod
-    def earcut(data,holeIndices = None,dim = None):
+    def earcut(data, holeIndices=None, dim=None):
         if (dim is None):
             dim = 2
         hasHoles = ((holeIndices is not None) and ((len(holeIndices) > 0)))
         outerLen = (((holeIndices[0] if 0 < len(holeIndices) else None) * dim) if hasHoles else len(data))
-        outerNode = hxGeomAlgo_EarCut.linkedList(data,0,outerLen,dim,True)
+        outerNode = hxGeomAlgo_EarCut.linkedList(data, 0, outerLen, dim, True)
         triangles = []
         if (outerNode is None):
             return triangles
@@ -433,7 +450,7 @@ class hxGeomAlgo_EarCut:
         minY = maxX
         minX = minY
         if hasHoles:
-            outerNode = hxGeomAlgo_EarCut.eliminateHoles(data,holeIndices,outerNode,dim)
+            outerNode = hxGeomAlgo_EarCut.eliminateHoles(data, holeIndices, outerNode, dim)
         if (len(data) > ((80 * dim))):
             maxX = (data[0] if 0 < len(data) else None)
             minX = maxX
@@ -454,23 +471,25 @@ class hxGeomAlgo_EarCut:
                 i = (i + dim)
             a = (maxX - minX)
             b = (maxY - minY)
-            size = (a if (python_lib_Math.isnan(a)) else (b if (python_lib_Math.isnan(b)) else max(a,b)))
-        hxGeomAlgo_EarCut.earcutLinked(outerNode,triangles,dim,minX,minY,size)
+            size = (a if (python_lib_Math.isnan(a)) else (b if (python_lib_Math.isnan(b)) else max(a, b)))
+        hxGeomAlgo_EarCut.earcutLinked(outerNode, triangles, dim, minX, minY, size)
         return triangles
 
     @staticmethod
-    def linkedList(data,start,end,dim,clockwise):
+    def linkedList(data, start, end, dim, clockwise):
         i = None
         last = None
-        if (clockwise == ((hxGeomAlgo_EarCut.signedArea(data,start,end,dim) > 0))):
+        if (clockwise == ((hxGeomAlgo_EarCut.signedArea(data, start, end, dim) > 0))):
             i = start
             while (i < end):
-                last = hxGeomAlgo_EarCut.insertNode(i,(data[i] if i >= 0 and i < len(data) else None),python_internal_ArrayImpl._get(data, (i + 1)),last)
+                last = hxGeomAlgo_EarCut.insertNode(i, (data[i] if i >= 0 and i < len(data) else None),
+                                                    python_internal_ArrayImpl._get(data, (i + 1)), last)
                 i = (i + dim)
         else:
             i = (end - dim)
             while (i >= start):
-                last = hxGeomAlgo_EarCut.insertNode(i,(data[i] if i >= 0 and i < len(data) else None),python_internal_ArrayImpl._get(data, (i + 1)),last)
+                last = hxGeomAlgo_EarCut.insertNode(i, (data[i] if i >= 0 and i < len(data) else None),
+                                                    python_internal_ArrayImpl._get(data, (i + 1)), last)
                 i = (i - dim)
         tmp = None
         if (last is not None):
@@ -484,7 +503,7 @@ class hxGeomAlgo_EarCut:
         return last
 
     @staticmethod
-    def filterPoints(start,end = None):
+    def filterPoints(start, end=None):
         if (start is None):
             return start
         if (end is None):
@@ -518,20 +537,21 @@ class hxGeomAlgo_EarCut:
         return end
 
     @staticmethod
-    def earcutLinked(ear,triangles,dim,minX,minY,size,_hx_pass = None):
+    def earcutLinked(ear, triangles, dim, minX, minY, size, _hx_pass=None):
         if (_hx_pass is None):
             _hx_pass = 0
         if (ear is None):
             return
         if ((_hx_pass == 0) and (not python_lib_Math.isnan(size))):
-            hxGeomAlgo_EarCut.indexCurve(ear,minX,minY,size)
+            hxGeomAlgo_EarCut.indexCurve(ear, minX, minY, size)
         stop = ear
         prev = None
         next = None
         while (ear.prev != ear.next):
             prev = ear.prev
             next = ear.next
-            if (hxGeomAlgo_EarCut.isEarHashed(ear,minX,minY,size) if ((not python_lib_Math.isnan(size))) else hxGeomAlgo_EarCut.isEar(ear)):
+            if (hxGeomAlgo_EarCut.isEarHashed(ear, minX, minY, size) if
+                ((not python_lib_Math.isnan(size))) else hxGeomAlgo_EarCut.isEar(ear)):
                 x = (prev.i / dim)
                 x1 = None
                 try:
@@ -566,12 +586,13 @@ class hxGeomAlgo_EarCut:
             ear = next
             if (ear == stop):
                 if (_hx_pass == 0):
-                    hxGeomAlgo_EarCut.earcutLinked(hxGeomAlgo_EarCut.filterPoints(ear),triangles,dim,minX,minY,size,1)
+                    hxGeomAlgo_EarCut.earcutLinked(hxGeomAlgo_EarCut.filterPoints(ear), triangles, dim, minX, minY,
+                                                   size, 1)
                 elif (_hx_pass == 1):
-                    ear = hxGeomAlgo_EarCut.cureLocalIntersections(ear,triangles,dim)
-                    hxGeomAlgo_EarCut.earcutLinked(ear,triangles,dim,minX,minY,size,2)
+                    ear = hxGeomAlgo_EarCut.cureLocalIntersections(ear, triangles, dim)
+                    hxGeomAlgo_EarCut.earcutLinked(ear, triangles, dim, minX, minY, size, 2)
                 elif (_hx_pass == 2):
-                    hxGeomAlgo_EarCut.splitEarcut(ear,triangles,dim,minX,minY,size)
+                    hxGeomAlgo_EarCut.splitEarcut(ear, triangles, dim, minX, minY, size)
                 break
 
     @staticmethod
@@ -584,7 +605,7 @@ class hxGeomAlgo_EarCut:
         p = ear.next.next
         while (p != ear.prev):
             tmp = None
-            if hxGeomAlgo_EarCut.pointInTriangle(a.x,a.y,b.x,b.y,c.x,c.y,p.x,p.y):
+            if hxGeomAlgo_EarCut.pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, p.x, p.y):
                 p1 = p.prev
                 r = p.next
                 tmp = (((((p.y - p1.y)) * ((r.x - p.x))) - ((((p.x - p1.x)) * ((r.y - p.y))))) >= 0)
@@ -596,7 +617,7 @@ class hxGeomAlgo_EarCut:
         return True
 
     @staticmethod
-    def isEarHashed(ear,minX,minY,size):
+    def isEarHashed(ear, minX, minY, size):
         a = ear.prev
         b = ear
         c = ear.next
@@ -606,12 +627,13 @@ class hxGeomAlgo_EarCut:
         minTY = ((a.y if ((a.y < c.y)) else c.y) if ((a.y < b.y)) else (b.y if ((b.y < c.y)) else c.y))
         maxTX = ((a.x if ((a.x > c.x)) else c.x) if ((a.x > b.x)) else (b.x if ((b.x > c.x)) else c.x))
         maxTY = ((a.y if ((a.y > c.y)) else c.y) if ((a.y > b.y)) else (b.y if ((b.y > c.y)) else c.y))
-        minZ = hxGeomAlgo_EarCut.zOrder(minTX,minTY,minX,minY,size)
-        maxZ = hxGeomAlgo_EarCut.zOrder(maxTX,maxTY,minX,minY,size)
+        minZ = hxGeomAlgo_EarCut.zOrder(minTX, minTY, minX, minY, size)
+        maxZ = hxGeomAlgo_EarCut.zOrder(maxTX, maxTY, minX, minY, size)
         p = ear.nextZ
         while ((p is not None) and ((p.z <= maxZ))):
             tmp = None
-            if (((p != ear.prev) and ((p != ear.next))) and hxGeomAlgo_EarCut.pointInTriangle(a.x,a.y,b.x,b.y,c.x,c.y,p.x,p.y)):
+            if (((p != ear.prev) and ((p != ear.next)))
+                    and hxGeomAlgo_EarCut.pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, p.x, p.y)):
                 p1 = p.prev
                 r = p.next
                 tmp = (((((p.y - p1.y)) * ((r.x - p.x))) - ((((p.x - p1.x)) * ((r.y - p.y))))) >= 0)
@@ -623,7 +645,8 @@ class hxGeomAlgo_EarCut:
         p = ear.prevZ
         while ((p is not None) and ((p.z >= minZ))):
             tmp1 = None
-            if (((p != ear.prev) and ((p != ear.next))) and hxGeomAlgo_EarCut.pointInTriangle(a.x,a.y,b.x,b.y,c.x,c.y,p.x,p.y)):
+            if (((p != ear.prev) and ((p != ear.next)))
+                    and hxGeomAlgo_EarCut.pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, p.x, p.y)):
                 p2 = p.prev
                 r1 = p.next
                 tmp1 = (((((p.y - p2.y)) * ((r1.x - p.x))) - ((((p.x - p2.x)) * ((r1.y - p.y))))) >= 0)
@@ -635,12 +658,13 @@ class hxGeomAlgo_EarCut:
         return True
 
     @staticmethod
-    def cureLocalIntersections(start,triangles,dim):
+    def cureLocalIntersections(start, triangles, dim):
         p = start
         while True:
             a = p.prev
             b = p.next.next
-            if ((((not (((a.x == b.x) and ((a.y == b.y))))) and hxGeomAlgo_EarCut.intersects(a,p,p.next,b)) and hxGeomAlgo_EarCut.locallyInside(a,b)) and hxGeomAlgo_EarCut.locallyInside(b,a)):
+            if ((((not (((a.x == b.x) and ((a.y == b.y))))) and hxGeomAlgo_EarCut.intersects(a, p, p.next, b))
+                 and hxGeomAlgo_EarCut.locallyInside(a, b)) and hxGeomAlgo_EarCut.locallyInside(b, a)):
                 x = (a.i / dim)
                 x1 = None
                 try:
@@ -678,17 +702,17 @@ class hxGeomAlgo_EarCut:
         return p
 
     @staticmethod
-    def splitEarcut(start,triangles,dim,minX,minY,size):
+    def splitEarcut(start, triangles, dim, minX, minY, size):
         a = start
         while True:
             b = a.next.next
             while (b != a.prev):
-                if ((a.i != b.i) and hxGeomAlgo_EarCut.isValidDiagonal(a,b)):
-                    c = hxGeomAlgo_EarCut.splitPolygon(a,b)
-                    a = hxGeomAlgo_EarCut.filterPoints(a,a.next)
-                    c = hxGeomAlgo_EarCut.filterPoints(c,c.next)
-                    hxGeomAlgo_EarCut.earcutLinked(a,triangles,dim,minX,minY,size)
-                    hxGeomAlgo_EarCut.earcutLinked(c,triangles,dim,minX,minY,size)
+                if ((a.i != b.i) and hxGeomAlgo_EarCut.isValidDiagonal(a, b)):
+                    c = hxGeomAlgo_EarCut.splitPolygon(a, b)
+                    a = hxGeomAlgo_EarCut.filterPoints(a, a.next)
+                    c = hxGeomAlgo_EarCut.filterPoints(c, c.next)
+                    hxGeomAlgo_EarCut.earcutLinked(a, triangles, dim, minX, minY, size)
+                    hxGeomAlgo_EarCut.earcutLinked(c, triangles, dim, minX, minY, size)
                     return
                 b = b.next
             a = a.next
@@ -696,7 +720,7 @@ class hxGeomAlgo_EarCut:
                 break
 
     @staticmethod
-    def eliminateHoles(data,holeIndices,outerNode,dim):
+    def eliminateHoles(data, holeIndices, outerNode, dim):
         queue = []
         start = None
         end = None
@@ -705,25 +729,26 @@ class hxGeomAlgo_EarCut:
         _hx_len = len(holeIndices)
         while (i < _hx_len):
             start = ((holeIndices[i] if i >= 0 and i < len(holeIndices) else None) * dim)
-            end = ((python_internal_ArrayImpl._get(holeIndices, (i + 1)) * dim) if ((i < ((_hx_len - 1)))) else len(data))
-            _hx_list = hxGeomAlgo_EarCut.linkedList(data,start,end,dim,False)
+            end = ((python_internal_ArrayImpl._get(holeIndices, (i + 1)) * dim) if ((i <
+                                                                                     ((_hx_len - 1)))) else len(data))
+            _hx_list = hxGeomAlgo_EarCut.linkedList(data, start, end, dim, False)
             if (_hx_list == _hx_list.next):
                 _hx_list.steiner = True
             x = hxGeomAlgo_EarCut.getLeftmost(_hx_list)
             queue.append(x)
             i = (i + 1)
-        haxe_ds_ArraySort.sort(queue,hxGeomAlgo_EarCut.compareX)
+        haxe_ds_ArraySort.sort(queue, hxGeomAlgo_EarCut.compareX)
         _g = 0
         _g1 = len(queue)
         while (_g < _g1):
             i1 = _g
             _g = (_g + 1)
-            hxGeomAlgo_EarCut.eliminateHole((queue[i1] if i1 >= 0 and i1 < len(queue) else None),outerNode)
-            outerNode = hxGeomAlgo_EarCut.filterPoints(outerNode,outerNode.next)
+            hxGeomAlgo_EarCut.eliminateHole((queue[i1] if i1 >= 0 and i1 < len(queue) else None), outerNode)
+            outerNode = hxGeomAlgo_EarCut.filterPoints(outerNode, outerNode.next)
         return outerNode
 
     @staticmethod
-    def compareX(a,b):
+    def compareX(a, b):
         x = (a.x - b.x)
         try:
             return int(x)
@@ -733,14 +758,14 @@ class hxGeomAlgo_EarCut:
             return None
 
     @staticmethod
-    def eliminateHole(hole,outerNode):
-        outerNode = hxGeomAlgo_EarCut.findHoleBridge(hole,outerNode)
+    def eliminateHole(hole, outerNode):
+        outerNode = hxGeomAlgo_EarCut.findHoleBridge(hole, outerNode)
         if (outerNode is not None):
-            b = hxGeomAlgo_EarCut.splitPolygon(outerNode,hole)
-            hxGeomAlgo_EarCut.filterPoints(b,b.next)
+            b = hxGeomAlgo_EarCut.splitPolygon(outerNode, hole)
+            hxGeomAlgo_EarCut.filterPoints(b, b.next)
 
     @staticmethod
-    def findHoleBridge(hole,outerNode):
+    def findHoleBridge(hole, outerNode):
         p = outerNode
         hx = hole.x
         hy = hole.y
@@ -773,20 +798,22 @@ class hxGeomAlgo_EarCut:
         tan = None
         p = m.next
         while (p != stop):
-            if (((hx >= p.x) and ((p.x >= mx))) and hxGeomAlgo_EarCut.pointInTriangle((hx if ((hy < my)) else qx),hy,mx,my,(qx if ((hy < my)) else hx),hy,p.x,p.y)):
-                tan = (Reflect.field(Math,"fabs")((hy - p.y)) / ((hx - p.x)))
-                if ((((tan < tanMin) or (((tan == tanMin) and ((p.x > m.x)))))) and hxGeomAlgo_EarCut.locallyInside(p,hole)):
+            if (((hx >= p.x) and ((p.x >= mx))) and hxGeomAlgo_EarCut.pointInTriangle(
+                (hx if ((hy < my)) else qx), hy, mx, my, (qx if ((hy < my)) else hx), hy, p.x, p.y)):
+                tan = (Reflect.field(Math, "fabs")((hy - p.y)) / ((hx - p.x)))
+                if ((((tan < tanMin) or (((tan == tanMin) and ((p.x > m.x))))))
+                        and hxGeomAlgo_EarCut.locallyInside(p, hole)):
                     m = p
                     tanMin = tan
             p = p.next
         return m
 
     @staticmethod
-    def indexCurve(start,minX,minY,size):
+    def indexCurve(start, minX, minY, size):
         p = start
         while True:
             if (p.z is None):
-                p.z = hxGeomAlgo_EarCut.zOrder(p.x,p.y,minX,minY,size)
+                p.z = hxGeomAlgo_EarCut.zOrder(p.x, p.y, minX, minY, size)
             p.prevZ = p.prev
             p.nextZ = p.next
             p = p.next
@@ -857,7 +884,7 @@ class hxGeomAlgo_EarCut:
         return _hx_list
 
     @staticmethod
-    def zOrder(x,y,minX,minY,size):
+    def zOrder(x, y, minX, minY, size):
         _x = None
         try:
             _x = int(((32767 * ((x - minX))) / size))
@@ -897,44 +924,51 @@ class hxGeomAlgo_EarCut:
         return leftmost
 
     @staticmethod
-    def pointInTriangle(ax,ay,bx,by,cx,cy,px,py):
-        if ((((((cx - px)) * ((ay - py))) - ((((ax - px)) * ((cy - py))))) >= 0) and ((((((ax - px)) * ((by - py))) - ((((bx - px)) * ((ay - py))))) >= 0))):
+    def pointInTriangle(ax, ay, bx, by, cx, cy, px, py):
+        if ((((((cx - px)) * ((ay - py))) - ((((ax - px)) * ((cy - py))))) >= 0)
+                and ((((((ax - px)) * ((by - py))) - ((((bx - px)) * ((ay - py))))) >= 0))):
             return (((((bx - px)) * ((cy - py))) - ((((cx - px)) * ((by - py))))) >= 0)
         else:
             return False
 
     @staticmethod
-    def isValidDiagonal(a,b):
-        if (((((a.next.i != b.i) and ((a.prev.i != b.i))) and (not hxGeomAlgo_EarCut.intersectsPolygon(a,b))) and hxGeomAlgo_EarCut.locallyInside(a,b)) and hxGeomAlgo_EarCut.locallyInside(b,a)):
-            return hxGeomAlgo_EarCut.middleInside(a,b)
+    def isValidDiagonal(a, b):
+        if (((((a.next.i != b.i) and ((a.prev.i != b.i))) and
+              (not hxGeomAlgo_EarCut.intersectsPolygon(a, b))) and hxGeomAlgo_EarCut.locallyInside(a, b))
+                and hxGeomAlgo_EarCut.locallyInside(b, a)):
+            return hxGeomAlgo_EarCut.middleInside(a, b)
         else:
             return False
 
     @staticmethod
-    def area(p,q,r):
+    def area(p, q, r):
         return ((((q.y - p.y)) * ((r.x - q.x))) - ((((q.x - p.x)) * ((r.y - q.y)))))
 
     @staticmethod
-    def equals(p1,p2):
+    def equals(p1, p2):
         if (p1.x == p2.x):
             return (p1.y == p2.y)
         else:
             return False
 
     @staticmethod
-    def intersects(p1,q1,p2,q2):
-        if ((((p1.x == q1.x) and ((p1.y == q1.y))) and (((p2.x == q2.x) and ((p2.y == q2.y))))) or ((((p1.x == q2.x) and ((p1.y == q2.y))) and (((p2.x == q1.x) and ((p2.y == q1.y))))))):
+    def intersects(p1, q1, p2, q2):
+        if ((((p1.x == q1.x) and ((p1.y == q1.y))) and (((p2.x == q2.x) and ((p2.y == q2.y)))))
+                or ((((p1.x == q2.x) and ((p1.y == q2.y))) and (((p2.x == q1.x) and ((p2.y == q1.y))))))):
             return True
-        if ((((((q1.y - p1.y)) * ((p2.x - q1.x))) - ((((q1.x - p1.x)) * ((p2.y - q1.y))))) > 0) != ((((((q1.y - p1.y)) * ((q2.x - q1.x))) - ((((q1.x - p1.x)) * ((q2.y - q1.y))))) > 0))):
-            return ((((((q2.y - p2.y)) * ((p1.x - q2.x))) - ((((q2.x - p2.x)) * ((p1.y - q2.y))))) > 0) != ((((((q2.y - p2.y)) * ((q1.x - q2.x))) - ((((q2.x - p2.x)) * ((q1.y - q2.y))))) > 0)))
+        if ((((((q1.y - p1.y)) * ((p2.x - q1.x))) - ((((q1.x - p1.x)) * ((p2.y - q1.y))))) > 0) !=
+            ((((((q1.y - p1.y)) * ((q2.x - q1.x))) - ((((q1.x - p1.x)) * ((q2.y - q1.y))))) > 0))):
+            return ((((((q2.y - p2.y)) * ((p1.x - q2.x))) - ((((q2.x - p2.x)) * ((p1.y - q2.y))))) > 0) !=
+                    ((((((q2.y - p2.y)) * ((q1.x - q2.x))) - ((((q2.x - p2.x)) * ((q1.y - q2.y))))) > 0)))
         else:
             return False
 
     @staticmethod
-    def intersectsPolygon(a,b):
+    def intersectsPolygon(a, b):
         p = a
         while True:
-            if (((((p.i != a.i) and ((p.next.i != a.i))) and ((p.i != b.i))) and ((p.next.i != b.i))) and hxGeomAlgo_EarCut.intersects(p,p.next,a,b)):
+            if (((((p.i != a.i) and ((p.next.i != a.i))) and ((p.i != b.i))) and ((p.next.i != b.i)))
+                    and hxGeomAlgo_EarCut.intersects(p, p.next, a, b)):
                 return True
             p = p.next
             if (not ((p != a))):
@@ -942,7 +976,7 @@ class hxGeomAlgo_EarCut:
         return False
 
     @staticmethod
-    def locallyInside(a,b):
+    def locallyInside(a, b):
         p = a.prev
         r = a.next
         if (((((a.y - p.y)) * ((r.x - a.x))) - ((((a.x - p.x)) * ((r.y - a.y))))) < 0):
@@ -961,13 +995,14 @@ class hxGeomAlgo_EarCut:
                 return True
 
     @staticmethod
-    def middleInside(a,b):
+    def middleInside(a, b):
         p = a
         inside = False
         px = (((a.x + b.x)) / 2)
         py = (((a.y + b.y)) / 2)
         while True:
-            if (((p.y > py) != ((p.next.y > py))) and ((px < ((((((p.next.x - p.x)) * ((py - p.y))) / ((p.next.y - p.y))) + p.x))))):
+            if (((p.y > py) != ((p.next.y > py)))
+                    and ((px < ((((((p.next.x - p.x)) * ((py - p.y))) / ((p.next.y - p.y))) + p.x))))):
                 inside = (not inside)
             p = p.next
             if (not ((p != a))):
@@ -975,9 +1010,9 @@ class hxGeomAlgo_EarCut:
         return inside
 
     @staticmethod
-    def splitPolygon(a,b):
-        a2 = hxGeomAlgo_EarNode(a.i,a.x,a.y)
-        b2 = hxGeomAlgo_EarNode(b.i,b.x,b.y)
+    def splitPolygon(a, b):
+        a2 = hxGeomAlgo_EarNode(a.i, a.x, a.y)
+        b2 = hxGeomAlgo_EarNode(b.i, b.x, b.y)
         an = a.next
         bp = b.prev
         a.next = b
@@ -991,8 +1026,8 @@ class hxGeomAlgo_EarCut:
         return b2
 
     @staticmethod
-    def insertNode(i,x,y,last = None):
-        p = hxGeomAlgo_EarNode(i,x,y)
+    def insertNode(i, x, y, last=None):
+        p = hxGeomAlgo_EarNode(i, x, y)
         if (last is None):
             p.prev = p
             p.next = p
@@ -1013,19 +1048,20 @@ class hxGeomAlgo_EarCut:
             p.nextZ.prevZ = p.prevZ
 
     @staticmethod
-    def deviation(data,holeIndices,dim,triangles):
+    def deviation(data, holeIndices, dim, triangles):
         hasHoles = ((holeIndices is not None) and ((len(holeIndices) > 0)))
         outerLen = (((holeIndices[0] if 0 < len(holeIndices) else None) * dim) if hasHoles else len(data))
-        v = hxGeomAlgo_EarCut.signedArea(data,0,outerLen,dim)
-        polygonArea = Reflect.field(Math,"fabs")(v)
+        v = hxGeomAlgo_EarCut.signedArea(data, 0, outerLen, dim)
+        polygonArea = Reflect.field(Math, "fabs")(v)
         if hasHoles:
             i = 0
             _hx_len = len(holeIndices)
             while (i < _hx_len):
                 start = ((holeIndices[i] if i >= 0 and i < len(holeIndices) else None) * dim)
-                end = ((python_internal_ArrayImpl._get(holeIndices, (i + 1)) * dim) if ((i < ((_hx_len - 1)))) else len(data))
-                v1 = hxGeomAlgo_EarCut.signedArea(data,start,end,dim)
-                polygonArea = (polygonArea - Reflect.field(Math,"fabs")(v1))
+                end = ((python_internal_ArrayImpl._get(holeIndices, (i + 1)) * dim) if
+                       ((i < ((_hx_len - 1)))) else len(data))
+                v1 = hxGeomAlgo_EarCut.signedArea(data, start, end, dim)
+                polygonArea = (polygonArea - Reflect.field(Math, "fabs")(v1))
                 i = (i + 1)
         trianglesArea = 0.
         i1 = 0
@@ -1033,20 +1069,31 @@ class hxGeomAlgo_EarCut:
             a = ((triangles[i1] if i1 >= 0 and i1 < len(triangles) else None) * dim)
             b = (python_internal_ArrayImpl._get(triangles, (i1 + 1)) * dim)
             c = (python_internal_ArrayImpl._get(triangles, (i1 + 2)) * dim)
-            trianglesArea = (trianglesArea + Reflect.field(Math,"fabs")((((((data[a] if a >= 0 and a < len(data) else None) - (data[c] if c >= 0 and c < len(data) else None))) * ((python_internal_ArrayImpl._get(data, (b + 1)) - python_internal_ArrayImpl._get(data, (a + 1))))) - (((((data[a] if a >= 0 and a < len(data) else None) - (data[b] if b >= 0 and b < len(data) else None))) * ((python_internal_ArrayImpl._get(data, (c + 1)) - python_internal_ArrayImpl._get(data, (a + 1)))))))))
+            trianglesArea = (trianglesArea + Reflect.field(Math, "fabs")(
+                (((((data[a] if a >= 0 and a < len(data) else None) -
+                    (data[c] if c >= 0 and c < len(data) else None))) *
+                  ((python_internal_ArrayImpl._get(data, (b + 1)) - python_internal_ArrayImpl._get(data, (a + 1))))) -
+                 (((((data[a] if a >= 0 and a < len(data) else None) -
+                     (data[b] if b >= 0 and b < len(data) else None))) *
+                   ((python_internal_ArrayImpl._get(data, (c + 1)) - python_internal_ArrayImpl._get(data,
+                                                                                                    (a + 1)))))))))
             i1 = (i1 + 3)
         if ((polygonArea == 0) and ((trianglesArea == 0))):
             return 0
         else:
-            return Reflect.field(Math,"fabs")((((trianglesArea - polygonArea)) / polygonArea))
+            return Reflect.field(Math, "fabs")((((trianglesArea - polygonArea)) / polygonArea))
 
     @staticmethod
-    def signedArea(data,start,end,dim):
+    def signedArea(data, start, end, dim):
         sum = 0.
         i = start
         j = (end - dim)
         while (i < end):
-            sum = (sum + (((((data[j] if j >= 0 and j < len(data) else None) - (data[i] if i >= 0 and i < len(data) else None))) * ((python_internal_ArrayImpl._get(data, (i + 1)) + python_internal_ArrayImpl._get(data, (j + 1)))))))
+            sum = (sum + (((((data[j] if j >= 0 and j < len(data) else None) -
+                             (data[i] if i >= 0 and i < len(data) else None))) *
+                           ((python_internal_ArrayImpl._get(data,
+                                                            (i + 1)) + python_internal_ArrayImpl._get(data,
+                                                                                                      (j + 1)))))))
             j = i
             i = (i + dim)
         return sum
@@ -1072,7 +1119,9 @@ class hxGeomAlgo_EarCut:
                     d = _g3
                     _g3 = (_g3 + 1)
                     _this = result.vertices
-                    _this.append(python_internal_ArrayImpl._get(python_internal_ArrayImpl._get((data[i] if i >= 0 and i < len(data) else None), j), d))
+                    _this.append(
+                        python_internal_ArrayImpl._get(
+                            python_internal_ArrayImpl._get((data[i] if i >= 0 and i < len(data) else None), j), d))
             if (i > 0):
                 holeIndex = (holeIndex + len(python_internal_ArrayImpl._get(data, (i - 1))))
                 _this1 = result.holes
@@ -1117,7 +1166,8 @@ class hxGeomAlgo_EarCut:
                         _g4 = (_g4 + 1)
                         if (covered[i2] if i2 >= 0 and i2 < len(covered) else None):
                             continue
-                        newPoly = hxGeomAlgo_EarCut.addTriangle(poly,(triangulation[i2] if i2 >= 0 and i2 < len(triangulation) else None))
+                        newPoly = hxGeomAlgo_EarCut.addTriangle(
+                            poly, (triangulation[i2] if i2 >= 0 and i2 < len(triangulation) else None))
                         if (newPoly is None):
                             continue
                         if hxGeomAlgo_PolyTools.isConvex(newPoly):
@@ -1127,7 +1177,7 @@ class hxGeomAlgo_EarCut:
         return polys
 
     @staticmethod
-    def addTriangle(poly,t):
+    def addTriangle(poly, t):
         firstP = -1
         firstT = -1
         secondP = -1
@@ -1137,21 +1187,24 @@ class hxGeomAlgo_EarCut:
         while (_g < _g1):
             i = _g
             _g = (_g + 1)
-            if (((t[0] if 0 < len(t) else None).x == (poly[i] if i >= 0 and i < len(poly) else None).x) and (((t[0] if 0 < len(t) else None).y == (poly[i] if i >= 0 and i < len(poly) else None).y))):
+            if (((t[0] if 0 < len(t) else None).x == (poly[i] if i >= 0 and i < len(poly) else None).x)
+                    and (((t[0] if 0 < len(t) else None).y == (poly[i] if i >= 0 and i < len(poly) else None).y))):
                 if (firstP == -1):
                     firstP = i
                     firstT = 0
                 else:
                     secondP = i
                     secondT = 0
-            elif (((t[1] if 1 < len(t) else None).x == (poly[i] if i >= 0 and i < len(poly) else None).x) and (((t[1] if 1 < len(t) else None).y == (poly[i] if i >= 0 and i < len(poly) else None).y))):
+            elif (((t[1] if 1 < len(t) else None).x == (poly[i] if i >= 0 and i < len(poly) else None).x)
+                  and (((t[1] if 1 < len(t) else None).y == (poly[i] if i >= 0 and i < len(poly) else None).y))):
                 if (firstP == -1):
                     firstP = i
                     firstT = 1
                 else:
                     secondP = i
                     secondT = 1
-            elif (((t[2] if 2 < len(t) else None).x == (poly[i] if i >= 0 and i < len(poly) else None).x) and (((t[2] if 2 < len(t) else None).y == (poly[i] if i >= 0 and i < len(poly) else None).y))):
+            elif (((t[2] if 2 < len(t) else None).x == (poly[i] if i >= 0 and i < len(poly) else None).x)
+                  and (((t[2] if 2 < len(t) else None).y == (poly[i] if i >= 0 and i < len(poly) else None).y))):
                 if (firstP == -1):
                     firstP = i
                     firstT = 2
@@ -1185,7 +1238,7 @@ class hxGeomAlgo_EarNode:
     __slots__ = ("i", "x", "y", "prev", "next", "z", "prevZ", "nextZ", "steiner")
     _hx_fields = ["i", "x", "y", "prev", "next", "z", "prevZ", "nextZ", "steiner"]
 
-    def __init__(self,i,x,y):
+    def __init__(self, i, x, y):
         self.i = i
         self.x = x
         self.y = y
@@ -1197,15 +1250,17 @@ class hxGeomAlgo_EarNode:
         self.steiner = False
 
 
-
 class hxGeomAlgo_HomogCoord:
     _hx_class_name = "hxGeomAlgo.HomogCoord"
     __slots__ = ("x", "y", "w")
     _hx_fields = ["x", "y", "w"]
-    _hx_methods = ["add", "sub", "neg", "mul", "div", "normalize", "lengthSquared", "length", "perp", "dotPoint", "dot", "perpdot", "dotperp", "equals", "left", "right", "toScreen", "toPoint", "meet", "meetPoint", "toString"]
+    _hx_methods = [
+        "add", "sub", "neg", "mul", "div", "normalize", "lengthSquared", "length", "perp", "dotPoint", "dot",
+        "perpdot", "dotperp", "equals", "left", "right", "toScreen", "toPoint", "meet", "meetPoint", "toString"
+    ]
     _hx_statics = ["INFINITY", "det", "ccw", "cw"]
 
-    def __init__(self,x = None,y = None,w = None):
+    def __init__(self, x=None, y=None, w=None):
         if (x is None):
             x = 0
         if (y is None):
@@ -1216,7 +1271,7 @@ class hxGeomAlgo_HomogCoord:
         self.y = y
         self.w = w
 
-    def add(self,p):
+    def add(self, p):
         _hx_local_0 = self
         _hx_local_1 = _hx_local_0.x
         _hx_local_0.x = (_hx_local_1 + p.x)
@@ -1227,7 +1282,7 @@ class hxGeomAlgo_HomogCoord:
         _hx_local_2.y
         return self
 
-    def sub(self,p):
+    def sub(self, p):
         _hx_local_0 = self
         _hx_local_1 = _hx_local_0.x
         _hx_local_0.x = (_hx_local_1 - p.x)
@@ -1244,7 +1299,7 @@ class hxGeomAlgo_HomogCoord:
         self.y = -self.y
         return self
 
-    def mul(self,m):
+    def mul(self, m):
         _hx_local_0 = self
         _hx_local_1 = _hx_local_0.w
         _hx_local_0.w = (_hx_local_1 * m)
@@ -1259,7 +1314,7 @@ class hxGeomAlgo_HomogCoord:
         _hx_local_4.y
         return self
 
-    def div(self,m):
+    def div(self, m):
         _hx_local_0 = self
         _hx_local_1 = _hx_local_0.w
         _hx_local_0.w = (_hx_local_1 / m)
@@ -1293,57 +1348,58 @@ class hxGeomAlgo_HomogCoord:
         self.x = tmp
         return self
 
-    def dotPoint(self,p):
+    def dotPoint(self, p):
         return ((self.w + ((self.x * p.x))) + ((self.y * p.y)))
 
-    def dot(self,p):
+    def dot(self, p):
         return (((self.w * p.w) + ((self.x * p.x))) + ((self.y * p.y)))
 
-    def perpdot(self,p):
+    def perpdot(self, p):
         return ((self.x * p.y) - ((self.y * p.x)))
 
-    def dotperp(self,p):
+    def dotperp(self, p):
         return ((-self.x * p.y) + ((self.y * p.x)))
 
-    def equals(self,p):
+    def equals(self, p):
         if ((p.w * self.x) == ((self.w * p.x))):
             return ((p.w * self.y) == ((self.w * p.y)))
         else:
             return False
 
-    def left(self,p):
+    def left(self, p):
         return (self.dotPoint(p) > 0)
 
-    def right(self,p):
+    def right(self, p):
         return (self.dotPoint(p) < 0)
 
     def toScreen(self):
-        return hxGeomAlgo__HxPoint_HxPoint_Impl_._new((self.x / self.w),(-self.y / self.w))
+        return hxGeomAlgo__HxPoint_HxPoint_Impl_._new((self.x / self.w), (-self.y / self.w))
 
     def toPoint(self):
-        return hxGeomAlgo__HxPoint_HxPoint_Impl_._new((self.x / self.w),(self.y / self.w))
+        return hxGeomAlgo__HxPoint_HxPoint_Impl_._new((self.x / self.w), (self.y / self.w))
 
-    def meet(self,p):
-        return hxGeomAlgo_HomogCoord(((p.w * self.y) - ((self.w * p.y))),((self.w * p.x) - ((p.w * self.x))),((self.x * p.y) - ((self.y * p.x))))
+    def meet(self, p):
+        return hxGeomAlgo_HomogCoord(((p.w * self.y) - ((self.w * p.y))), ((self.w * p.x) - ((p.w * self.x))),
+                                     ((self.x * p.y) - ((self.y * p.x))))
 
-    def meetPoint(self,p):
-        return hxGeomAlgo_HomogCoord((self.y - ((self.w * p.y))),((self.w * p.x) - self.x),((self.x * p.y) - ((self.y * p.x))))
+    def meetPoint(self, p):
+        return hxGeomAlgo_HomogCoord((self.y - ((self.w * p.y))), ((self.w * p.x) - self.x),
+                                     ((self.x * p.y) - ((self.y * p.x))))
 
     def toString(self):
         return ((((((" (w:" + str(self.w)) + "; x:") + str(self.x)) + ", y:") + str(self.y)) + ")  ")
 
     @staticmethod
-    def det(p,q,r):
+    def det(p, q, r):
         return (((p.w * q.perpdot(r)) - ((q.w * p.perpdot(r)))) + ((r.w * p.perpdot(q))))
 
     @staticmethod
-    def ccw(p,q,r):
-        return (hxGeomAlgo_HomogCoord.det(p,q,r) > 0)
+    def ccw(p, q, r):
+        return (hxGeomAlgo_HomogCoord.det(p, q, r) > 0)
 
     @staticmethod
-    def cw(p,q,r):
-        return (hxGeomAlgo_HomogCoord.det(p,q,r) < 0)
-
+    def cw(p, q, r):
+        return (hxGeomAlgo_HomogCoord.det(p, q, r) < 0)
 
 
 class hxGeomAlgo_HxPointData:
@@ -1352,7 +1408,7 @@ class hxGeomAlgo_HxPointData:
     _hx_fields = ["x", "y"]
     _hx_methods = ["toString"]
 
-    def __init__(self,x = None,y = None):
+    def __init__(self, x=None, y=None):
         if (x is None):
             x = 0
         if (y is None):
@@ -1364,11 +1420,13 @@ class hxGeomAlgo_HxPointData:
         return (((("(" + str(self.x)) + ", ") + str(self.y)) + ")")
 
 
-
 class hxGeomAlgo__HxPoint_HxPoint_Impl_:
     _hx_class_name = "hxGeomAlgo._HxPoint.HxPoint_Impl_"
     __slots__ = ()
-    _hx_statics = ["EMPTY", "get_x", "set_x", "get_y", "set_y", "_new", "setTo", "equals", "clone", "toString", "fromPointStruct", "toPointStruct"]
+    _hx_statics = [
+        "EMPTY", "get_x", "set_x", "get_y", "set_y", "_new", "setTo", "equals", "clone", "toString", "fromPointStruct",
+        "toPointStruct"
+    ]
     x = None
     y = None
 
@@ -1377,12 +1435,14 @@ class hxGeomAlgo__HxPoint_HxPoint_Impl_:
         return this1.x
 
     @staticmethod
-    def set_x(this1,value):
+    def set_x(this1, value):
         def _hx_local_1():
             def _hx_local_0():
                 this1.x = value
                 return this1.x
+
             return _hx_local_0()
+
         return _hx_local_1()
 
     @staticmethod
@@ -1390,30 +1450,32 @@ class hxGeomAlgo__HxPoint_HxPoint_Impl_:
         return this1.y
 
     @staticmethod
-    def set_y(this1,value):
+    def set_y(this1, value):
         def _hx_local_1():
             def _hx_local_0():
                 this1.y = value
                 return this1.y
+
             return _hx_local_0()
+
         return _hx_local_1()
 
     @staticmethod
-    def _new(x = None,y = None):
+    def _new(x=None, y=None):
         if (x is None):
             x = 0
         if (y is None):
             y = 0
-        this1 = hxGeomAlgo_HxPointData(x,y)
+        this1 = hxGeomAlgo_HxPointData(x, y)
         return this1
 
     @staticmethod
-    def setTo(this1,newX,newY):
+    def setTo(this1, newX, newY):
         this1.x = newX
         this1.y = newY
 
     @staticmethod
-    def equals(this1,p):
+    def equals(this1, p):
         if ((p is not None) and ((this1.x == p.x))):
             return (this1.y == p.y)
         else:
@@ -1421,7 +1483,7 @@ class hxGeomAlgo__HxPoint_HxPoint_Impl_:
 
     @staticmethod
     def clone(this1):
-        return hxGeomAlgo__HxPoint_HxPoint_Impl_._new(this1.x,this1.y)
+        return hxGeomAlgo__HxPoint_HxPoint_Impl_._new(this1.x, this1.y)
 
     @staticmethod
     def toString(this1):
@@ -1429,7 +1491,7 @@ class hxGeomAlgo__HxPoint_HxPoint_Impl_:
 
     @staticmethod
     def fromPointStruct(p):
-        return hxGeomAlgo__HxPoint_HxPoint_Impl_._new(p.x,p.y)
+        return hxGeomAlgo__HxPoint_HxPoint_Impl_._new(p.x, p.y)
 
     @staticmethod
     def toPointStruct(this1):
@@ -1439,7 +1501,14 @@ class hxGeomAlgo__HxPoint_HxPoint_Impl_:
 class hxGeomAlgo_PolyTools:
     _hx_class_name = "hxGeomAlgo.PolyTools"
     __slots__ = ()
-    _hx_statics = ["point", "zero", "EPSILON", "isCCW", "isCW", "makeCCW", "makeCW", "isConvex", "isSimple", "segmentIntersect", "findDuplicatePoints", "intersection", "isReflex", "at", "wrappedIdx", "side", "isLeft", "isLeftOrOn", "isRight", "isRightOrOn", "isCollinear", "distance", "distanceToSegment", "distanceSquared", "distanceToSegmentSquared", "getCentroid", "getArea", "meet", "dot", "sqr", "eq", "clear", "toFloatArray", "reverseFloatArray", "flatten", "toPointArray", "parsePoints", "inflateLine", "clip", "lerp", "lerpPoints", "exposeEnum"]
+    _hx_statics = [
+        "point", "zero", "EPSILON", "isCCW", "isCW", "makeCCW", "makeCW", "isConvex", "isSimple", "segmentIntersect",
+        "findDuplicatePoints", "intersection", "isReflex", "at", "wrappedIdx", "side", "isLeft", "isLeftOrOn",
+        "isRight", "isRightOrOn", "isCollinear", "distance", "distanceToSegment", "distanceSquared",
+        "distanceToSegmentSquared", "getCentroid", "getArea", "meet", "dot", "sqr", "eq", "clear", "toFloatArray",
+        "reverseFloatArray", "flatten", "toPointArray", "parsePoints", "inflateLine", "clip", "lerp", "lerpPoints",
+        "exposeEnum"
+    ]
 
     @staticmethod
     def isCCW(poly):
@@ -1463,7 +1532,10 @@ class hxGeomAlgo_PolyTools:
             if (idx3 < 0):
                 idx3 = (idx3 + len1)
             idx2 = HxOverrides.mod(idx3, len1)
-            signedArea = (signedArea + ((((poly[idx] if idx >= 0 and idx < len(poly) else None).x * (poly[i] if i >= 0 and i < len(poly) else None).y) - (((poly[i] if i >= 0 and i < len(poly) else None).x * (poly[idx2] if idx2 >= 0 and idx2 < len(poly) else None).y)))))
+            signedArea = (signedArea + ((((poly[idx] if idx >= 0 and idx < len(poly) else None).x *
+                                          (poly[i] if i >= 0 and i < len(poly) else None).y) -
+                                         (((poly[i] if i >= 0 and i < len(poly) else None).x *
+                                           (poly[idx2] if idx2 >= 0 and idx2 < len(poly) else None).y)))))
         return (signedArea < 0)
 
     @staticmethod
@@ -1488,7 +1560,10 @@ class hxGeomAlgo_PolyTools:
             if (idx3 < 0):
                 idx3 = (idx3 + len1)
             idx2 = HxOverrides.mod(idx3, len1)
-            signedArea = (signedArea + ((((poly[idx] if idx >= 0 and idx < len(poly) else None).x * (poly[i] if i >= 0 and i < len(poly) else None).y) - (((poly[i] if i >= 0 and i < len(poly) else None).x * (poly[idx2] if idx2 >= 0 and idx2 < len(poly) else None).y)))))
+            signedArea = (signedArea + ((((poly[idx] if idx >= 0 and idx < len(poly) else None).x *
+                                          (poly[i] if i >= 0 and i < len(poly) else None).y) -
+                                         (((poly[i] if i >= 0 and i < len(poly) else None).x *
+                                           (poly[idx2] if idx2 >= 0 and idx2 < len(poly) else None).y)))))
         return (signedArea > 0)
 
     @staticmethod
@@ -1518,10 +1593,14 @@ class hxGeomAlgo_PolyTools:
             lower = ((len(poly) - 1) if ((i == 0)) else (i - 1))
             middle = i
             upper = (0 if ((i == ((len(poly) - 1)))) else (i + 1))
-            dx0 = ((poly[middle] if middle >= 0 and middle < len(poly) else None).x - (poly[lower] if lower >= 0 and lower < len(poly) else None).x)
-            dy0 = ((poly[middle] if middle >= 0 and middle < len(poly) else None).y - (poly[lower] if lower >= 0 and lower < len(poly) else None).y)
-            dx1 = ((poly[upper] if upper >= 0 and upper < len(poly) else None).x - (poly[middle] if middle >= 0 and middle < len(poly) else None).x)
-            dy1 = ((poly[upper] if upper >= 0 and upper < len(poly) else None).y - (poly[middle] if middle >= 0 and middle < len(poly) else None).y)
+            dx0 = ((poly[middle] if middle >= 0 and middle < len(poly) else None).x -
+                   (poly[lower] if lower >= 0 and lower < len(poly) else None).x)
+            dy0 = ((poly[middle] if middle >= 0 and middle < len(poly) else None).y -
+                   (poly[lower] if lower >= 0 and lower < len(poly) else None).y)
+            dx1 = ((poly[upper] if upper >= 0 and upper < len(poly) else None).x -
+                   (poly[middle] if middle >= 0 and middle < len(poly) else None).x)
+            dy1 = ((poly[upper] if upper >= 0 and upper < len(poly) else None).y -
+                   (poly[middle] if middle >= 0 and middle < len(poly) else None).y)
             cross = ((dx0 * dy1) - ((dx1 * dy0)))
             newIsPositive = (cross > 0)
             if (cross == 0):
@@ -1551,7 +1630,11 @@ class hxGeomAlgo_PolyTools:
                 _g2 = (_g2 + 1)
                 q0 = j
                 q1 = (0 if ((j == ((_hx_len - 1)))) else (j + 1))
-                intersection = hxGeomAlgo_PolyTools.segmentIntersect((poly[p0] if p0 >= 0 and p0 < len(poly) else None),(poly[p1] if p1 >= 0 and p1 < len(poly) else None),(poly[q0] if q0 >= 0 and q0 < len(poly) else None),(poly[q1] if q1 >= 0 and q1 < len(poly) else None))
+                intersection = hxGeomAlgo_PolyTools.segmentIntersect(
+                    (poly[p0] if p0 >= 0 and p0 < len(poly) else None),
+                    (poly[p1] if p1 >= 0 and p1 < len(poly) else None),
+                    (poly[q0] if q0 >= 0 and q0 < len(poly) else None),
+                    (poly[q1] if q1 >= 0 and q1 < len(poly) else None))
                 tmp = None
                 tmp1 = None
                 if (intersection is not None):
@@ -1565,7 +1648,8 @@ class hxGeomAlgo_PolyTools:
                         x2 = (intersection.x - w1.x)
                         x3 = (intersection.y - w1.y)
                         v1 = ((x2 * x2) + ((x3 * x3)))
-                        tmp2 = (((Math.NaN if ((v1 < 0)) else python_lib_Math.sqrt(v1))) < hxGeomAlgo_PolyTools.EPSILON)
+                        tmp2 = (((Math.NaN if
+                                  ((v1 < 0)) else python_lib_Math.sqrt(v1))) < hxGeomAlgo_PolyTools.EPSILON)
                     else:
                         tmp2 = True
                     tmp1 = (not tmp2)
@@ -1577,12 +1661,14 @@ class hxGeomAlgo_PolyTools:
                     x4 = (intersection.x - w2.x)
                     x5 = (intersection.y - w2.y)
                     v2 = ((x4 * x4) + ((x5 * x5)))
-                    if (not ((((Math.NaN if ((v2 < 0)) else python_lib_Math.sqrt(v2))) < hxGeomAlgo_PolyTools.EPSILON))):
+                    if (not ((((Math.NaN if
+                                ((v2 < 0)) else python_lib_Math.sqrt(v2))) < hxGeomAlgo_PolyTools.EPSILON))):
                         w3 = (poly[q1] if q1 >= 0 and q1 < len(poly) else None)
                         x6 = (intersection.x - w3.x)
                         x7 = (intersection.y - w3.y)
                         v3 = ((x6 * x6) + ((x7 * x7)))
-                        tmp3 = (((Math.NaN if ((v3 < 0)) else python_lib_Math.sqrt(v3))) < hxGeomAlgo_PolyTools.EPSILON)
+                        tmp3 = (((Math.NaN if
+                                  ((v3 < 0)) else python_lib_Math.sqrt(v3))) < hxGeomAlgo_PolyTools.EPSILON)
                     else:
                         tmp3 = True
                     tmp = (not tmp3)
@@ -1593,7 +1679,7 @@ class hxGeomAlgo_PolyTools:
         return True
 
     @staticmethod
-    def segmentIntersect(p0,p1,q0,q1):
+    def segmentIntersect(p0, p1, q0, q1):
         a1 = (p1.y - p0.y)
         b1 = (p0.x - p1.x)
         c1 = ((p1.x * p0.y) - ((p0.x * p1.y)))
@@ -1631,7 +1717,7 @@ class hxGeomAlgo_PolyTools:
         return intersectionPoint
 
     @staticmethod
-    def findDuplicatePoints(poly,consecutiveOnly = None,wrapAround = None):
+    def findDuplicatePoints(poly, consecutiveOnly=None, wrapAround=None):
         if (consecutiveOnly is None):
             consecutiveOnly = True
         if (wrapAround is None):
@@ -1667,7 +1753,7 @@ class hxGeomAlgo_PolyTools:
         return dupIndices
 
     @staticmethod
-    def intersection(p1,p2,q1,q2):
+    def intersection(p1, p2, q1, q2):
         res = None
         a1 = (p2.y - p1.y)
         b1 = (p1.x - p2.x)
@@ -1676,14 +1762,14 @@ class hxGeomAlgo_PolyTools:
         b2 = (q1.x - q2.x)
         c2 = ((a2 * q1.x) + ((b2 * q1.y)))
         det = ((a1 * b2) - ((a2 * b1)))
-        if (not ((Reflect.field(Math,"fabs")(det) <= hxGeomAlgo_PolyTools.EPSILON))):
+        if (not ((Reflect.field(Math, "fabs")(det) <= hxGeomAlgo_PolyTools.EPSILON))):
             res = hxGeomAlgo__HxPoint_HxPoint_Impl_._new()
             res.x = ((((b2 * c1) - ((b1 * c2)))) / det)
             res.y = ((((a1 * c2) - ((a2 * c1)))) / det)
         return res
 
     @staticmethod
-    def isReflex(poly,idx):
+    def isReflex(poly, idx):
         idx1 = (idx - 1)
         idx2 = idx1
         _hx_len = len(poly)
@@ -1708,7 +1794,7 @@ class hxGeomAlgo_PolyTools:
         return (((((a.x - p.x)) * ((b.y - p.y))) - ((((b.x - p.x)) * ((a.y - p.y))))) < 0)
 
     @staticmethod
-    def at(poly,idx):
+    def at(poly, idx):
         idx1 = idx
         _hx_len = len(poly)
         if (idx1 < 0):
@@ -1717,38 +1803,38 @@ class hxGeomAlgo_PolyTools:
         return (poly[idx] if idx >= 0 and idx < len(poly) else None)
 
     @staticmethod
-    def wrappedIdx(poly,idx):
+    def wrappedIdx(poly, idx):
         _hx_len = len(poly)
         if (idx < 0):
             idx = (idx + _hx_len)
         return HxOverrides.mod(idx, _hx_len)
 
     @staticmethod
-    def side(p,a,b):
+    def side(p, a, b):
         return ((((a.x - p.x)) * ((b.y - p.y))) - ((((b.x - p.x)) * ((a.y - p.y)))))
 
     @staticmethod
-    def isLeft(p,a,b):
+    def isLeft(p, a, b):
         return (((((a.x - p.x)) * ((b.y - p.y))) - ((((b.x - p.x)) * ((a.y - p.y))))) > 0)
 
     @staticmethod
-    def isLeftOrOn(p,a,b):
+    def isLeftOrOn(p, a, b):
         return (((((a.x - p.x)) * ((b.y - p.y))) - ((((b.x - p.x)) * ((a.y - p.y))))) >= 0)
 
     @staticmethod
-    def isRight(p,a,b):
+    def isRight(p, a, b):
         return (((((a.x - p.x)) * ((b.y - p.y))) - ((((b.x - p.x)) * ((a.y - p.y))))) < 0)
 
     @staticmethod
-    def isRightOrOn(p,a,b):
+    def isRightOrOn(p, a, b):
         return (((((a.x - p.x)) * ((b.y - p.y))) - ((((b.x - p.x)) * ((a.y - p.y))))) <= 0)
 
     @staticmethod
-    def isCollinear(p,a,b):
+    def isCollinear(p, a, b):
         return (((((a.x - p.x)) * ((b.y - p.y))) - ((((b.x - p.x)) * ((a.y - p.y))))) == 0)
 
     @staticmethod
-    def distance(v,w):
+    def distance(v, w):
         x = (v.x - w.x)
         x1 = (v.y - w.y)
         v1 = ((x * x) + ((x1 * x1)))
@@ -1758,21 +1844,21 @@ class hxGeomAlgo_PolyTools:
             return python_lib_Math.sqrt(v1)
 
     @staticmethod
-    def distanceToSegment(p,v,w):
-        v1 = hxGeomAlgo_PolyTools.distanceToSegmentSquared(p,v,w)
+    def distanceToSegment(p, v, w):
+        v1 = hxGeomAlgo_PolyTools.distanceToSegmentSquared(p, v, w)
         if (v1 < 0):
             return Math.NaN
         else:
             return python_lib_Math.sqrt(v1)
 
     @staticmethod
-    def distanceSquared(v,w):
+    def distanceSquared(v, w):
         x = (v.x - w.x)
         x1 = (v.y - w.y)
         return ((x * x) + ((x1 * x1)))
 
     @staticmethod
-    def distanceToSegmentSquared(p,v,w):
+    def distanceToSegmentSquared(p, v, w):
         x = (v.x - w.x)
         x1 = (v.y - w.y)
         l2 = ((x * x) + ((x1 * x1)))
@@ -1847,11 +1933,11 @@ class hxGeomAlgo_PolyTools:
         return area
 
     @staticmethod
-    def meet(p,q):
-        return hxGeomAlgo_HomogCoord((p.y - q.y),(q.x - p.x),((p.x * q.y) - ((p.y * q.x))))
+    def meet(p, q):
+        return hxGeomAlgo_HomogCoord((p.y - q.y), (q.x - p.x), ((p.x * q.y) - ((p.y * q.x))))
 
     @staticmethod
-    def dot(p,q):
+    def dot(p, q):
         return ((p.x * q.x) + ((p.y * q.y)))
 
     @staticmethod
@@ -1859,15 +1945,15 @@ class hxGeomAlgo_PolyTools:
         return (x * x)
 
     @staticmethod
-    def eq(a,b):
-        return (Reflect.field(Math,"fabs")((a - b)) <= hxGeomAlgo_PolyTools.EPSILON)
+    def eq(a, b):
+        return (Reflect.field(Math, "fabs")((a - b)) <= hxGeomAlgo_PolyTools.EPSILON)
 
     @staticmethod
     def clear(array):
         array = []
 
     @staticmethod
-    def toFloatArray(poly,out = None):
+    def toFloatArray(poly, out=None):
         out = (out if ((out is not None)) else list())
         _g = 0
         while (_g < len(poly)):
@@ -1880,7 +1966,7 @@ class hxGeomAlgo_PolyTools:
         return out
 
     @staticmethod
-    def reverseFloatArray(poly,inPlace = None):
+    def reverseFloatArray(poly, inPlace=None):
         if (inPlace is None):
             inPlace = False
         res = (poly if inPlace else list())
@@ -1896,7 +1982,7 @@ class hxGeomAlgo_PolyTools:
         return res
 
     @staticmethod
-    def flatten(array,out = None):
+    def flatten(array, out=None):
         res = (out if ((out is not None)) else [])
         _g = 0
         while (_g < len(array)):
@@ -1910,7 +1996,7 @@ class hxGeomAlgo_PolyTools:
         return res
 
     @staticmethod
-    def toPointArray(poly,out = None):
+    def toPointArray(poly, out=None):
         out = (out if ((out is not None)) else list())
         size = len(poly)
         if (HxOverrides.mod(len(poly), 2) == 1):
@@ -1920,7 +2006,8 @@ class hxGeomAlgo_PolyTools:
         while (_g < _g1):
             i = _g
             _g = (_g + 1)
-            x = hxGeomAlgo__HxPoint_HxPoint_Impl_._new(python_internal_ArrayImpl._get(poly, (i * 2)),python_internal_ArrayImpl._get(poly, ((i * 2) + 1)))
+            x = hxGeomAlgo__HxPoint_HxPoint_Impl_._new(python_internal_ArrayImpl._get(poly, (i * 2)),
+                                                       python_internal_ArrayImpl._get(poly, ((i * 2) + 1)))
             out.append(x)
         return out
 
@@ -1931,7 +2018,8 @@ class hxGeomAlgo_PolyTools:
                 return (val != "")
             else:
                 return False
-        floats = list(map(Std.parseFloat,list(filter(_hx_local_0,EReg("[^-eE\\.\\d]+","g").split(_hx_str)))))
+
+        floats = list(map(Std.parseFloat, list(filter(_hx_local_0, EReg("[^-eE\\.\\d]+", "g").split(_hx_str)))))
         pts = list()
         n = len(floats)
         _g = 0
@@ -1946,12 +2034,13 @@ class hxGeomAlgo_PolyTools:
         while (_g < _g11):
             i = _g
             _g = (_g + 1)
-            x = hxGeomAlgo__HxPoint_HxPoint_Impl_._new(python_internal_ArrayImpl._get(floats, (i * 2)),python_internal_ArrayImpl._get(floats, ((i * 2) + 1)))
+            x = hxGeomAlgo__HxPoint_HxPoint_Impl_._new(python_internal_ArrayImpl._get(floats, (i * 2)),
+                                                       python_internal_ArrayImpl._get(floats, ((i * 2) + 1)))
             pts.append(x)
         return pts
 
     @staticmethod
-    def inflateLine(start,end,thickness):
+    def inflateLine(start, end, thickness):
         halfWidth = (thickness / 2)
         dx = (end.x - start.x)
         dy = (end.y - start.y)
@@ -1959,14 +2048,20 @@ class hxGeomAlgo_PolyTools:
         _hx_len = (Math.NaN if ((v < 0)) else python_lib_Math.sqrt(v))
         nx = ((dx / _hx_len) * halfWidth)
         ny = ((dy / _hx_len) * halfWidth)
-        return [hxGeomAlgo__HxPoint_HxPoint_Impl_._new((start.x - ny),(start.y + nx)), hxGeomAlgo__HxPoint_HxPoint_Impl_._new((end.x - ny),(end.y + nx)), hxGeomAlgo__HxPoint_HxPoint_Impl_._new((end.x + ny),(end.y - nx)), hxGeomAlgo__HxPoint_HxPoint_Impl_._new((start.x + ny),(start.y - nx))]
+        return [
+            hxGeomAlgo__HxPoint_HxPoint_Impl_._new((start.x - ny), (start.y + nx)),
+            hxGeomAlgo__HxPoint_HxPoint_Impl_._new((end.x - ny), (end.y + nx)),
+            hxGeomAlgo__HxPoint_HxPoint_Impl_._new((end.x + ny), (end.y - nx)),
+            hxGeomAlgo__HxPoint_HxPoint_Impl_._new((start.x + ny), (start.y - nx))
+        ]
 
     @staticmethod
-    def clip(subjPoly,clipPoly):
+    def clip(subjPoly, clipPoly):
         cond = ((len(clipPoly) >= 3) and hxGeomAlgo_PolyTools.isConvex(clipPoly))
         res = []
         output = subjPoly
-        isInside = (hxGeomAlgo_PolyTools.isRight if (hxGeomAlgo_PolyTools.isCCW(clipPoly)) else hxGeomAlgo_PolyTools.isLeft)
+        isInside = (hxGeomAlgo_PolyTools.isRight if
+                    (hxGeomAlgo_PolyTools.isCCW(clipPoly)) else hxGeomAlgo_PolyTools.isLeft)
         clipEdgeStart = None
         clipEdgeEnd = None
         inputEdgeStart = None
@@ -1992,14 +2087,16 @@ class hxGeomAlgo_PolyTools:
                 j = _g2
                 _g2 = (_g2 + 1)
                 inputEdgeEnd = (input[j] if j >= 0 and j < len(input) else None)
-                if isInside(inputEdgeEnd,clipEdgeStart,clipEdgeEnd):
-                    if (not isInside(inputEdgeStart,clipEdgeStart,clipEdgeEnd)):
-                        intersectionPoint = hxGeomAlgo_PolyTools.intersection(inputEdgeStart,inputEdgeEnd,clipEdgeStart,clipEdgeEnd)
+                if isInside(inputEdgeEnd, clipEdgeStart, clipEdgeEnd):
+                    if (not isInside(inputEdgeStart, clipEdgeStart, clipEdgeEnd)):
+                        intersectionPoint = hxGeomAlgo_PolyTools.intersection(inputEdgeStart, inputEdgeEnd,
+                                                                              clipEdgeStart, clipEdgeEnd)
                         if (intersectionPoint is not None):
                             output.append(intersectionPoint)
                     output.append(inputEdgeEnd)
-                elif isInside(inputEdgeStart,clipEdgeStart,clipEdgeEnd):
-                    intersectionPoint1 = hxGeomAlgo_PolyTools.intersection(inputEdgeStart,inputEdgeEnd,clipEdgeStart,clipEdgeEnd)
+                elif isInside(inputEdgeStart, clipEdgeStart, clipEdgeEnd):
+                    intersectionPoint1 = hxGeomAlgo_PolyTools.intersection(inputEdgeStart, inputEdgeEnd, clipEdgeStart,
+                                                                           clipEdgeEnd)
                     if (intersectionPoint1 is not None):
                         output.append(intersectionPoint1)
                 inputEdgeStart = inputEdgeEnd
@@ -2007,41 +2104,45 @@ class hxGeomAlgo_PolyTools:
         return res
 
     @staticmethod
-    def lerp(a,b,t):
+    def lerp(a, b, t):
         return ((((1.0 - t)) * a) + ((t * b)))
 
     @staticmethod
-    def lerpPoints(a,b,t):
-        return hxGeomAlgo__HxPoint_HxPoint_Impl_._new(((((1.0 - t)) * a.x) + ((t * b.x))),((((1.0 - t)) * a.y) + ((t * b.y))))
+    def lerpPoints(a, b, t):
+        return hxGeomAlgo__HxPoint_HxPoint_Impl_._new(((((1.0 - t)) * a.x) + ((t * b.x))),
+                                                      ((((1.0 - t)) * a.y) + ((t * b.y))))
 
     @staticmethod
-    def exposeEnum(enumClass,_hx_as = None):
+    def exposeEnum(enumClass, _hx_as=None):
         pass
 
 
 class python_Boot:
     _hx_class_name = "python.Boot"
     __slots__ = ()
-    _hx_statics = ["keywords", "toString1", "fields", "simpleField", "field", "getInstanceFields", "getSuperClass", "getClassFields", "prefixLength", "unhandleKeywords"]
+    _hx_statics = [
+        "keywords", "toString1", "fields", "simpleField", "field", "getInstanceFields", "getSuperClass",
+        "getClassFields", "prefixLength", "unhandleKeywords"
+    ]
 
     @staticmethod
-    def toString1(o,s):
+    def toString1(o, s):
         if (o is None):
             return "null"
-        if isinstance(o,str):
+        if isinstance(o, str):
             return o
         if (s is None):
             s = ""
         if (len(s) >= 5):
             return "<...>"
-        if isinstance(o,bool):
+        if isinstance(o, bool):
             if o:
                 return "true"
             else:
                 return "false"
-        if (isinstance(o,int) and (not isinstance(o,bool))):
+        if (isinstance(o, int) and (not isinstance(o, bool))):
             return str(o)
-        if isinstance(o,float):
+        if isinstance(o, float):
             try:
                 if (o == int(o)):
                     return str(Math.floor((o + 0.5)))
@@ -2051,7 +2152,7 @@ class python_Boot:
                 _hx_e1 = _hx_e
                 e = _hx_e1
                 return str(o)
-        if isinstance(o,list):
+        if isinstance(o, list):
             o1 = o
             l = len(o1)
             st = "["
@@ -2064,17 +2165,20 @@ class python_Boot:
                 prefix = ""
                 if (i > 0):
                     prefix = ","
-                st = (("null" if st is None else st) + HxOverrides.stringOrNull(((("null" if prefix is None else prefix) + HxOverrides.stringOrNull(python_Boot.toString1((o1[i] if i >= 0 and i < len(o1) else None),s))))))
+                st = (("null" if st is None else st) + HxOverrides.stringOrNull(
+                    ((("null" if prefix is None else prefix) +
+                      HxOverrides.stringOrNull(python_Boot.toString1(
+                          (o1[i] if i >= 0 and i < len(o1) else None), s))))))
             st = (("null" if st is None else st) + "]")
             return st
         try:
-            if hasattr(o,"toString"):
+            if hasattr(o, "toString"):
                 return o.toString()
         except Exception as _hx_e:
             _hx_e1 = _hx_e
             pass
-        if hasattr(o,"__class__"):
-            if isinstance(o,_hx_AnonObject):
+        if hasattr(o, "__class__"):
+            if isinstance(o, _hx_AnonObject):
                 toStr = None
                 try:
                     fields = python_Boot.fields(o)
@@ -2083,7 +2187,9 @@ class python_Boot:
                     while (_g11 < len(fields)):
                         f = (fields[_g11] if _g11 >= 0 and _g11 < len(fields) else None)
                         _g11 = (_g11 + 1)
-                        x = ((("" + ("null" if f is None else f)) + " : ") + HxOverrides.stringOrNull(python_Boot.toString1(python_Boot.simpleField(o,f),(("null" if s is None else s) + "\t"))))
+                        x = ((("" + ("null" if f is None else f)) + " : ") + HxOverrides.stringOrNull(
+                            python_Boot.toString1(python_Boot.simpleField(o, f),
+                                                  (("null" if s is None else s) + "\t"))))
                         _g2.append(x)
                     fieldsStr = _g2
                     toStr = (("{ " + HxOverrides.stringOrNull(", ".join([x1 for x1 in fieldsStr]))) + " }")
@@ -2095,7 +2201,7 @@ class python_Boot:
                     return "{ ... }"
                 else:
                     return toStr
-            if isinstance(o,Enum):
+            if isinstance(o, Enum):
                 o2 = o
                 l1 = len(o2.params)
                 hasParams = (l1 > 0)
@@ -2109,11 +2215,14 @@ class python_Boot:
                         prefix1 = ""
                         if (i1 > 0):
                             prefix1 = ","
-                        paramsStr = (("null" if paramsStr is None else paramsStr) + HxOverrides.stringOrNull(((("null" if prefix1 is None else prefix1) + HxOverrides.stringOrNull(python_Boot.toString1(o2.params[i1],s))))))
-                    return (((HxOverrides.stringOrNull(o2.tag) + "(") + ("null" if paramsStr is None else paramsStr)) + ")")
+                        paramsStr = (("null" if paramsStr is None else paramsStr) + HxOverrides.stringOrNull(
+                            ((("null" if prefix1 is None else prefix1) +
+                              HxOverrides.stringOrNull(python_Boot.toString1(o2.params[i1], s))))))
+                    return (((HxOverrides.stringOrNull(o2.tag) + "(") + ("null" if paramsStr is None else paramsStr)) +
+                            ")")
                 else:
                     return o2.tag
-            if hasattr(o,"_hx_class_name"):
+            if hasattr(o, "_hx_class_name"):
                 if (o.__class__.__name__ != "type"):
                     fields1 = python_Boot.getInstanceFields(o)
                     _g4 = []
@@ -2121,10 +2230,13 @@ class python_Boot:
                     while (_g13 < len(fields1)):
                         f1 = (fields1[_g13] if _g13 >= 0 and _g13 < len(fields1) else None)
                         _g13 = (_g13 + 1)
-                        x1 = ((("" + ("null" if f1 is None else f1)) + " : ") + HxOverrides.stringOrNull(python_Boot.toString1(python_Boot.simpleField(o,f1),(("null" if s is None else s) + "\t"))))
+                        x1 = ((("" + ("null" if f1 is None else f1)) + " : ") + HxOverrides.stringOrNull(
+                            python_Boot.toString1(python_Boot.simpleField(o, f1),
+                                                  (("null" if s is None else s) + "\t"))))
                         _g4.append(x1)
                     fieldsStr1 = _g4
-                    toStr1 = (((HxOverrides.stringOrNull(o._hx_class_name) + "( ") + HxOverrides.stringOrNull(", ".join([x1 for x1 in fieldsStr1]))) + " )")
+                    toStr1 = (((HxOverrides.stringOrNull(o._hx_class_name) + "( ") +
+                               HxOverrides.stringOrNull(", ".join([x1 for x1 in fieldsStr1]))) + " )")
                     return toStr1
                 else:
                     fields2 = python_Boot.getClassFields(o)
@@ -2133,10 +2245,13 @@ class python_Boot:
                     while (_g14 < len(fields2)):
                         f2 = (fields2[_g14] if _g14 >= 0 and _g14 < len(fields2) else None)
                         _g14 = (_g14 + 1)
-                        x2 = ((("" + ("null" if f2 is None else f2)) + " : ") + HxOverrides.stringOrNull(python_Boot.toString1(python_Boot.simpleField(o,f2),(("null" if s is None else s) + "\t"))))
+                        x2 = ((("" + ("null" if f2 is None else f2)) + " : ") + HxOverrides.stringOrNull(
+                            python_Boot.toString1(python_Boot.simpleField(o, f2),
+                                                  (("null" if s is None else s) + "\t"))))
                         _g5.append(x2)
                     fieldsStr2 = _g5
-                    toStr2 = (((("#" + HxOverrides.stringOrNull(o._hx_class_name)) + "( ") + HxOverrides.stringOrNull(", ".join([x1 for x1 in fieldsStr2]))) + " )")
+                    toStr2 = (((("#" + HxOverrides.stringOrNull(o._hx_class_name)) + "( ") +
+                               HxOverrides.stringOrNull(", ".join([x1 for x1 in fieldsStr2]))) + " )")
                     return toStr2
             if (o == str):
                 return "#String"
@@ -2145,14 +2260,14 @@ class python_Boot:
             if callable(o):
                 return "function"
             try:
-                if hasattr(o,"__repr__"):
+                if hasattr(o, "__repr__"):
                     return o.__repr__()
             except Exception as _hx_e:
                 _hx_e1 = _hx_e
                 pass
-            if hasattr(o,"__str__"):
+            if hasattr(o, "__str__"):
                 return o.__str__([])
-            if hasattr(o,"__name__"):
+            if hasattr(o, "__name__"):
                 return o.__name__
             return "???"
         else:
@@ -2162,18 +2277,18 @@ class python_Boot:
     def fields(o):
         a = []
         if (o is not None):
-            if hasattr(o,"_hx_fields"):
+            if hasattr(o, "_hx_fields"):
                 fields = o._hx_fields
                 if (fields is not None):
                     return list(fields)
-            if isinstance(o,_hx_AnonObject):
+            if isinstance(o, _hx_AnonObject):
                 d = o.__dict__
                 keys = d.keys()
                 handler = python_Boot.unhandleKeywords
                 for k in keys:
                     if (k != '_hx_disable_getattr'):
                         a.append(handler(k))
-            elif hasattr(o,"__dict__"):
+            elif hasattr(o, "__dict__"):
                 d1 = o.__dict__
                 keys1 = d1.keys()
                 for k in keys1:
@@ -2181,157 +2296,211 @@ class python_Boot:
         return a
 
     @staticmethod
-    def simpleField(o,field):
+    def simpleField(o, field):
         if (field is None):
             return None
-        field1 = (("_hx_" + field) if ((field in python_Boot.keywords)) else (("_hx_" + field) if (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and ((ord(field[(len(field) - 1)]) != 95)))) else field))
-        if hasattr(o,field1):
-            return getattr(o,field1)
+        field1 = (("_hx_" + field) if ((field in python_Boot.keywords)) else
+                  (("_hx_" + field) if
+                   (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and
+                     ((ord(field[(len(field) - 1)]) != 95)))) else field))
+        if hasattr(o, field1):
+            return getattr(o, field1)
         else:
             return None
 
     @staticmethod
-    def field(o,field):
+    def field(o, field):
         if (field is None):
             return None
-        if isinstance(o,str):
+        if isinstance(o, str):
             field1 = field
             _hx_local_0 = len(field1)
             if (_hx_local_0 == 10):
                 if (field1 == "charCodeAt"):
-                    return python_internal_MethodClosure(o,HxString.charCodeAt)
+                    return python_internal_MethodClosure(o, HxString.charCodeAt)
                 else:
-                    field2 = (("_hx_" + field) if ((field in python_Boot.keywords)) else (("_hx_" + field) if (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and ((ord(field[(len(field) - 1)]) != 95)))) else field))
-                    return (getattr(o,field2) if (hasattr(o,field2)) else None)
+                    field2 = (("_hx_" + field) if ((field in python_Boot.keywords)) else
+                              (("_hx_" + field) if
+                               (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and
+                                 ((ord(field[(len(field) - 1)]) != 95)))) else field))
+                    return (getattr(o, field2) if (hasattr(o, field2)) else None)
             elif (_hx_local_0 == 11):
                 if (field1 == "lastIndexOf"):
-                    return python_internal_MethodClosure(o,HxString.lastIndexOf)
+                    return python_internal_MethodClosure(o, HxString.lastIndexOf)
                 elif (field1 == "toLowerCase"):
-                    return python_internal_MethodClosure(o,HxString.toLowerCase)
+                    return python_internal_MethodClosure(o, HxString.toLowerCase)
                 elif (field1 == "toUpperCase"):
-                    return python_internal_MethodClosure(o,HxString.toUpperCase)
+                    return python_internal_MethodClosure(o, HxString.toUpperCase)
                 else:
-                    field2 = (("_hx_" + field) if ((field in python_Boot.keywords)) else (("_hx_" + field) if (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and ((ord(field[(len(field) - 1)]) != 95)))) else field))
-                    return (getattr(o,field2) if (hasattr(o,field2)) else None)
+                    field2 = (("_hx_" + field) if ((field in python_Boot.keywords)) else
+                              (("_hx_" + field) if
+                               (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and
+                                 ((ord(field[(len(field) - 1)]) != 95)))) else field))
+                    return (getattr(o, field2) if (hasattr(o, field2)) else None)
             elif (_hx_local_0 == 9):
                 if (field1 == "substring"):
-                    return python_internal_MethodClosure(o,HxString.substring)
+                    return python_internal_MethodClosure(o, HxString.substring)
                 else:
-                    field2 = (("_hx_" + field) if ((field in python_Boot.keywords)) else (("_hx_" + field) if (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and ((ord(field[(len(field) - 1)]) != 95)))) else field))
-                    return (getattr(o,field2) if (hasattr(o,field2)) else None)
+                    field2 = (("_hx_" + field) if ((field in python_Boot.keywords)) else
+                              (("_hx_" + field) if
+                               (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and
+                                 ((ord(field[(len(field) - 1)]) != 95)))) else field))
+                    return (getattr(o, field2) if (hasattr(o, field2)) else None)
             elif (_hx_local_0 == 5):
                 if (field1 == "split"):
-                    return python_internal_MethodClosure(o,HxString.split)
+                    return python_internal_MethodClosure(o, HxString.split)
                 else:
-                    field2 = (("_hx_" + field) if ((field in python_Boot.keywords)) else (("_hx_" + field) if (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and ((ord(field[(len(field) - 1)]) != 95)))) else field))
-                    return (getattr(o,field2) if (hasattr(o,field2)) else None)
+                    field2 = (("_hx_" + field) if ((field in python_Boot.keywords)) else
+                              (("_hx_" + field) if
+                               (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and
+                                 ((ord(field[(len(field) - 1)]) != 95)))) else field))
+                    return (getattr(o, field2) if (hasattr(o, field2)) else None)
             elif (_hx_local_0 == 7):
                 if (field1 == "indexOf"):
-                    return python_internal_MethodClosure(o,HxString.indexOf)
+                    return python_internal_MethodClosure(o, HxString.indexOf)
                 else:
-                    field2 = (("_hx_" + field) if ((field in python_Boot.keywords)) else (("_hx_" + field) if (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and ((ord(field[(len(field) - 1)]) != 95)))) else field))
-                    return (getattr(o,field2) if (hasattr(o,field2)) else None)
+                    field2 = (("_hx_" + field) if ((field in python_Boot.keywords)) else
+                              (("_hx_" + field) if
+                               (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and
+                                 ((ord(field[(len(field) - 1)]) != 95)))) else field))
+                    return (getattr(o, field2) if (hasattr(o, field2)) else None)
             elif (_hx_local_0 == 8):
                 if (field1 == "toString"):
-                    return python_internal_MethodClosure(o,HxString.toString)
+                    return python_internal_MethodClosure(o, HxString.toString)
                 else:
-                    field2 = (("_hx_" + field) if ((field in python_Boot.keywords)) else (("_hx_" + field) if (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and ((ord(field[(len(field) - 1)]) != 95)))) else field))
-                    return (getattr(o,field2) if (hasattr(o,field2)) else None)
+                    field2 = (("_hx_" + field) if ((field in python_Boot.keywords)) else
+                              (("_hx_" + field) if
+                               (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and
+                                 ((ord(field[(len(field) - 1)]) != 95)))) else field))
+                    return (getattr(o, field2) if (hasattr(o, field2)) else None)
             elif (_hx_local_0 == 6):
                 if (field1 == "charAt"):
-                    return python_internal_MethodClosure(o,HxString.charAt)
+                    return python_internal_MethodClosure(o, HxString.charAt)
                 elif (field1 == "length"):
                     return len(o)
                 elif (field1 == "substr"):
-                    return python_internal_MethodClosure(o,HxString.substr)
+                    return python_internal_MethodClosure(o, HxString.substr)
                 else:
-                    field2 = (("_hx_" + field) if ((field in python_Boot.keywords)) else (("_hx_" + field) if (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and ((ord(field[(len(field) - 1)]) != 95)))) else field))
-                    return (getattr(o,field2) if (hasattr(o,field2)) else None)
+                    field2 = (("_hx_" + field) if ((field in python_Boot.keywords)) else
+                              (("_hx_" + field) if
+                               (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and
+                                 ((ord(field[(len(field) - 1)]) != 95)))) else field))
+                    return (getattr(o, field2) if (hasattr(o, field2)) else None)
             else:
-                field2 = (("_hx_" + field) if ((field in python_Boot.keywords)) else (("_hx_" + field) if (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and ((ord(field[(len(field) - 1)]) != 95)))) else field))
-                return (getattr(o,field2) if (hasattr(o,field2)) else None)
-        elif isinstance(o,list):
+                field2 = (("_hx_" + field) if ((field in python_Boot.keywords)) else
+                          (("_hx_" + field) if
+                           (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and
+                             ((ord(field[(len(field) - 1)]) != 95)))) else field))
+                return (getattr(o, field2) if (hasattr(o, field2)) else None)
+        elif isinstance(o, list):
             field3 = field
             _hx_local_1 = len(field3)
             if (_hx_local_1 == 11):
                 if (field3 == "lastIndexOf"):
-                    return python_internal_MethodClosure(o,python_internal_ArrayImpl.lastIndexOf)
+                    return python_internal_MethodClosure(o, python_internal_ArrayImpl.lastIndexOf)
                 else:
-                    field4 = (("_hx_" + field) if ((field in python_Boot.keywords)) else (("_hx_" + field) if (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and ((ord(field[(len(field) - 1)]) != 95)))) else field))
-                    return (getattr(o,field4) if (hasattr(o,field4)) else None)
+                    field4 = (("_hx_" + field) if ((field in python_Boot.keywords)) else
+                              (("_hx_" + field) if
+                               (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and
+                                 ((ord(field[(len(field) - 1)]) != 95)))) else field))
+                    return (getattr(o, field4) if (hasattr(o, field4)) else None)
             elif (_hx_local_1 == 4):
                 if (field3 == "copy"):
-                    return python_internal_MethodClosure(o,python_internal_ArrayImpl.copy)
+                    return python_internal_MethodClosure(o, python_internal_ArrayImpl.copy)
                 elif (field3 == "join"):
-                    return python_internal_MethodClosure(o,python_internal_ArrayImpl.join)
+                    return python_internal_MethodClosure(o, python_internal_ArrayImpl.join)
                 elif (field3 == "push"):
-                    return python_internal_MethodClosure(o,python_internal_ArrayImpl.push)
+                    return python_internal_MethodClosure(o, python_internal_ArrayImpl.push)
                 elif (field3 == "sort"):
-                    return python_internal_MethodClosure(o,python_internal_ArrayImpl.sort)
+                    return python_internal_MethodClosure(o, python_internal_ArrayImpl.sort)
                 else:
-                    field4 = (("_hx_" + field) if ((field in python_Boot.keywords)) else (("_hx_" + field) if (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and ((ord(field[(len(field) - 1)]) != 95)))) else field))
-                    return (getattr(o,field4) if (hasattr(o,field4)) else None)
+                    field4 = (("_hx_" + field) if ((field in python_Boot.keywords)) else
+                              (("_hx_" + field) if
+                               (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and
+                                 ((ord(field[(len(field) - 1)]) != 95)))) else field))
+                    return (getattr(o, field4) if (hasattr(o, field4)) else None)
             elif (_hx_local_1 == 5):
                 if (field3 == "shift"):
-                    return python_internal_MethodClosure(o,python_internal_ArrayImpl.shift)
+                    return python_internal_MethodClosure(o, python_internal_ArrayImpl.shift)
                 elif (field3 == "slice"):
-                    return python_internal_MethodClosure(o,python_internal_ArrayImpl.slice)
+                    return python_internal_MethodClosure(o, python_internal_ArrayImpl.slice)
                 else:
-                    field4 = (("_hx_" + field) if ((field in python_Boot.keywords)) else (("_hx_" + field) if (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and ((ord(field[(len(field) - 1)]) != 95)))) else field))
-                    return (getattr(o,field4) if (hasattr(o,field4)) else None)
+                    field4 = (("_hx_" + field) if ((field in python_Boot.keywords)) else
+                              (("_hx_" + field) if
+                               (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and
+                                 ((ord(field[(len(field) - 1)]) != 95)))) else field))
+                    return (getattr(o, field4) if (hasattr(o, field4)) else None)
             elif (_hx_local_1 == 7):
                 if (field3 == "indexOf"):
-                    return python_internal_MethodClosure(o,python_internal_ArrayImpl.indexOf)
+                    return python_internal_MethodClosure(o, python_internal_ArrayImpl.indexOf)
                 elif (field3 == "reverse"):
-                    return python_internal_MethodClosure(o,python_internal_ArrayImpl.reverse)
+                    return python_internal_MethodClosure(o, python_internal_ArrayImpl.reverse)
                 elif (field3 == "unshift"):
-                    return python_internal_MethodClosure(o,python_internal_ArrayImpl.unshift)
+                    return python_internal_MethodClosure(o, python_internal_ArrayImpl.unshift)
                 else:
-                    field4 = (("_hx_" + field) if ((field in python_Boot.keywords)) else (("_hx_" + field) if (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and ((ord(field[(len(field) - 1)]) != 95)))) else field))
-                    return (getattr(o,field4) if (hasattr(o,field4)) else None)
+                    field4 = (("_hx_" + field) if ((field in python_Boot.keywords)) else
+                              (("_hx_" + field) if
+                               (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and
+                                 ((ord(field[(len(field) - 1)]) != 95)))) else field))
+                    return (getattr(o, field4) if (hasattr(o, field4)) else None)
             elif (_hx_local_1 == 3):
                 if (field3 == "map"):
-                    return python_internal_MethodClosure(o,python_internal_ArrayImpl.map)
+                    return python_internal_MethodClosure(o, python_internal_ArrayImpl.map)
                 elif (field3 == "pop"):
-                    return python_internal_MethodClosure(o,python_internal_ArrayImpl.pop)
+                    return python_internal_MethodClosure(o, python_internal_ArrayImpl.pop)
                 else:
-                    field4 = (("_hx_" + field) if ((field in python_Boot.keywords)) else (("_hx_" + field) if (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and ((ord(field[(len(field) - 1)]) != 95)))) else field))
-                    return (getattr(o,field4) if (hasattr(o,field4)) else None)
+                    field4 = (("_hx_" + field) if ((field in python_Boot.keywords)) else
+                              (("_hx_" + field) if
+                               (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and
+                                 ((ord(field[(len(field) - 1)]) != 95)))) else field))
+                    return (getattr(o, field4) if (hasattr(o, field4)) else None)
             elif (_hx_local_1 == 8):
                 if (field3 == "iterator"):
-                    return python_internal_MethodClosure(o,python_internal_ArrayImpl.iterator)
+                    return python_internal_MethodClosure(o, python_internal_ArrayImpl.iterator)
                 elif (field3 == "toString"):
-                    return python_internal_MethodClosure(o,python_internal_ArrayImpl.toString)
+                    return python_internal_MethodClosure(o, python_internal_ArrayImpl.toString)
                 else:
-                    field4 = (("_hx_" + field) if ((field in python_Boot.keywords)) else (("_hx_" + field) if (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and ((ord(field[(len(field) - 1)]) != 95)))) else field))
-                    return (getattr(o,field4) if (hasattr(o,field4)) else None)
+                    field4 = (("_hx_" + field) if ((field in python_Boot.keywords)) else
+                              (("_hx_" + field) if
+                               (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and
+                                 ((ord(field[(len(field) - 1)]) != 95)))) else field))
+                    return (getattr(o, field4) if (hasattr(o, field4)) else None)
             elif (_hx_local_1 == 6):
                 if (field3 == "concat"):
-                    return python_internal_MethodClosure(o,python_internal_ArrayImpl.concat)
+                    return python_internal_MethodClosure(o, python_internal_ArrayImpl.concat)
                 elif (field3 == "filter"):
-                    return python_internal_MethodClosure(o,python_internal_ArrayImpl.filter)
+                    return python_internal_MethodClosure(o, python_internal_ArrayImpl.filter)
                 elif (field3 == "insert"):
-                    return python_internal_MethodClosure(o,python_internal_ArrayImpl.insert)
+                    return python_internal_MethodClosure(o, python_internal_ArrayImpl.insert)
                 elif (field3 == "length"):
                     return len(o)
                 elif (field3 == "remove"):
-                    return python_internal_MethodClosure(o,python_internal_ArrayImpl.remove)
+                    return python_internal_MethodClosure(o, python_internal_ArrayImpl.remove)
                 elif (field3 == "splice"):
-                    return python_internal_MethodClosure(o,python_internal_ArrayImpl.splice)
+                    return python_internal_MethodClosure(o, python_internal_ArrayImpl.splice)
                 else:
-                    field4 = (("_hx_" + field) if ((field in python_Boot.keywords)) else (("_hx_" + field) if (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and ((ord(field[(len(field) - 1)]) != 95)))) else field))
-                    return (getattr(o,field4) if (hasattr(o,field4)) else None)
+                    field4 = (("_hx_" + field) if ((field in python_Boot.keywords)) else
+                              (("_hx_" + field) if
+                               (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and
+                                 ((ord(field[(len(field) - 1)]) != 95)))) else field))
+                    return (getattr(o, field4) if (hasattr(o, field4)) else None)
             else:
-                field4 = (("_hx_" + field) if ((field in python_Boot.keywords)) else (("_hx_" + field) if (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and ((ord(field[(len(field) - 1)]) != 95)))) else field))
-                return (getattr(o,field4) if (hasattr(o,field4)) else None)
+                field4 = (("_hx_" + field) if ((field in python_Boot.keywords)) else
+                          (("_hx_" + field) if
+                           (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and
+                             ((ord(field[(len(field) - 1)]) != 95)))) else field))
+                return (getattr(o, field4) if (hasattr(o, field4)) else None)
         else:
-            field5 = (("_hx_" + field) if ((field in python_Boot.keywords)) else (("_hx_" + field) if (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and ((ord(field[(len(field) - 1)]) != 95)))) else field))
-            return (getattr(o,field5) if (hasattr(o,field5)) else None)
+            field5 = (("_hx_" + field) if ((field in python_Boot.keywords)) else
+                      (("_hx_" + field) if
+                       (((((len(field) > 2) and ((ord(field[0]) == 95))) and ((ord(field[1]) == 95))) and
+                         ((ord(field[(len(field) - 1)]) != 95)))) else field))
+            return (getattr(o, field5) if (hasattr(o, field5)) else None)
 
     @staticmethod
     def getInstanceFields(c):
-        f = (list(c._hx_fields) if (hasattr(c,"_hx_fields")) else [])
-        if hasattr(c,"_hx_methods"):
+        f = (list(c._hx_fields) if (hasattr(c, "_hx_fields")) else [])
+        if hasattr(c, "_hx_methods"):
             f = (f + c._hx_methods)
         sc = python_Boot.getSuperClass(c)
         if (sc is None):
@@ -2352,7 +2521,7 @@ class python_Boot:
         if (c is None):
             return None
         try:
-            if hasattr(c,"_hx_super"):
+            if hasattr(c, "_hx_super"):
                 return c._hx_super
             return None
         except Exception as _hx_e:
@@ -2362,7 +2531,7 @@ class python_Boot:
 
     @staticmethod
     def getClassFields(c):
-        if hasattr(c,"_hx_statics"):
+        if hasattr(c, "_hx_statics"):
             x = c._hx_statics
             return list(x)
         else:
@@ -2370,8 +2539,8 @@ class python_Boot:
 
     @staticmethod
     def unhandleKeywords(name):
-        if (HxString.substr(name,0,python_Boot.prefixLength) == "_hx_"):
-            real = HxString.substr(name,python_Boot.prefixLength,None)
+        if (HxString.substr(name, 0, python_Boot.prefixLength) == "_hx_"):
+            real = HxString.substr(name, python_Boot.prefixLength, None)
             if (real in python_Boot.keywords):
                 return real
         return name
@@ -2380,10 +2549,13 @@ class python_Boot:
 class python_internal_ArrayImpl:
     _hx_class_name = "python.internal.ArrayImpl"
     __slots__ = ()
-    _hx_statics = ["concat", "copy", "iterator", "indexOf", "lastIndexOf", "join", "toString", "pop", "push", "unshift", "remove", "shift", "slice", "sort", "splice", "map", "filter", "insert", "reverse", "_get", "_set"]
+    _hx_statics = [
+        "concat", "copy", "iterator", "indexOf", "lastIndexOf", "join", "toString", "pop", "push", "unshift", "remove",
+        "shift", "slice", "sort", "splice", "map", "filter", "insert", "reverse", "_get", "_set"
+    ]
 
     @staticmethod
-    def concat(a1,a2):
+    def concat(a1, a2):
         return (a1 + a2)
 
     @staticmethod
@@ -2395,7 +2567,7 @@ class python_internal_ArrayImpl:
         return python_HaxeIterator(x.__iter__())
 
     @staticmethod
-    def indexOf(a,x,fromIndex = None):
+    def indexOf(a, x, fromIndex=None):
         _hx_len = len(a)
         l = (0 if ((fromIndex is None)) else ((_hx_len + fromIndex) if ((fromIndex < 0)) else fromIndex))
         if (l < 0):
@@ -2405,14 +2577,15 @@ class python_internal_ArrayImpl:
         while (_g < _g1):
             i = _g
             _g = (_g + 1)
-            if HxOverrides.eq(a[i],x):
+            if HxOverrides.eq(a[i], x):
                 return i
         return -1
 
     @staticmethod
-    def lastIndexOf(a,x,fromIndex = None):
+    def lastIndexOf(a, x, fromIndex=None):
         _hx_len = len(a)
-        l = (_hx_len if ((fromIndex is None)) else (((_hx_len + fromIndex) + 1) if ((fromIndex < 0)) else (fromIndex + 1)))
+        l = (_hx_len if ((fromIndex is None)) else (((_hx_len + fromIndex) + 1) if ((fromIndex < 0)) else
+                                                    (fromIndex + 1)))
         if (l > _hx_len):
             l = _hx_len
         while True:
@@ -2420,17 +2593,17 @@ class python_internal_ArrayImpl:
             tmp = l
             if (not ((tmp > -1))):
                 break
-            if HxOverrides.eq(a[l],x):
+            if HxOverrides.eq(a[l], x):
                 return l
         return -1
 
     @staticmethod
-    def join(x,sep):
-        return sep.join([python_Boot.toString1(x1,'') for x1 in x])
+    def join(x, sep):
+        return sep.join([python_Boot.toString1(x1, '') for x1 in x])
 
     @staticmethod
     def toString(x):
-        return (("[" + HxOverrides.stringOrNull(",".join([python_Boot.toString1(x1,'') for x1 in x]))) + "]")
+        return (("[" + HxOverrides.stringOrNull(",".join([python_Boot.toString1(x1, '') for x1 in x]))) + "]")
 
     @staticmethod
     def pop(x):
@@ -2440,16 +2613,16 @@ class python_internal_ArrayImpl:
             return x.pop()
 
     @staticmethod
-    def push(x,e):
+    def push(x, e):
         x.append(e)
         return len(x)
 
     @staticmethod
-    def unshift(x,e):
+    def unshift(x, e):
         x.insert(0, e)
 
     @staticmethod
-    def remove(x,e):
+    def remove(x, e):
         try:
             x.remove(e)
             return True
@@ -2465,15 +2638,15 @@ class python_internal_ArrayImpl:
         return x.pop(0)
 
     @staticmethod
-    def slice(x,pos,end = None):
+    def slice(x, pos, end=None):
         return x[pos:end]
 
     @staticmethod
-    def sort(x,f):
-        x.sort(key= python_lib_Functools.cmp_to_key(f))
+    def sort(x, f):
+        x.sort(key=python_lib_Functools.cmp_to_key(f))
 
     @staticmethod
-    def splice(x,pos,_hx_len):
+    def splice(x, pos, _hx_len):
         if (pos < 0):
             pos = (len(x) + pos)
         if (pos < 0):
@@ -2483,15 +2656,15 @@ class python_internal_ArrayImpl:
         return res
 
     @staticmethod
-    def map(x,f):
-        return list(map(f,x))
+    def map(x, f):
+        return list(map(f, x))
 
     @staticmethod
-    def filter(x,f):
-        return list(filter(f,x))
+    def filter(x, f):
+        return list(filter(f, x))
 
     @staticmethod
-    def insert(a,pos,x):
+    def insert(a, pos, x):
         a.insert(pos, x)
 
     @staticmethod
@@ -2499,14 +2672,14 @@ class python_internal_ArrayImpl:
         a.reverse()
 
     @staticmethod
-    def _get(x,idx):
+    def _get(x, idx):
         if ((idx > -1) and ((idx < len(x)))):
             return x[idx]
         else:
             return None
 
     @staticmethod
-    def _set(x,idx,v):
+    def _set(x, idx, v):
         l = len(x)
         while (l < idx):
             x.append(None)
@@ -2524,8 +2697,8 @@ class HxOverrides:
     _hx_statics = ["eq", "stringOrNull", "modf", "mod"]
 
     @staticmethod
-    def eq(a,b):
-        if (isinstance(a,list) or isinstance(b,list)):
+    def eq(a, b):
+        if (isinstance(a, list) or isinstance(b, list)):
             return a is b
         return (a == b)
 
@@ -2537,7 +2710,7 @@ class HxOverrides:
             return s
 
     @staticmethod
-    def modf(a,b):
+    def modf(a, b):
         if (b == 0.0):
             return float('nan')
         elif (a < 0):
@@ -2551,7 +2724,7 @@ class HxOverrides:
             return a % b
 
     @staticmethod
-    def mod(a,b):
+    def mod(a, b):
         if (a < 0):
             if (b < 0):
                 return -(-a % (-b))
@@ -2569,48 +2742,50 @@ class python_internal_MethodClosure:
     _hx_fields = ["obj", "func"]
     _hx_methods = ["__call__"]
 
-    def __init__(self,obj,func):
+    def __init__(self, obj, func):
         self.obj = obj
         self.func = func
 
-    def __call__(self,*args):
-        return self.func(self.obj,*args)
-
+    def __call__(self, *args):
+        return self.func(self.obj, *args)
 
 
 class HxString:
     _hx_class_name = "HxString"
     __slots__ = ()
-    _hx_statics = ["split", "charCodeAt", "charAt", "lastIndexOf", "toUpperCase", "toLowerCase", "indexOf", "toString", "substring", "substr"]
+    _hx_statics = [
+        "split", "charCodeAt", "charAt", "lastIndexOf", "toUpperCase", "toLowerCase", "indexOf", "toString",
+        "substring", "substr"
+    ]
 
     @staticmethod
-    def split(s,d):
+    def split(s, d):
         if (d == ""):
             return list(s)
         else:
             return s.split(d)
 
     @staticmethod
-    def charCodeAt(s,index):
+    def charCodeAt(s, index):
         if ((((s is None) or ((len(s) == 0))) or ((index < 0))) or ((index >= len(s)))):
             return None
         else:
             return ord(s[index])
 
     @staticmethod
-    def charAt(s,index):
+    def charAt(s, index):
         if ((index < 0) or ((index >= len(s)))):
             return ""
         else:
             return s[index]
 
     @staticmethod
-    def lastIndexOf(s,_hx_str,startIndex = None):
+    def lastIndexOf(s, _hx_str, startIndex=None):
         if (startIndex is None):
             return s.rfind(_hx_str, 0, len(s))
         else:
             i = s.rfind(_hx_str, 0, (startIndex + 1))
-            startLeft = (max(0,((startIndex + 1) - len(_hx_str))) if ((i == -1)) else (i + 1))
+            startLeft = (max(0, ((startIndex + 1) - len(_hx_str))) if ((i == -1)) else (i + 1))
             check = s.find(_hx_str, startLeft, len(s))
             if ((check > i) and ((check <= startIndex))):
                 return check
@@ -2626,7 +2801,7 @@ class HxString:
         return s.lower()
 
     @staticmethod
-    def indexOf(s,_hx_str,startIndex = None):
+    def indexOf(s, _hx_str, startIndex=None):
         if (startIndex is None):
             return s.find(_hx_str)
         else:
@@ -2637,7 +2812,7 @@ class HxString:
         return s
 
     @staticmethod
-    def substring(s,startIndex,endIndex = None):
+    def substring(s, startIndex, endIndex=None):
         if (startIndex < 0):
             startIndex = 0
         if (endIndex is None):
@@ -2651,7 +2826,7 @@ class HxString:
                 return s[startIndex:endIndex]
 
     @staticmethod
-    def substr(s,startIndex,_hx_len = None):
+    def substr(s, startIndex, _hx_len=None):
         if (_hx_len is None):
             return s[startIndex:]
         else:
@@ -2663,15 +2838,20 @@ class HxString:
                     startIndex = 0
             return s[startIndex:(startIndex + _hx_len)]
 
+
 Math.NEGATIVE_INFINITY = float("-inf")
 Math.POSITIVE_INFINITY = float("inf")
 Math.NaN = float("nan")
 Math.PI = python_lib_Math.pi
 
 hxGeomAlgo_HomogCoord.INFINITY = hxGeomAlgo_HomogCoord()
-hxGeomAlgo__HxPoint_HxPoint_Impl_.EMPTY = hxGeomAlgo__HxPoint_HxPoint_Impl_._new(Math.NaN,Math.NaN)
+hxGeomAlgo__HxPoint_HxPoint_Impl_.EMPTY = hxGeomAlgo__HxPoint_HxPoint_Impl_._new(Math.NaN, Math.NaN)
 hxGeomAlgo_PolyTools.point = hxGeomAlgo__HxPoint_HxPoint_Impl_._new()
-hxGeomAlgo_PolyTools.zero = hxGeomAlgo__HxPoint_HxPoint_Impl_._new(0,0)
+hxGeomAlgo_PolyTools.zero = hxGeomAlgo__HxPoint_HxPoint_Impl_._new(0, 0)
 hxGeomAlgo_PolyTools.EPSILON = .00000001
-python_Boot.keywords = set(["and", "del", "from", "not", "with", "as", "elif", "global", "or", "yield", "assert", "else", "if", "pass", "None", "break", "except", "import", "raise", "True", "class", "exec", "in", "return", "False", "continue", "finally", "is", "try", "def", "for", "lambda", "while"])
+python_Boot.keywords = set([
+    "and", "del", "from", "not", "with", "as", "elif", "global", "or", "yield", "assert", "else", "if", "pass", "None",
+    "break", "except", "import", "raise", "True", "class", "exec", "in", "return", "False", "continue", "finally",
+    "is", "try", "def", "for", "lambda", "while"
+])
 python_Boot.prefixLength = len("_hx_")

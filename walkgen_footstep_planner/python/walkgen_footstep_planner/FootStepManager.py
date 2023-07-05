@@ -60,7 +60,6 @@ def index(lst, elem):
 class FootStepManager:
     """ Wrapper class to manage the footstep planning of the Walkgen library.
     """
-
     def __init__(self, model, q, params=None, debug=False, RECORDING=False, folder_path=None):
         """Initialize the management.
 
@@ -140,11 +139,11 @@ class FootStepManager:
         contacts, N_ds, N_ss, N_uss=0, N_uds=0, stepHeight=0.15, startPhase=True, endPhase=True
         """
         gait_generator = QuadrupedalGaitGenerator(dt=self._dt,
-                                                    S=4,
-                                                    lf=self._contactNames[0],
-                                                    lh=self._contactNames[1],
-                                                    rf=self._contactNames[2],
-                                                    rh=self._contactNames[3])
+                                                  S=4,
+                                                  lf=self._contactNames[0],
+                                                  lh=self._contactNames[1],
+                                                  rf=self._contactNames[2],
+                                                  rh=self._contactNames[3])
         if self._typeGait == "trot":
             self._initial_cs = copy.deepcopy(
                 gait_generator.trot(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
@@ -188,24 +187,24 @@ class FootStepManager:
 
         # Register walking gait schedule
         self._walk_cs = copy.deepcopy(
-                gait_generator.walk(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
-                                    N_ds=self._params.walk_N_ds,
-                                    N_ss=self._params.walk_N_ss,
-                                    N_uss=self._params.walk_N_uss,
-                                    N_uds=self._params.walk_N_uds,
-                                    stepHeight=self._stepHeight,
-                                    startPhase=False,
-                                    endPhase=False))
+            gait_generator.walk(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
+                                N_ds=self._params.walk_N_ds,
+                                N_ss=self._params.walk_N_ss,
+                                N_uss=self._params.walk_N_uss,
+                                N_uds=self._params.walk_N_uds,
+                                stepHeight=self._stepHeight,
+                                startPhase=False,
+                                endPhase=False))
         # Register trotting gait schedule
         self._trot_cs = copy.deepcopy(
-                gait_generator.trot(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
-                                    N_ds=self._params.trot_N_ds,
-                                    N_ss=self._params.trot_N_ss,
-                                    N_uss=self._params.trot_N_uss,
-                                    N_uds=self._params.trot_N_uds,
-                                    stepHeight=self._stepHeight,
-                                    startPhase=False,
-                                    endPhase=False))
+            gait_generator.trot(contacts=[self._gait_manager.cs0, self._gait_manager.cs1],
+                                N_ds=self._params.trot_N_ds,
+                                N_ss=self._params.trot_N_ss,
+                                N_uss=self._params.trot_N_uss,
+                                N_uds=self._params.trot_N_uds,
+                                stepHeight=self._stepHeight,
+                                startPhase=False,
+                                endPhase=False))
 
         self._walk_cs.updateSwitches()
         self._trot_cs.updateSwitches()
@@ -385,6 +384,7 @@ class FootStepManager:
             - (int) : 0 : default , 1 : walking , 2 : trotting
         """
         self._gait_manager.set_next_gait(cmd)
+
 
 if __name__ == "__main__":
     """ Run a simple example of the FootStepManager wrapper.

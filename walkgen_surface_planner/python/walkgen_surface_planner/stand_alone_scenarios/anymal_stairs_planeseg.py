@@ -34,7 +34,7 @@ import matplotlib.pyplot as plt
 try:
     from time import perf_counter as clock
 except ImportError:
-    from time import time as clock 
+    from time import time as clock
 
 import sl1m.tools.plot_tools as plot
 
@@ -114,8 +114,8 @@ current_contacts[2, :] = h_init
 timings = [3]
 gait = []
 for k in range(15):
-    gait.append([0,1,0,1])
-    gait.append([1,0,1,0])
+    gait.append([0, 1, 0, 1])
+    gait.append([1, 0, 1, 0])
     timings.append(0.3)
     timings.append(0.3)
 
@@ -124,8 +124,6 @@ t0 = clock()
 selected_surfaces = surface_planner.run(q[:7], np.array(gait), timings, bvref, current_contacts)
 t1 = clock()
 print("Run MIP [ms]", 1000. * (t1 - t0))
-
-
 
 # Plot SL1M results
 fig = plt.figure(figsize=(10, 6))

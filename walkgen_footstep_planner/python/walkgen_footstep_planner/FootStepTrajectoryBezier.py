@@ -36,7 +36,6 @@ from walkgen_footstep_planner.params import FootStepPlannerParams
 
 
 class FootStepTrajectoryBezier():
-
     def __init__(self, dt, N, stepHeight, M_current, M_next, params=None):
         if params is not None:
             self._params = copy.deepcopy(params)
