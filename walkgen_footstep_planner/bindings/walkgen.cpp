@@ -4,6 +4,7 @@
 #include "FootStepPlanner.hpp"
 #include "FootTrajectoryBezier.hpp"
 #include "FootTrajectoryWrapper.hpp"
+#include "FootTrajectoryPolynomial.hpp"
 #include "GaitManager.hpp"
 #include "Params.hpp"
 #include "Surface.hpp"
@@ -114,6 +115,20 @@ void exposeBezierWrapper() {
       .def("get_curve", &FootTrajectoryWrapper::get_curve, bp::return_value_policy<bp::return_by_value>())
       .def("__copy__", &generic__copy__<FootTrajectoryWrapper>)
       .def("__deepcopy__", &generic__deepcopy__<FootTrajectoryWrapper>);
+}
+
+// Expose the FootTrajectoryPolynomial class to Python
+void exposeFootTrajectoryPolynomial() {
+  bp::register_ptr_to_python<std::shared_ptr<FootTrajectoryPolynomial>>();
+  bp::class_<FootTrajectoryPolynomial>(
+      "FootTrajectoryPolynomial",
+      bp::init<double, int, double, pinocchio::SE3, pinocchio::SE3>(
+          bp::args("dt", "N", "step_height", "M_current", "M_next"), "Constructor for parameter to laod the yaml."))
+      .def("position", &FootTrajectoryPolynomial::position, bp::args("k"))
+      .def("velocity", &FootTrajectoryPolynomial::velocity, bp::args("k"))
+      .def("update", &FootTrajectoryPolynomial::update, bp::args("x0", "v0", "xf", "t0"))
+      .def("__copy__", &generic__copy__<FootTrajectoryPolynomial>)
+      .def("__deepcopy__", &generic__deepcopy__<FootTrajectoryPolynomial>);
 }
 
 void exposeQuadrupedalGait() {
@@ -406,6 +421,7 @@ BOOST_PYTHON_MODULE(libwalkgen_footstep_planner_pywrap) {
 
   exposeFootTrajectoryBezier();
   exposeBezierWrapper();
+  exposeFootTrajectoryPolynomial();
   exposeSurface();
   exposeParams();
   exposeContactType();
