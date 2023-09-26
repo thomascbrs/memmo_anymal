@@ -24,10 +24,15 @@ class FootTrajectoryPolynomial {
                           double const &t0, double const &t1);
   void updatePolyCoeff_Z(Vector3 const &x_init, Vector3 const &x_target, double const &t1, double const &h);
 
+  // Operator ==, necessary to register a list
+  bool operator==(const FootTrajectoryPolynomial &other) const {
+    return Ax == other.Ax && Ay == other.Ay && Az == other.Az && N_ == other.N_ && dt_ == other.dt_;
+  }
 
   pinocchio::SE3 position(int k);
   pinocchio::Motion velocity(int k);
   void update(const Vector3 &x0, const Vector3 &v0, const Vector3 &xf, double t0);
+  double getT0() { return t0_; };
 
  private:
   Vector6 Ax;  ///< Coefficients for the X component
@@ -37,6 +42,7 @@ class FootTrajectoryPolynomial {
   double dt_;
   int N_;
   double step_height_;
+  double t0_;
   pinocchio::SE3 M_current_;
   pinocchio::SE3 M_next_;
   pinocchio::SE3 M_tmp_;

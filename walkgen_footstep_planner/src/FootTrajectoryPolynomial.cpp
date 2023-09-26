@@ -7,6 +7,7 @@ FootTrajectoryPolynomial::FootTrajectoryPolynomial(const FootTrajectoryPolynomia
       dt_(other.dt_),
       N_(other.N_),
       step_height_(other.step_height_),
+      t0_(0.),
       M_current_(other.M_current_),
       M_next_(other.M_next_),
       M_tmp_(pinocchio::SE3::Identity()),
@@ -21,6 +22,7 @@ FootTrajectoryPolynomial::FootTrajectoryPolynomial(double dt, int N, double step
       dt_(dt),
       N_(N),
       step_height_(step_height),
+      t0_(0.),
       M_current_(M_current),
       M_next_(M_next),
       M_tmp_(pinocchio::SE3::Identity()),
@@ -56,6 +58,7 @@ pinocchio::Motion FootTrajectoryPolynomial::velocity(int k) {
 
 void FootTrajectoryPolynomial::update(const Vector3 &x0, const Vector3 &v0, const Vector3 &xf, double t0) {
   // v0 : not being used.
+  t0_ = t0;
   if (t0 < 10e-4) {
     double height_ = std::max(x0(2), xf(2));
     // Update Z coefficients only at the beginning of the flying phase
