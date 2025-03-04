@@ -325,7 +325,7 @@ class SurfacePlanner():
         # [0,1,1,1]        0.70   -
         while gait[id % gait.shape[0], foot] != 0:
             # if np.any(1 - gait[id % gait.shape[0], :]): # not taking into account [1,1,1,1]
-            t_stance += timings[id + 1]
+            t_stance += timings[(id + 1) % gait.shape[0]]
             id += 1
         return t_stance
 
