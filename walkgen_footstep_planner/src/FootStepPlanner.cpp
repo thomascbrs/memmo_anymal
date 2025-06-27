@@ -78,6 +78,7 @@ void FootStepPlanner::initialize(const Eigen::VectorXd &q) {
   horizon_ = params_.horizon;
   dt_ = params_.dt;
   counter_gait_ = 0;
+  early_termination_ratio_ = params_.early_termination_ratio;
 
   double dx = 0.5;
   double dy = 0.5;
@@ -272,7 +273,7 @@ MatrixN FootStepPlanner::update_position(std::vector<std::shared_ptr<ContactSche
                 // moving average estimator. Hence, keeping initial position.
                 fsteps_optim.head<2>() = P0.col(static_cast<Eigen::Index>(j)).head<2>();
               }
-              if (t0 <= static_cast<double>(inactive_phase->T_) * 0.7) {
+              if (t0 <= static_cast<double>(inactive_phase->T_) * early_termination_ratio_) {
                 inactive_phase->trajectory_->update(P0.col(static_cast<Eigen::Index>(j)),
                                                     V0.col(static_cast<Eigen::Index>(j)), fsteps_optim, t0 * cs.dt_,
                                                     sf_, previous_sf);

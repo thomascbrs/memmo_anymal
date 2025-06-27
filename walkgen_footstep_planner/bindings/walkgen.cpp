@@ -248,6 +248,7 @@ void exposeParams() {
       .def_readwrite("N_sample", &Params::N_sample, "Number of samples for the Bezier curves")
       .def_readwrite("N_sample_ineq", &Params::N_sample_ineq, "Number of samples for the inequality constraints")
       .def_readwrite("degree", &Params::degree, "Degree of the Bezier curves")
+      .def_readwrite("early_termination_ratio", &Params::early_termination_ratio, "Early termination of footstep position optimisation while foot in the air (0 to 1)")
       .def("__copy__", &generic__copy__<Params>)
       .def("__deepcopy__", &generic__deepcopy__<Params>);
 }

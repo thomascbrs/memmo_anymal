@@ -22,6 +22,7 @@ void Params::initialize_default() {
   N_sample = 10;
   N_sample_ineq = 8;
   degree = 7;
+  early_termination_ratio = 0.7;
   feet_names = {"LF_FOOT", "LH_FOOT", "RF_FOOT", "RH_FOOT"};
   feet_names_sl1m = {"LF_FOOT", "LH_FOOT", "RF_FOOT", "RH_FOOT"};
   shoulder_offsets.push_back({0.367, 0.2});
@@ -72,6 +73,7 @@ Params::Params(const Params &other) {
   this->N_sample = other.N_sample;
   this->N_sample_ineq = other.N_sample_ineq;
   this->degree = other.degree;
+  this->early_termination_ratio = other.early_termination_ratio;
 
   // Gait parametres for changing
   this->walk_N_ds = other.walk_N_ds;
@@ -159,6 +161,7 @@ void Params::parse_yaml_file(const std::string &filename) {
   assert_yaml_parsing(config["bezier"], filename, "z_margin_down");
   assert_yaml_parsing(config["bezier"], filename, "N_sample_ineq");
   assert_yaml_parsing(config["bezier"], filename, "degree");
+  assert_yaml_parsing(config["bezier"], filename, "early_termination_ratio");
 
   margin_up = config["bezier"]["margin_up"].as<double>();
   t_margin_up = config["bezier"]["t_margin_up"].as<double>();
@@ -169,4 +172,5 @@ void Params::parse_yaml_file(const std::string &filename) {
   N_sample = config["bezier"]["N_sample"].as<int>();
   N_sample_ineq = config["bezier"]["N_sample_ineq"].as<int>();
   degree = config["bezier"]["degree"].as<int>();
+  early_termination_ratio = config["bezier"]["early_termination_ratio"].as<double>();
 }

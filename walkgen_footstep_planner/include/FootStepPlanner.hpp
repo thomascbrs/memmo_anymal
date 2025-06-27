@@ -92,6 +92,7 @@ class FootStepPlanner {
   int horizon_;
   double dt_;
   int counter_gait_;
+  double early_termination_ratio_;
 
   // QP solver
   EiquadprogFast_status expected = EIQUADPROG_FAST_OPTIMAL;

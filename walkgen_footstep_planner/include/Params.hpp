@@ -51,6 +51,7 @@ class Params {
   int N_sample;
   int N_sample_ineq;
   int degree;
+  double early_termination_ratio;
 
   // Keeping default system for now.
   // Walk parameters
