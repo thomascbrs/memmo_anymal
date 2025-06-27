@@ -427,9 +427,10 @@ class SurfacePlanner():
         self.all_surfaces = dict()
         for key in all_surfaces.keys():
             try:
-                collision = convert_to_convexFcl(all_surfaces[key])
-                self.all_surfaces_collision[key] = collision
-                self.all_surfaces[key] = all_surfaces[key]
+                if len(all_surfaces[key]) > 2:
+                    collision = convert_to_convexFcl(all_surfaces[key])
+                    self.all_surfaces_collision[key] = collision
+                    self.all_surfaces[key] = all_surfaces[key]
             except:
                 print("Could not create Convex model of the surface. Skip this surfaces.")
 
