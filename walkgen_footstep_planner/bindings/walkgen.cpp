@@ -4,6 +4,7 @@
 #include "FootStepPlanner.hpp"
 #include "FootTrajectoryBezier.hpp"
 #include "FootTrajectoryWrapper.hpp"
+#include "FootTrajectoryPolynomial.hpp"
 #include "GaitManager.hpp"
 #include "Params.hpp"
 #include "Surface.hpp"
@@ -105,15 +106,40 @@ void exposeBezierWrapper() {
       "FootTrajectoryWrapper",
       bp::init<double, int, double, pinocchio::SE3, pinocchio::SE3, bp::optional<Params>>(
           bp::args("dt", "N", "step_height", "M_current", "M_next"), "Constructor for parameter to laod the yaml."))
+      // Enumerate the different Constructors with/without boolean.
+      .def(bp::init<double, int, double, pinocchio::SE3, pinocchio::SE3, bool>(
+          bp::args("dt", "N", "step_height", "M_current", "M_next", "bool"),
+          "Constructor for parameter to laod the yaml."))
+      .def(bp::init<double, int, double, pinocchio::SE3, pinocchio::SE3, Params, bool>(
+          bp::args("dt", "N", "step_height", "M_current", "M_next", "Params", "bool"),
+          "Constructor for parameter to laod the yaml."))
       .def("position", &FootTrajectoryWrapper::position, bp::args("k"))
       .def("velocity", &FootTrajectoryWrapper::velocity, bp::args("k"))
-      .def("update", &FootTrajectoryWrapper::update, bp::args("x0", "v0", "xf", "t0", "init_surface", "end_surface"))
+      .def("update", &FootTrajectoryWrapper::update,
+           (bp::arg("x0"), bp::arg("v0"), bp::arg("xf"), bp::arg("t0"), bp::arg("init_surface") = Surface(),
+            bp::arg("end_surface")= Surface() ) )
       .def("get_coefficients", &FootTrajectoryWrapper::get_coefficients)
       .def("get_t0", &FootTrajectoryWrapper::getT0)
+      .add_property("USE_POLY", bp::make_function(&FootTrajectoryWrapper::getUsePoly,
+                                                  bp::return_value_policy<bp::return_by_value>()))
       .def_readwrite("flag", &FootTrajectoryWrapper::flag)
       .def("get_curve", &FootTrajectoryWrapper::get_curve, bp::return_value_policy<bp::return_by_value>())
       .def("__copy__", &generic__copy__<FootTrajectoryWrapper>)
       .def("__deepcopy__", &generic__deepcopy__<FootTrajectoryWrapper>);
+}
+
+// Expose the FootTrajectoryPolynomial class to Python
+void exposeFootTrajectoryPolynomial() {
+  bp::register_ptr_to_python<std::shared_ptr<FootTrajectoryPolynomial>>();
+  bp::class_<FootTrajectoryPolynomial>(
+      "FootTrajectoryPolynomial",
+      bp::init<double, int, double, pinocchio::SE3, pinocchio::SE3>(
+          bp::args("dt", "N", "step_height", "M_current", "M_next"), "Constructor for parameter to laod the yaml."))
+      .def("position", &FootTrajectoryPolynomial::position, bp::args("k"))
+      .def("velocity", &FootTrajectoryPolynomial::velocity, bp::args("k"))
+      .def("update", &FootTrajectoryPolynomial::update, bp::args("x0", "v0", "xf", "t0"))
+      .def("__copy__", &generic__copy__<FootTrajectoryPolynomial>)
+      .def("__deepcopy__", &generic__deepcopy__<FootTrajectoryPolynomial>);
 }
 
 void exposeQuadrupedalGait() {
@@ -222,6 +248,7 @@ void exposeParams() {
       .def_readwrite("N_sample", &Params::N_sample, "Number of samples for the Bezier curves")
       .def_readwrite("N_sample_ineq", &Params::N_sample_ineq, "Number of samples for the inequality constraints")
       .def_readwrite("degree", &Params::degree, "Degree of the Bezier curves")
+      .def_readwrite("early_termination_ratio", &Params::early_termination_ratio, "Early termination of footstep position optimisation while foot in the air (0 to 1)")
       .def("__copy__", &generic__copy__<Params>)
       .def("__deepcopy__", &generic__deepcopy__<Params>);
 }
@@ -404,9 +431,10 @@ void exposeFootStepPlanner() {
 BOOST_PYTHON_MODULE(libwalkgen_footstep_planner_pywrap) {
   eigenpy::enableEigenPy();
 
+  exposeSurface();
+  exposeFootTrajectoryPolynomial();
   exposeFootTrajectoryBezier();
   exposeBezierWrapper();
-  exposeSurface();
   exposeParams();
   exposeContactType();
   exposeContactPhase();

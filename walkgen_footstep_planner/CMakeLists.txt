@@ -50,6 +50,7 @@ set(${FOOTSTEP_PLANNER_NAME}_HEADERS
   include/ContactSchedule.hpp
   include/Params.hpp
   include/FootTrajectoryWrapper.hpp
+  include/FootTrajectoryPolynomial.hpp
   include/Gait.hpp
   include/GaitManager.hpp
   include/Filter.hpp
@@ -63,6 +64,7 @@ set(${FOOTSTEP_PLANNER_NAME}_SOURCES_CPP
   src/ContactSchedule.cpp
   src/Params.cpp
   src/FootTrajectoryWrapper.cpp
+  src/FootTrajectoryPolynomial.cpp
   src/Gait.cpp
   src/GaitManager.cpp
   src/FootStepPlanner.cpp
