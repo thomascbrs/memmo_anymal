@@ -38,6 +38,7 @@ class Params {
   int N_uds;
   int N_uss;
   int N_phase_return;
+  bool reactive_planning; // Set to True to use low-pass filter on the base or False for rigid estimation.
   std::vector<std::string> feet_names;
   std::vector<std::string> feet_names_sl1m;
   std::vector<std::vector<double>> shoulder_offsets;

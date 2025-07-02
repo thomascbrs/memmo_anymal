@@ -1,6 +1,9 @@
 walkgen_params:
   params:
     N_phase_return: 2 # Number of step to return (N_phase_return surfaces for each foot)
+    # Use reactive planning (base filtered with a low-pass filter) by setting to True,
+    # or use rigid planning (base estimator relies only on the commanded velocity) :
+    reactive_planning: true
 
   gait:
     type: "trot" # Only "walk" or "trot" working

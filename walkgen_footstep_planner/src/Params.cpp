@@ -13,6 +13,7 @@ void Params::initialize_default() {
   N_uds = 0;
   N_uss = 0;
   N_phase_return = 2;
+  reactive_planning = true;
   margin_up = 0.1;
   t_margin_up = 0.045;
   z_margin_up = 0.045;
@@ -61,6 +62,7 @@ Params::Params(const Params &other) {
   this->N_uds = other.N_uds;
   this->N_uss = other.N_uss;
   this->N_phase_return = other.N_phase_return;
+  this->reactive_planning = other.reactive_planning;
   this->feet_names = other.feet_names;
   this->feet_names_sl1m = other.feet_names_sl1m;
   this->shoulder_offsets = other.shoulder_offsets;
@@ -95,6 +97,9 @@ void Params::parse_yaml_file(const std::string &filename) {
 
   assert_yaml_parsing(config["params"], filename, "N_phase_return");
   N_phase_return = config["params"]["N_phase_return"].as<int>();
+
+  assert_yaml_parsing(config["params"], filename, "reactive_planning");
+  reactive_planning = config["params"]["reactive_planning"].as<bool>();
 
   // assert_yaml_parsing(config, filename, "gait");
   assert_yaml_parsing(config["gait"], filename, "type");

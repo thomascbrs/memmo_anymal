@@ -69,6 +69,7 @@ class FootStepPlanner {
   pinocchio::Data data_;
   FilterMean filter_q;
   FilterMean filter_v;
+  FilterIntegrator filter_q_int;
 
   std::vector<std::string> contactNames_;
   std::vector<std::string> contactNames_sl1m_;
@@ -93,6 +94,7 @@ class FootStepPlanner {
   double dt_;
   int counter_gait_;
   double early_termination_ratio_;
+  bool reactive_planning_;
 
   // QP solver
   EiquadprogFast_status expected = EIQUADPROG_FAST_OPTIMAL;

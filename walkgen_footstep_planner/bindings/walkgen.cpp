@@ -234,6 +234,8 @@ void exposeParams() {
       .def_readwrite("trot_N_uds", &Params::trot_N_uds, "Trotting Number of unloading double support phases")
       .def_readwrite("trot_N_uss", &Params::trot_N_uss, "Trotting Number of unloading single support phases")
 
+      .def_readwrite("reactive_planning", &Params::reactive_planning,
+                     "Set to True to use low-pass filter on the base or False for rigid estimation.")
       .def_readwrite("N_phase_return", &Params::N_phase_return,
                      "Number of phases for returning to the starting position")
       .def_readwrite("feet_names", &Params::feet_names, "List of the contact names.")

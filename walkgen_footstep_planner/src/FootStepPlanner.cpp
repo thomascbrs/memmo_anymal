@@ -15,6 +15,7 @@ FootStepPlanner::FootStepPlanner(const pinocchio::Model &model, const Eigen::Vec
   pinocchio::updateFramePlacements(model_, data_);
   filter_q = FilterMean(period_, static_cast<double>(params_.dt) * params_.nsteps);
   filter_v = FilterMean(period_, static_cast<double>(params_.dt) * params_.nsteps);
+  filter_q_int = FilterIntegrator(static_cast<double>(params_.dt), q.head<6>());
   initialize(q);
 }
 
@@ -25,6 +26,7 @@ FootStepPlanner::FootStepPlanner(const pinocchio::Model &model, const Eigen::Vec
   pinocchio::updateFramePlacements(model_, data_);
   filter_q = FilterMean(period_, static_cast<double>(params_.dt) * params_.nsteps);
   filter_v = FilterMean(period_, static_cast<double>(params_.dt) * params_.nsteps);
+  filter_q_int = FilterIntegrator(static_cast<double>(params_.dt), q.head<6>());
   initialize(q);
 }
 
@@ -79,6 +81,7 @@ void FootStepPlanner::initialize(const Eigen::VectorXd &q) {
   dt_ = params_.dt;
   counter_gait_ = 0;
   early_termination_ratio_ = params_.early_termination_ratio;
+  reactive_planning_ = params_.reactive_planning;
 
   double dx = 0.5;
   double dy = 0.5;
@@ -155,8 +158,20 @@ MatrixN FootStepPlanner::compute_footstep(std::vector<std::shared_ptr<ContactSch
   q_filter_tmp.tail<3>() =
       pinocchio::rpy::matrixToRpy(pinocchio::SE3::Quaternion(q(6), q(3), q(4), q(5)).toRotationMatrix());
 
-  qf_ = filter_q.filter(q_filter_tmp);
-  qvf_ = filter_v.filter(vq.head<6>());
+  if (reactive_planning_){
+    std::cout << "INSIDE TJE FSTEP PLANNER : REACTIVE OK" << std::endl;
+    qf_ = filter_q.filter(q_filter_tmp);
+    qvf_ = filter_v.filter(vq.head<6>());
+  }
+  else{
+    std::cout << "INSIDE TJE FSTEP PLANNER : REACTIVE OFF" << std::endl;
+    // Rigid estimator based only on desired velocity.
+    qf_ = filter_q_int.filter(bvref);
+    Eigen::VectorXd qvf_ = Eigen::VectorXd::Zero(6);
+    qvf_(0) = bvref(0);
+    qvf_(1) = bvref(1);
+    qvf_(5) = bvref(5);
+  }  
 
   return update_position(queue_cs, qf_, qvf_, bvref, timeline, selected_surfaces);
 }
