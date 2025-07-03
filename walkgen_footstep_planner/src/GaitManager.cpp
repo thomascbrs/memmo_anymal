@@ -332,7 +332,7 @@ MatrixN_int GaitManager::compute_gait(int timeline) {
 
   // Get next Cs without copying it
   std::map<int, std::vector<int>> nxt_switch = get_next_switch();
-  print_switches(nxt_switch);
+  // print_switches(nxt_switch);
 
   // We use here the switches as defined in ContactSchedule, a bit different.
   size_t index = 0;

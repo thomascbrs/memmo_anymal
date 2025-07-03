@@ -159,12 +159,10 @@ MatrixN FootStepPlanner::compute_footstep(std::vector<std::shared_ptr<ContactSch
       pinocchio::rpy::matrixToRpy(pinocchio::SE3::Quaternion(q(6), q(3), q(4), q(5)).toRotationMatrix());
 
   if (reactive_planning_){
-    std::cout << "INSIDE TJE FSTEP PLANNER : REACTIVE OK" << std::endl;
     qf_ = filter_q.filter(q_filter_tmp);
     qvf_ = filter_v.filter(vq.head<6>());
   }
   else{
-    std::cout << "INSIDE TJE FSTEP PLANNER : REACTIVE OFF" << std::endl;
     // Rigid estimator based only on desired velocity.
     qf_ = filter_q_int.filter(bvref);
     Eigen::VectorXd qvf_ = Eigen::VectorXd::Zero(6);
