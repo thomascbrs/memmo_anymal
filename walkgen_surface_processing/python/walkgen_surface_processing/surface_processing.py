@@ -88,7 +88,11 @@ class SurfaceProcessing:
         self._clearmap = False  # Boolean to remove the some of the ground surfaces.
 
     def min_height(self, surfaces):
-        arr = np.array(surfaces)   
+        try:
+            return min(point[2] for surf in surfaces for point in surf)
+        except Exception as e:
+            print(e)
+            print(surfaces)
         z_values = arr[..., 2]     
         return np.min(z_values)
 
@@ -116,16 +120,16 @@ class SurfaceProcessing:
 
 
         # floor height is reduced if other obstacles are lower
-        min_h = self.min_height(surface_reduced)
-        if (min_h < self._initial_height):
-            print("WARNING: floor is too high, change _initial_height parameter (min height of obstacle, initial_height).", min_h, self._initial_height)
-        min_h = min(min_h-0.001, self._initial_height)
+        # ~ min_h = self.min_height(surface_reduced)
+        # ~ if (min_h < self._initial_height):
+            # ~ print("WARNING: floor is too high, change _initial_height parameter (min height of obstacle, initial_height).", min_h, self._initial_height)
+        # ~ min_h = min(min_h, self._initial_height)
         # Add floor around robot position.
-        vertices = np.array([[position[0] - self._dx, position[1] + self._dy, min_h],
-                             [position[0] - self._dx, position[1] - self._dy, min_h],
-                             [position[0] + self._dx, position[1] - self._dy, min_h],
-                             [position[0] + self._dx, position[1] + self._dy, min_h]])
-        surface_reduced.append(vertices)
+        # ~ vertices = np.array([[position[0] - self._dx, position[1] + self._dy, min_h],
+                             # ~ [position[0] - self._dx, position[1] - self._dy, min_h],
+                             # ~ [position[0] + self._dx, position[1] - self._dy, min_h],
+                             # ~ [position[0] + self._dx, position[1] + self._dy, min_h]])
+        # ~ surface_reduced.append(vertices)
 
         # Apply process to filter and decompose the surfaces to avoid overlap and apply a security margin.
         surfaces_processed = process_surfaces(surface_reduced,
