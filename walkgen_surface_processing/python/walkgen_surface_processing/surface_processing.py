@@ -117,19 +117,21 @@ class SurfaceProcessing:
 
         # Sort, remove duplicates and reduce the number of points.
         surface_reduced = reduce_surfaces(surface_list, self._n_points)
+        if (len(surface_reduced) == 0):
+            print("NO SURFACE DETECTED, ADDING FLOOR")
 
 
-        # floor height is reduced if other obstacles are lower
-        # ~ min_h = self.min_height(surface_reduced)
-        # ~ if (min_h < self._initial_height):
+            # floor height is reduced if other obstacles are lower
+            # ~ min_h = self.min_height(surface_reduced)
+            # ~ if (min_h < self._initial_height):
             # ~ print("WARNING: floor is too high, change _initial_height parameter (min height of obstacle, initial_height).", min_h, self._initial_height)
-        # ~ min_h = min(min_h, self._initial_height)
-        # Add floor around robot position.
-        # ~ vertices = np.array([[position[0] - self._dx, position[1] + self._dy, min_h],
-                             # ~ [position[0] - self._dx, position[1] - self._dy, min_h],
-                             # ~ [position[0] + self._dx, position[1] - self._dy, min_h],
-                             # ~ [position[0] + self._dx, position[1] + self._dy, min_h]])
-        # ~ surface_reduced.append(vertices)
+            # ~ min_h = min(min_h, self._initial_height)
+            # Add floor around robot position.
+            vertices = np.array([[position[0] - self._dx, position[1] + self._dy, self._initial_height],
+                             [position[0] - self._dx, position[1] - self._dy, self._initial_height],
+                             [position[0] + self._dx, position[1] - self._dy, self._initial_height],
+                             [position[0] + self._dx, position[1] + self._dy, self._initial_height]])
+            surface_reduced.append(vertices)
 
         # Apply process to filter and decompose the surfaces to avoid overlap and apply a security margin.
         surfaces_processed = process_surfaces(surface_reduced,
