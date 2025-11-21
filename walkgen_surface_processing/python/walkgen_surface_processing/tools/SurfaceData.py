@@ -108,7 +108,7 @@ class SurfaceData():
         Returns:
             - float: Mean height.
         """
-        return np.mean([vt[2] for vt in vertices])
+        return np.min([vt[2] for vt in vertices])
 
     def _compute_normal(self, vertices):
         """ Compute normal of a surface.
