@@ -223,8 +223,8 @@ def process_surfaces(surfacesIn,
         surfaces.pop(id_)
 
     # Add last surface remaining
-    if len(new_surfaces) > 0:
-        new_surfaces.append(surfaces[0].get_vertices_inner())
+    # if len(new_surfaces) > 0:
+    new_surfaces.append(surfaces[0].get_vertices_inner())
     return new_surfaces
 
 
@@ -425,6 +425,28 @@ def order(points):
     output.pop(0)
     return [points[int(elt)].tolist() for elt in output]
 
+# import visvalingamwyatt as vw
+# def remove_duplicates(points, threshold=0.02):
 
-def remove_duplicates(points):
-    return np.unique(points, axis=0)
+#     """ Decimate the number of point using visvalingamwyatt algorithm.
+#     """
+#     # points = [[point.x, point.y] for point in hole.points ]
+#     simplifier = vw.Simplifier(points)
+#     points_filtered = simplifier.simplify(threshold=threshold)
+#     return np.array(points_filtered)
+
+def remove_duplicates(points, threshold=0.02):
+    filtered = []
+    points = np.asarray(points)
+
+    for p in points:
+        if len(filtered) == 0:
+            filtered.append(p)
+            continue
+
+        # distance to all previously kept points
+        d = np.linalg.norm(np.array(filtered) - p, axis=1)
+
+        if np.all(d > threshold):
+            filtered.append(p)
+    return np.array(filtered)

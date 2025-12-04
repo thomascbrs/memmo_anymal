@@ -46,6 +46,7 @@ from .libwalkgen_surface_planner_pywrap import TerrainSlope, StdVec_MatrixXd
 
 from sl1m.problem_definition import Problem
 from sl1m.generic_solver import solve_MIP
+from sl1m.solver import Solvers
 
 # --------------------------------- PROBLEM DEFINITION ----------------------------------------------------
 paths = [
@@ -604,7 +605,16 @@ class SurfacePlanner():
 
         # Solve MIP
         t0 = clock()
-        self.pb_data = solve_MIP(self.pb, costs=costs, com=self._com)
+        import traceback
+
+        try:
+            self.pb_data = solve_MIP(self.pb, costs=costs, com=self._com, solver=Solvers.GUROBI)
+        except Exception as e:
+            print("Error while solving MIP:", e)
+            traceback.print_exc()
+            print("Skipping this MIP")
+            return self._selected_surfaces
+
         t1 = clock()
         if self._RECORDING:
             self.profiler["timing_MIP"] = t1 - t0
